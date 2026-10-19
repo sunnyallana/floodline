@@ -52,6 +52,20 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--layers", help="optional CSV keyed by h3 with satellite_water_fraction and reach_minutes")
     f.add_argument("--out", default="hexes", help="output stem under results/")
 
+    sat = sub.add_parser("satellite", help="Copernicus EMS flood extent -> satellite_water_fraction per H3 hex")
+    sat.add_argument("ems_source", help="EMS vector package directory, or one observedEventA file")
+    sat.add_argument("--out", default="satellite_layer.csv")
+
+    rc = sub.add_parser("reach", help="OSM travel time from staging points to each hex in a layer CSV")
+    rc.add_argument("cells_csv", help="CSV with an h3 column (e.g. results/satellite_layer.csv)")
+    rc.add_argument("--staging", nargs="+", required=True, help="lat,lon pairs, e.g. 24.86,67.00")
+    rc.add_argument("--out", default="reach_layer.csv")
+
+    sv = sub.add_parser("serve", help="GeoJSON + MapLibre page for a ranked hex CSV")
+    sv.add_argument("hexes_csv")
+    sv.add_argument("--title", required=True)
+    sv.add_argument("--subtitle", default="")
+
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
     o.add_argument("--out")
@@ -108,6 +122,28 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import fuse
 
             fuse.run(paths, Path(args.reports), Path(args.layers) if args.layers else None, out_stem=args.out)
+        elif args.command == "satellite":
+            from pathlib import Path
+
+            from floodline.stages import satellite
+
+            satellite.run(paths, Path(args.ems_source), out_name=args.out)
+        elif args.command == "reach":
+            from pathlib import Path
+
+            import pandas as pd
+
+            from floodline.stages import reach
+
+            cells = pd.read_csv(Path(args.cells_csv)).h3.dropna().astype(str).tolist()
+            staging = [tuple(float(x) for x in s.split(",")) for s in args.staging]
+            reach.run(paths, cells, staging, out_name=args.out)
+        elif args.command == "serve":
+            from pathlib import Path
+
+            from floodline.stages import serve
+
+            serve.run(paths, Path(args.hexes_csv), title=args.title, subtitle=args.subtitle)
         elif args.command == "overlay":
             from pathlib import Path
 

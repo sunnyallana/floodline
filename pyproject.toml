@@ -38,6 +38,8 @@ geo = [
     "rasterio>=1.4",
     "rioxarray>=0.17",
     "pystac-client>=0.8",
+    "networkx>=3.2",
+    "osmnx>=2.0",
 ]
 dev = [
     "pytest>=8",
@@ -67,6 +69,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # en dashes in prose strings are intent
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
 "src/floodline/reading_rules.py" = ["E501"]  # regex tables read better on one line
+"src/floodline/stages/serve.py" = ["E501"]  # embedded HTML/JS template
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
