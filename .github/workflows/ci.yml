@@ -17,8 +17,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install (base + dev only; model and geo extras are not needed for unit tests)
-        run: pip install -e ".[dev]"
+      - name: Install (base + dev + geo; model extras are not needed for unit tests)
+        run: pip install -e ".[dev,geo]"
       - name: Lint
         run: ruff check .
       - name: Format check

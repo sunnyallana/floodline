@@ -1,0 +1,22 @@
+{
+ "stage": "fuse",
+ "params": {
+  "reports": "results\\synthetic_reports.csv",
+  "layers": "None",
+  "resolution": 8
+ },
+ "metrics": {
+  "reports": 60,
+  "hexes": 24
+ },
+ "started_at": "2026-10-19T19:49:31+00:00",
+ "finished_at": "2026-10-19T19:49:35+00:00",
+ "seconds": 0.7,
+ "git_sha": "dd32a06",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

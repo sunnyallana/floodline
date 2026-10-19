@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Floodline · Synthetic smoke test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+ html,body,#map{height:100%;margin:0} .panel{position:absolute;top:10px;left:10px;background:#fff;padding:10px 12px;font:13px system-ui;border-radius:6px;max-width:320px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+ .legend span{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:-2px}
+</style></head><body>
+<div id="map"></div>
+<div class="panel"><b>Floodline</b> · Synthetic smoke test<br><small>60 random reports around Karachi; not real data</small>
+<div class="legend" style="margin-top:6px">priority <span style="background:#ffffb2"></span>low <span style="background:#fd8d3c"></span>mid <span style="background:#bd0026"></span>high</div>
+<div id="info" style="margin-top:6px;color:#444">click a hex</div></div>
+<script>
+const map = new maplibregl.Map({container:'map', style:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', center:[67.00050226396728,24.857851882901702], zoom:11});
+map.on('load', () => {
+  map.addSource('hexes', {type:'geojson', data:'hexes.geojson'});
+  map.addLayer({id:'hex-fill', type:'fill', source:'hexes', paint:{
+    'fill-color':['interpolate',['linear'],['get','priority'],0,'#ffffb2',0.5,'#fd8d3c',1,'#bd0026'],
+    'fill-opacity':['interpolate',['linear'],['get','confidence'],0,0.25,1,0.8]}});
+  map.addLayer({id:'hex-line', type:'line', source:'hexes', paint:{'line-color':'#555','line-width':0.5}});
+  map.on('click','hex-fill', e => {
+    const p = e.features[0].properties;
+    document.getElementById('info').innerHTML =
+      `priority <b>${(+p.priority).toFixed(2)}</b> · confidence ${(+p.confidence).toFixed(2)}<br>` +
+      `reports ${p.n_reports} · max severity ${p.severity_max ?? '–'}<br>` +
+      `people in water ${p.people_in_water ?? 0} · elevated ${p.people_elevated ?? 0}<br>` +
+      `satellite water ${p.satellite_water_fraction ?? '–'} · reach ${p.reach_minutes ?? '–'} min`;
+  });
+});
+</script></body></html>

@@ -1,11 +1,11 @@
 import json
 
-import networkx as nx
 import pandas as pd
 import pytest
 
 h3 = pytest.importorskip("h3")
 shapely = pytest.importorskip("shapely")
+nx = pytest.importorskip("networkx")
 from shapely.geometry import Polygon, box  # noqa: E402
 
 from floodline.stages.reach import ensure_travel_time, travel_minutes  # noqa: E402
