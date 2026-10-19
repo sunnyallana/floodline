@@ -21,6 +21,18 @@ REFERENCE_HEIGHTS_CM: dict[str, tuple[float, float]] = {
     "window": (90, 110),  # sill height above ground, typical ground floor
     "rickshaw": (165, 185),
     "bus": (300, 340),
+    "building_ground_floor": (280, 320),  # ground floor height, pavement to first-floor slab
+}
+
+# What a VLM can judge reliably: how far up an object the water reaches, as a coarse fraction of its height.
+LEVEL_FRACTION: dict[str, float | None] = {
+    "not_touching": 0.0,
+    "base": 0.1,
+    "quarter": 0.25,
+    "half": 0.5,
+    "three_quarters": 0.75,
+    "top": 1.0,
+    "above": None,  # water above the whole object: depth is at least the object's height
 }
 
 DEPTH_BINS_CM = [
@@ -28,8 +40,8 @@ DEPTH_BINS_CM = [
     ("ankle", 2, 20),
     ("knee", 20, 50),
     ("waist", 50, 100),
-    ("chest", 100, 150),
-    ("above_head", 150, 10_000),
+    ("chest", 100, 160),
+    ("above_head", 160, 10_000),
 ]
 
 
@@ -79,6 +91,17 @@ def bin_depth(depth_cm: float) -> str:
         if lo <= depth_cm < hi:
             return name
     return DEPTH_BINS_CM[-1][0]
+
+
+def estimate_from_level(object_class: str, level: str) -> DepthEstimate | None:
+    """Depth from a (reference object, water level) pair as reported by the VLM. ``None`` when nothing is usable."""
+    if object_class not in REFERENCE_HEIGHTS_CM or level not in LEVEL_FRACTION:
+        return None
+    frac = LEVEL_FRACTION[level]
+    lo, hi = REFERENCE_HEIGHTS_CM[object_class]
+    if frac is None:  # above the object: at least its full height, upper bound unknown
+        return DepthEstimate(object_class, 1.0, hi, DEPTH_BINS_CM[-1][1] + 1)
+    return DepthEstimate(object_class, frac, lo * frac, hi * frac)
 
 
 def combine(estimates: list[DepthEstimate]) -> dict:

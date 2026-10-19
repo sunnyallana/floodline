@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from floodline.resume import CsvStore, JsonlStore
 from floodline.schema import PhotoAssessment
-from floodline.stages.assess import parse_assessment, summarise
+from floodline.stages.assess import derive_depth, parse_assessment, summarise
 
 
 def test_schema_puts_rationale_first():
@@ -16,21 +16,22 @@ def test_schema_puts_rationale_first():
 def test_parse_assessment_tolerates_wrapping_text():
     raw = (
         'Sure: {"rationale": "a person in water to the knees", "is_flood_scene": true, '
-        '"depth_class": "knee", "confidence": 0.9}'
+        '"reference_object": "person", "water_level": "quarter", "confidence": 0.9}'
     )
     a = parse_assessment(raw)
-    assert a.depth_class == "knee" and a.people_visible == 0
+    assert a.reference_object == "person" and a.people_visible == 0
+    assert derive_depth(a).depth_class == "knee"
 
 
 def test_parse_assessment_rejects_bad_values():
     with pytest.raises(ValidationError):
-        parse_assessment('{"rationale": "x", "is_flood_scene": true, "depth_class": "deep", "confidence": 0.5}')
+        parse_assessment('{"rationale": "x", "is_flood_scene": true, "water_level": "deep", "confidence": 0.5}')
     with pytest.raises(ValueError):
         parse_assessment("no json here")
 
 
 def test_summarise_counts_failures():
-    recs = [{"assessment": {"depth_class": "knee"}, "latency_s": 10}, {"error": "boom", "latency_s": 12}]
+    recs = [{"assessment": {}, "depth": {"depth_class": "knee"}, "latency_s": 10}, {"error": "boom", "latency_s": 12}]
     s = summarise(recs)
     assert s["images"] == 2 and s["valid_json"] == 1 and s["failure_rate"] == 0.5
     assert s["depth_class_counts"] == {"knee": 1}
@@ -64,3 +65,31 @@ def test_manifest_serialises(tmp_path):
     data = json.loads(out.read_text())
     assert data["stage"] == "unit" and data["metrics"] == {"n": 2} and data["seconds"] is not None
     assert "_t0" not in data
+
+
+@pytest.mark.parametrize(
+    "obj,level,expected",
+    [
+        ("person", "not_touching", "dry"),
+        ("person", "base", "ankle"),
+        ("person", "quarter", "knee"),
+        ("person", "half", "waist"),
+        ("person", "three_quarters", "chest"),
+        ("person", "above", "above_head"),
+        ("car", "half", "waist"),
+        ("door", "half", "chest"),
+        ("building_ground_floor", "half", "chest"),
+        ("building_ground_floor", "three_quarters", "above_head"),
+        ("none", "half", "unknown"),
+    ],
+)
+def test_derive_depth_from_reference_and_level(obj, level, expected):
+    a = PhotoAssessment(rationale="r", is_flood_scene=True, reference_object=obj, water_level=level, confidence=0.9)
+    assert derive_depth(a).depth_class == expected
+
+
+def test_aerial_views_are_unknown():
+    a = PhotoAssessment(
+        rationale="r", is_flood_scene=True, aerial_view=True, reference_object="car", water_level="top", confidence=0.3
+    )
+    assert derive_depth(a).depth_class == "unknown"
