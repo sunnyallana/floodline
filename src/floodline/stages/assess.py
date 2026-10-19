@@ -14,8 +14,8 @@ import pandas as pd
 from PIL import Image
 from pydantic import ValidationError
 
+from floodline import datasets
 from floodline.config import ModelIds, Paths, default_threads
-from floodline.cvfd import eval_split, load_index
 from floodline.depth import bin_depth, estimate_from_level
 from floodline.llama import LlamaServer, upscale
 from floodline.log import get_logger
@@ -81,6 +81,7 @@ def summarise(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 def run(
     paths: Paths,
+    dataset: str = "cvfd",
     model: str = ModelIds.vlm_gguf,
     mmproj: str = ModelIds.vlm_mmproj,
     limit: int | None = None,
@@ -90,7 +91,8 @@ def run(
     out: Path | None = None,
 ) -> dict[str, Any]:
     threads = threads or default_threads()
-    ev = eval_split(load_index(paths.cvfd_index), limit=limit)
+    ds = datasets.load(paths, dataset, limit=limit)
+    ev = ds.frame
     store = JsonlStore(out or paths.vlm_assessments)
     done = store.done()
     describe_schema = PhotoAssessment.model_json_schema()
@@ -123,7 +125,7 @@ def run(
             rec: dict[str, Any] = {"image_id": r.image_id, "model": model, "input_px": size}
             raw = None
             try:
-                image = upscale(Image.open(paths.cvfd / r.image_path).convert("RGB"), size)
+                image = upscale(Image.open(ds.image(r)).convert("RGB"), size)
                 raw, dt1 = server.chat_json(image, DESCRIBE_PROMPT, describe_schema)
                 assessment = parse_assessment(raw)
                 rec["assessment"] = assessment.model_dump()

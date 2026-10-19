@@ -21,6 +21,12 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="floodline", description=__doc__)
     p.add_argument("--version", action="version", version=f"floodline {__version__}")
     p.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
+    p.add_argument(
+        "--dataset",
+        default="cvfd",
+        choices=["cvfd", "euflood"],
+        help="image set for depth/segment/waterline/assess; non-default sets write to results/<dataset>/",
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("index", help="index the CVFD images and masks into data/cvfd_index.parquet")
@@ -86,7 +92,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     setup_logging(args.log_level)
-    paths = Paths().ensure()
+    paths = Paths(namespace="" if args.dataset == "cvfd" else args.dataset).ensure()
     try:
         if args.command == "index":
             from floodline.stages import index
@@ -105,19 +111,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "depth":
             from floodline.stages import depth_maps
 
-            depth_maps.run(paths, model=args.model, limit=args.limit, threads=args.threads)
+            depth_maps.run(paths, model=args.model, limit=args.limit, threads=args.threads, dataset=args.dataset)
         elif args.command == "segment":
             from floodline.stages import segment
 
             scores = segment.run(
-                paths, prompts=args.prompts, limit=args.limit, threshold=args.threshold, threads=args.threads
+                paths,
+                dataset=args.dataset,
+                prompts=args.prompts,
+                limit=args.limit,
+                threshold=args.threshold,
+                threads=args.threads,
             )
             for k, v in segment.summarise_scores(scores).items():
                 log.info("%-22s mean %.3f  median %.3f  n=%d", k, v["mean"], v["median"], v["n"])
         elif args.command == "waterline":
             from floodline.stages import waterline
 
-            waterline.run(paths, limit=args.limit)
+            waterline.run(paths, limit=args.limit, dataset=args.dataset)
         elif args.command == "fuse":
             from pathlib import Path
 
@@ -163,6 +174,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             assess.run(
                 paths,
+                dataset=args.dataset,
                 model=args.model,
                 mmproj=args.mmproj,
                 limit=args.limit,

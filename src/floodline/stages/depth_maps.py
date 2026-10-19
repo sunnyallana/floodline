@@ -9,31 +9,37 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from floodline import datasets
 from floodline.config import ModelIds, Paths, default_threads
-from floodline.cvfd import eval_split, load_index
 from floodline.log import get_logger
 from floodline.runs import RunManifest
 
 log = get_logger(__name__)
 
 
-def targets(paths: Paths, limit: int | None = None) -> pd.DataFrame:
+def targets(paths: Paths, limit: int | None = None, dataset: str = "cvfd") -> tuple[datasets.Dataset, pd.DataFrame]:
     """Eval images plus the depth-benchmark images, de-duplicated."""
-    ev = eval_split(load_index(paths.cvfd_index))[["image_id", "image_path"]]
-    frames = [ev]
-    if paths.depth_labels.exists():
+    ds = datasets.load(paths, dataset)
+    frames = [ds.frame[["image_id", "image_path"]]]
+    if dataset == "cvfd" and paths.depth_labels.exists():
         frames.append(pd.read_csv(paths.depth_labels, dtype=str)[["image_id", "image_path"]])
     df = pd.concat(frames).drop_duplicates("image_id").reset_index(drop=True)
-    return df.head(limit) if limit else df
+    return ds, (df.head(limit) if limit else df)
 
 
-def run(paths: Paths, model: str = ModelIds.depth, limit: int | None = None, threads: int | None = None) -> int:
+def run(
+    paths: Paths,
+    model: str = ModelIds.depth,
+    limit: int | None = None,
+    threads: int | None = None,
+    dataset: str = "cvfd",
+) -> int:
     import torch
     from transformers import pipeline
 
     threads = threads or default_threads()
     torch.set_num_threads(threads)
-    todo = targets(paths, limit)
+    ds, todo = targets(paths, limit, dataset)
     paths.depth_maps.mkdir(parents=True, exist_ok=True)
     manifest = RunManifest("depth", params={"model": model, "threads": threads, "device": "cpu", "targets": len(todo)})
 
@@ -43,7 +49,7 @@ def run(paths: Paths, model: str = ModelIds.depth, limit: int | None = None, thr
         out = paths.depth_maps / f"{r.image_id}.npz"
         if out.exists():
             continue
-        depth = pipe(Image.open(paths.cvfd / r.image_path).convert("RGB"))["predicted_depth"]
+        depth = pipe(Image.open(ds.image(r)).convert("RGB"))["predicted_depth"]
         np.savez_compressed(out, depth_m=np.asarray(depth, dtype=np.float16))
         new += 1
         if new % 50 == 0:

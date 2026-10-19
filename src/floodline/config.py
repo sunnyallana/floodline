@@ -18,6 +18,7 @@ class Paths:
     """Filesystem layout. ``root`` is the ``v2`` directory; raw CVFD lives one level up in ``../data/cvfd``."""
 
     root: Path = field(default_factory=lambda: Path(os.environ.get("FLOODLINE_ROOT", _DEFAULT_ROOT)))
+    namespace: str = ""  # results for a non-default dataset go to results/<namespace>/
 
     @property
     def cvfd(self) -> Path:
@@ -29,7 +30,7 @@ class Paths:
 
     @property
     def results(self) -> Path:
-        return self.root / "results"
+        return self.root / "results" / self.namespace if self.namespace else self.root / "results"
 
     @property
     def models(self) -> Path:

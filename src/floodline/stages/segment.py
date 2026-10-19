@@ -18,8 +18,9 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from floodline import datasets
 from floodline.config import SAM3_GROUND_TRUTH, SAM3_PROMPTS, ModelIds, Paths, default_threads
-from floodline.cvfd import eval_split, load_index
+from floodline.cvfd import load_index
 from floodline.log import get_logger
 from floodline.resume import CsvStore
 from floodline.runs import RunManifest
@@ -111,6 +112,7 @@ def _to_segmentation(masks: Any, size_hw: tuple[int, int]) -> Segmentation:
 
 def run(
     paths: Paths,
+    dataset: str = "cvfd",
     prompts: Sequence[str] = SAM3_PROMPTS,
     limit: int | None = None,
     threshold: float = 0.5,
@@ -121,7 +123,8 @@ def run(
 
     threads = threads or default_threads()
     torch.set_num_threads(threads)
-    ev = eval_split(load_index(paths.cvfd_index), limit=limit)
+    ds = datasets.load(paths, dataset, limit=limit)
+    ev = ds.frame
     paths.sam3_masks.mkdir(parents=True, exist_ok=True)
     store = CsvStore(paths.sam3_scores)
     done = store.done()
@@ -141,7 +144,7 @@ def run(
     for _, r in ev.iterrows():
         if r.image_id in done:
             continue
-        image = Image.open(paths.cvfd / r.image_path).convert("RGB")
+        image = Image.open(ds.image(r)).convert("RGB")
         rec: dict[str, Any] = {"image_id": r.image_id}
         for prompt in prompts:
             seg = sam.segment(image, prompt)
@@ -150,8 +153,8 @@ def run(
             rec[f"area_{prompt}"] = round(float(seg.union.mean()), 5)
             Image.fromarray(seg.labels).save(paths.sam3_masks / f"{r.image_id}__{prompt}.png")
             gt_col = SAM3_GROUND_TRUTH.get(prompt)
-            if gt_col and isinstance(r[gt_col], str):
-                gt = load_mask(paths.cvfd / r[gt_col], size=image.size)
+            if ds.has_masks and gt_col and isinstance(r.get(gt_col), str):
+                gt = load_mask(ds.root / r[gt_col], size=image.size)
                 rec.update({f"{prompt}_{k}": round(v, 5) for k, v in score_pair(seg.union, gt).items()})
         pending.append(rec)
         if len(pending) >= flush_every:

@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from floodline import datasets
 from floodline.config import Paths
-from floodline.cvfd import eval_split, load_index
 from floodline.depth import REFERENCE_HEIGHTS_CM, DepthEstimate, combine
 from floodline.geometry import silhouette, submerged_fraction_from_visible, touches_water, visible_fraction
 from floodline.log import get_logger
@@ -93,9 +93,13 @@ def read_image(paths: Paths, image_id: str, depth_map: np.ndarray | None) -> tup
     return readings, summary
 
 
-def run(paths: Paths, limit: int | None = None) -> pd.DataFrame:
-    ev = eval_split(load_index(paths.cvfd_index), limit=limit)
-    labels = pd.read_csv(paths.depth_labels, dtype=str).fillna("") if paths.depth_labels.exists() else None
+def run(paths: Paths, limit: int | None = None, dataset: str = "cvfd") -> pd.DataFrame:
+    ev = datasets.load(paths, dataset, limit=limit).frame
+    labels = (
+        pd.read_csv(paths.depth_labels, dtype=str).fillna("")
+        if dataset == "cvfd" and paths.depth_labels.exists()
+        else None
+    )
     manifest = RunManifest(
         "waterline", params={"references": REFERENCES, "method": "visible-fraction + depth-consistent touch"}
     )
