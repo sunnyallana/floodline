@@ -1,0 +1,35 @@
+{
+ "stage": "external",
+ "params": {
+  "dataset": "european-flood-2013",
+  "root": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\external\\eu-flood-2013"
+ },
+ "metrics": {
+  "records": 3435,
+  "with_image": 3435,
+  "located": 883,
+  "mappable": 883,
+  "mappable_depth_relevant": 343,
+  "h3_cells": 161,
+  "licences": {
+   "CC BY-SA 3.0": 2665,
+   "CC BY 3.0": 212,
+   "CC BY 2.0": 125,
+   "CC BY-SA 4.0": 122,
+   "CC BY-SA 2.0": 112,
+   "CC0": 56,
+   "CC BY-SA 3.0 de": 51,
+   "Public domain": 32
+  }
+ },
+ "started_at": "2026-10-19T21:34:24+00:00",
+ "finished_at": "2026-10-19T21:34:24+00:00",
+ "seconds": 0.5,
+ "git_sha": "c346307",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

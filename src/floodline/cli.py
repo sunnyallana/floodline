@@ -66,6 +66,8 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--title", required=True)
     sv.add_argument("--subtitle", default="")
 
+    sub.add_parser("external", help="index the European Flood 2013 geotagged set under data/external/")
+
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
     o.add_argument("--out")
@@ -144,6 +146,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import serve
 
             serve.run(paths, Path(args.hexes_csv), title=args.title, subtitle=args.subtitle)
+        elif args.command == "external":
+            from floodline.stages import external
+
+            external.run(paths)
         elif args.command == "overlay":
             from pathlib import Path
 
