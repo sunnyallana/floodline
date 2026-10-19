@@ -79,7 +79,7 @@ _LEVELS["rickshaw"] = _LEVELS["car"]
 _LEVELS["bus"] = _LEVELS["car"]
 
 _NON_REFERENCE = re.compile(
-    r"(pillars?|lamp ?posts?|poles?|trees?|trunks?|bushes|shrubs?|signs?|fences?|railings?|benches|bollards?)",
+    r"\b(pillars?|lamp ?posts?|poles?|trees?|trunks?|bushes|shrubs?|signs?|fences?|railings?|benches|bollards?)\b",
     re.I,
 )
 _DRY = re.compile(
