@@ -21,3 +21,6 @@ data/bundle/
 graphify-out/.graphify_*
 graphify-out/cache/
 data/cvfd/
+data/external/
+results/map/
+results/synthetic_*
