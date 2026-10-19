@@ -27,15 +27,15 @@
  },
  "metrics": {
   "images": 187,
-  "with_estimate": 84,
+  "with_estimate": 50,
   "benchmark": {
    "n": 0
   }
  },
- "started_at": "2026-10-19T19:06:20+00:00",
- "finished_at": "2026-10-19T19:06:34+00:00",
- "seconds": 14.0,
- "git_sha": "2c5770a",
+ "started_at": "2026-10-19T19:07:26+00:00",
+ "finished_at": "2026-10-19T19:07:29+00:00",
+ "seconds": 2.0,
+ "git_sha": "250e00b",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

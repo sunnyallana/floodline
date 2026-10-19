@@ -1,0 +1,31 @@
+{
+ "stage": "assess",
+ "params": {
+  "model": "Qwen3VL-8B-Instruct-Q8_0.gguf",
+  "mmproj": "mmproj-Qwen3VL-8B-Instruct-F16.gguf",
+  "threads": 10,
+  "input_px": 672,
+  "device": "cpu",
+  "prompt_sha": "76676ceaac24"
+ },
+ "metrics": {
+  "new_this_run": 6,
+  "images": 6,
+  "valid_json": 6,
+  "failure_rate": 0.0,
+  "median_latency_s": 77.66,
+  "depth_class_counts": {
+   "unknown": 6
+  }
+ },
+ "started_at": "2026-10-19T19:12:42+00:00",
+ "finished_at": "2026-10-19T19:20:57+00:00",
+ "seconds": 494.4,
+ "git_sha": "250e00b",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -30,9 +30,13 @@ def stratified_sample(flooded: pd.DataFrame, n: int, seed: int) -> pd.DataFrame:
     return pd.concat(parts).sample(frac=1, random_state=seed).reset_index(drop=True)
 
 
-def run(paths: Paths, n: int = 300, per_sheet: int = 12, seed: int = 0) -> int:
+def run(paths: Paths, n: int = 300, per_sheet: int = 12, seed: int = 0, split: str | None = "test") -> int:
+    """Sample from one split by default (the test split, so the benchmark images also have SAM 3 masks)."""
     index = load_index(paths.cvfd_index)
-    sample = stratified_sample(index[index.flooded == 1], n, seed)
+    flooded = index[index.flooded == 1]
+    if split:
+        flooded = flooded[flooded.split == split]
+    sample = stratified_sample(flooded, n, seed)
     paths.depth_sheets.mkdir(parents=True, exist_ok=True)
 
     rows = []

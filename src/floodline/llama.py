@@ -146,6 +146,29 @@ class LlamaServer:
         r.raise_for_status()
         return r.json()["choices"][0]["message"]["content"], time.monotonic() - t0
 
+    def text_json(
+        self, prompt: str, schema: dict[str, Any], max_tokens: int = 120, timeout_s: int = 300
+    ) -> tuple[str, float]:
+        """Text-only, grammar-constrained call. Used for the second pass, which reads the first pass's description."""
+        body = {
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": schema.get("title", "out"), "schema": schema},
+            },
+        }
+        t0 = time.monotonic()
+        r = requests.post(
+            f"{self.base_url}/v1/chat/completions",
+            data=json.dumps(body),
+            headers={"Content-Type": "application/json"},
+            timeout=timeout_s,
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"], time.monotonic() - t0
+
 
 def upscale(image: Image.Image, size: int) -> Image.Image:
     """Bicubic upscale of small sources so the vision encoder sees more than a thumbnail. No-op if already larger."""

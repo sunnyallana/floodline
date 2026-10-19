@@ -36,6 +36,7 @@ REFERENCES: dict[str, tuple[str, float]] = {
 }
 MIN_OBJECT_PIXELS = 40
 DEPTH_RATIO_TOLERANCE = 0.35  # object vs adjacent-water distance may differ by this fraction
+DRY_MAX_WATER_FRACTION = 0.15  # above this much water in frame, "no object in the water" is unknown, not dry
 
 
 @dataclass
@@ -93,11 +94,13 @@ def read_image(paths: Paths, image_id: str, depth_map: np.ndarray | None) -> tup
     usable = [r.estimate for r in readings if r.consistent and r.estimate is not None]
     touched = any(r.submerged_fraction > 0 for r in readings)
     summary = combine(usable)
+    water_fraction = float(water.mean())
     if not usable:
-        # objects present but none touching water -> dry; no objects at all -> unknown
-        summary["depth_bin"] = "dry" if readings and not touched else None
+        # Reference objects present but none in the water, and little water in frame -> dry at those objects.
+        # Lots of water but no object standing in it -> depth is unknown, not dry.
+        summary["depth_bin"] = "dry" if readings and not touched and water_fraction < DRY_MAX_WATER_FRACTION else None
     summary.update(
-        water_fraction=round(float(water.mean()), 4),
+        water_fraction=round(water_fraction, 4),
         n_objects=len(readings),
         n_consistent=sum(r.consistent for r in readings),
     )

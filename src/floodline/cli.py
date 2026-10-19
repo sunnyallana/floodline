@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--n", type=int, default=300)
     s.add_argument("--per-sheet", type=int, default=12)
     s.add_argument("--seed", type=int, default=0)
+    s.add_argument("--split", default="test", help="sample from one split; 'all' for every split")
 
     d = sub.add_parser("depth", help="metric depth maps with Depth Anything V2 (CPU)")
     d.add_argument("--model", default=ModelIds.depth)
@@ -71,7 +72,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "sheets":
             from floodline.stages import sheets
 
-            sheets.run(paths, n=args.n, per_sheet=args.per_sheet, seed=args.seed)
+            sheets.run(
+                paths,
+                n=args.n,
+                per_sheet=args.per_sheet,
+                seed=args.seed,
+                split=None if args.split == "all" else args.split,
+            )
         elif args.command == "depth":
             from floodline.stages import depth_maps
 

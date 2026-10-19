@@ -19,29 +19,38 @@ from floodline.cvfd import eval_split, load_index
 from floodline.depth import bin_depth, estimate_from_level
 from floodline.llama import LlamaServer, upscale
 from floodline.log import get_logger
+from floodline.reading_rules import read_from_text
 from floodline.resume import JsonlStore
 from floodline.runs import RunManifest
-from floodline.schema import EXTRACTION_PROMPT, DerivedDepth, PhotoAssessment
+from floodline.schema import DESCRIBE_PROMPT, READ_DEPTH_PROMPT, DepthReading, DerivedDepth, PhotoAssessment
 
 log = get_logger(__name__)
 _JSON_OBJECT = re.compile(r"\{.*\}", re.S)
 
 
-def parse_assessment(raw: str) -> PhotoAssessment:
+def _json_object(raw: str) -> str:
     m = _JSON_OBJECT.search(raw)
     if not m:
         raise ValueError("no JSON object in model output")
-    return PhotoAssessment.model_validate_json(m.group(0))
+    return m.group(0)
 
 
-def derive_depth(a: PhotoAssessment) -> DerivedDepth:
-    """Depth class from the (reference object, water level) pair. The model never emits a class itself."""
-    if a.aerial_view or a.reference_object == "none":
+def parse_assessment(raw: str) -> PhotoAssessment:
+    return PhotoAssessment.model_validate_json(_json_object(raw))
+
+
+def parse_reading(raw: str) -> DepthReading:
+    return DepthReading.model_validate_json(_json_object(raw))
+
+
+def derive_depth(a: PhotoAssessment, reading: DepthReading | None) -> DerivedDepth:
+    """Depth class from the pass-2 (reference object, water level) pair. The model never emits a class itself."""
+    if reading is None or a.aerial_view or reading.reference_object == "none":
         return DerivedDepth(depth_class="unknown")
-    est = estimate_from_level(a.reference_object, a.water_level)
+    est = estimate_from_level(reading.reference_object, reading.water_level)
     if est is None:
         return DerivedDepth(depth_class="unknown")
-    if a.water_level == "not_touching":
+    if reading.water_level == "not_touching":
         return DerivedDepth(depth_class="dry", depth_cm_low=0.0, depth_cm_high=0.0)
     return DerivedDepth(
         depth_class=bin_depth(est.depth_cm_mid),
@@ -84,7 +93,8 @@ def run(
     ev = eval_split(load_index(paths.cvfd_index), limit=limit)
     store = JsonlStore(out or paths.vlm_assessments)
     done = store.done()
-    schema = PhotoAssessment.model_json_schema()
+    describe_schema = PhotoAssessment.model_json_schema()
+    reading_schema = DepthReading.model_json_schema()
     manifest = RunManifest(
         "assess",
         params={
@@ -93,7 +103,8 @@ def run(
             "threads": threads,
             "input_px": size,
             "device": "cpu",
-            "prompt_sha": _sha(EXTRACTION_PROMPT),
+            "prompt_sha": _sha(DESCRIBE_PROMPT + READ_DEPTH_PROMPT),
+            "passes": 2,
         },
     )
     server = LlamaServer(
@@ -113,11 +124,25 @@ def run(
             raw = None
             try:
                 image = upscale(Image.open(paths.cvfd / r.image_path).convert("RGB"), size)
-                raw, dt = server.chat_json(image, EXTRACTION_PROMPT, schema)
-                rec["latency_s"] = round(dt, 2)
+                raw, dt1 = server.chat_json(image, DESCRIBE_PROMPT, describe_schema)
                 assessment = parse_assessment(raw)
                 rec["assessment"] = assessment.model_dump()
-                rec["depth"] = derive_depth(assessment).model_dump()
+                reading = None
+                dt2 = 0.0
+                if assessment.is_flood_scene and not assessment.aerial_view:
+                    ruled = read_from_text(assessment.rationale)
+                    if ruled is not None:
+                        reading = ruled.reading
+                        rec["reading_source"] = "rules"
+                    else:
+                        raw2, dt2 = server.text_json(READ_DEPTH_PROMPT + assessment.rationale, reading_schema)
+                        reading = parse_reading(raw2)
+                        rec["reading_source"] = "llm"
+                    rec["reading"] = reading.model_dump()
+                rec["latency_s"] = round(dt1 + dt2, 2)
+                rec["latency_pass1_s"] = round(dt1, 2)
+                rec["latency_pass2_s"] = round(dt2, 2)
+                rec["depth"] = derive_depth(assessment, reading).model_dump()
             except (ValueError, ValidationError, OSError) as e:
                 rec["error"] = f"{type(e).__name__}: {str(e)[:300]}"
                 rec["raw"] = raw

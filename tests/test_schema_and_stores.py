@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from floodline.resume import CsvStore, JsonlStore
-from floodline.schema import PhotoAssessment
+from floodline.schema import DepthReading, PhotoAssessment
 from floodline.stages.assess import derive_depth, parse_assessment, summarise
 
 
@@ -14,18 +14,16 @@ def test_schema_puts_rationale_first():
 
 
 def test_parse_assessment_tolerates_wrapping_text():
-    raw = (
-        'Sure: {"rationale": "a person in water to the knees", "is_flood_scene": true, '
-        '"reference_object": "person", "water_level": "quarter", "confidence": 0.9}'
-    )
+    raw = 'Sure: {"rationale": "a person in water to the knees", "is_flood_scene": true, "confidence": 0.9}'
     a = parse_assessment(raw)
-    assert a.reference_object == "person" and a.people_visible == 0
-    assert derive_depth(a).depth_class == "knee"
+    assert a.people_visible == 0 and not a.aerial_view
+    reading = DepthReading(reference_object="person", water_level="quarter", basis="to the knees")
+    assert derive_depth(a, reading).depth_class == "knee"
 
 
 def test_parse_assessment_rejects_bad_values():
     with pytest.raises(ValidationError):
-        parse_assessment('{"rationale": "x", "is_flood_scene": true, "water_level": "deep", "confidence": 0.5}')
+        parse_assessment('{"rationale": "x", "is_flood_scene": true, "confidence": 1.5}')
     with pytest.raises(ValueError):
         parse_assessment("no json here")
 
@@ -84,12 +82,20 @@ def test_manifest_serialises(tmp_path):
     ],
 )
 def test_derive_depth_from_reference_and_level(obj, level, expected):
-    a = PhotoAssessment(rationale="r", is_flood_scene=True, reference_object=obj, water_level=level, confidence=0.9)
-    assert derive_depth(a).depth_class == expected
+    a = PhotoAssessment(rationale="r", is_flood_scene=True, confidence=0.9)
+    reading = DepthReading(reference_object=obj, water_level=level, basis="r")
+    assert derive_depth(a, reading).depth_class == expected
 
 
-def test_aerial_views_are_unknown():
-    a = PhotoAssessment(
-        rationale="r", is_flood_scene=True, aerial_view=True, reference_object="car", water_level="top", confidence=0.3
+def test_aerial_views_and_missing_readings_are_unknown():
+    a = PhotoAssessment(rationale="r", is_flood_scene=True, aerial_view=True, confidence=0.3)
+    reading = DepthReading(reference_object="car", water_level="top", basis="r")
+    assert derive_depth(a, reading).depth_class == "unknown"
+    assert (
+        derive_depth(PhotoAssessment(rationale="r", is_flood_scene=True, confidence=0.9), None).depth_class == "unknown"
     )
-    assert derive_depth(a).depth_class == "unknown"
+
+
+def test_reading_fields_are_required():
+    with pytest.raises(ValidationError):
+        DepthReading(basis="x")  # type: ignore[call-arg]
