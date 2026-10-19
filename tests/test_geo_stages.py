@@ -9,7 +9,7 @@ nx = pytest.importorskip("networkx")
 from shapely.geometry import Polygon, box  # noqa: E402
 
 from floodline.stages.reach import ensure_travel_time, travel_minutes  # noqa: E402
-from floodline.stages.satellite import cells_covering, water_fraction_per_cell  # noqa: E402
+from floodline.stages.satellite import cells_covering, load_ems, water_fraction_per_cell  # noqa: E402
 from floodline.stages.serve import write_geojson  # noqa: E402
 
 
@@ -51,3 +51,41 @@ def test_geojson_export_roundtrip(tmp_path):
     assert fc["type"] == "FeatureCollection" and len(fc["features"]) == 1
     f = fc["features"][0]
     assert f["geometry"]["type"] == "Polygon" and f["properties"]["priority"] == 0.7
+
+
+def test_multipart_flood_and_aoi_layers(tmp_path):
+    gpd = pytest.importorskip("geopandas")
+    from shapely.geometry import MultiPolygon
+
+    pkg = tmp_path / "EMSR999" / "EMSR999_AOI01_DEL_PRODUCT_v1_vector"
+    pkg.mkdir(parents=True)
+    flood = MultiPolygon([box(67.00, 24.85, 67.01, 24.86), box(67.03, 24.85, 67.04, 24.86)])
+    aoi = box(66.99, 24.84, 67.05, 24.87)
+    gpd.GeoDataFrame(geometry=[flood], crs="EPSG:4326").to_file(pkg / "EMSR999_AOI01_DEL_PRODUCT_observedEventA_v1.shp")
+    gpd.GeoDataFrame(geometry=[aoi], crs="EPSG:4326").to_file(pkg / "EMSR999_AOI01_DEL_PRODUCT_areaOfInterestA_v1.shp")
+    gpd.GeoDataFrame(geometry=[flood], crs="EPSG:4326").to_file(
+        pkg / "EMSR999_AOI01_DEL_PRODUCT_observedEventA_v1.json", driver="GeoJSON"
+    )  # same layer shipped twice, as the real packages do
+    f, a, _permanent, info = load_ems(tmp_path / "EMSR999")
+    assert info["flood_layers"] == 1 and info["aoi_layers"] == 1 and info["aoi_km2"] > info["flood_km2"] > 0
+    df = water_fraction_per_cell(f, cells_covering(a))
+    assert (df.satellite_water_fraction == 0).any() and (df.satellite_water_fraction > 0).any()
+
+
+def test_2013_schema_layer_names(tmp_path):
+    gpd = pytest.importorskip("geopandas")
+
+    pkg = tmp_path / "EMSR045" / "EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector"
+    pkg.mkdir(parents=True)
+    gpd.GeoDataFrame(geometry=[box(14.40, 50.05, 14.42, 50.07)], crs="EPSG:4326").to_file(
+        pkg / "EMSR-045_06Prague_20130603_CZE_FL_v2_Crisis_event_A.shp"
+    )
+    gpd.GeoDataFrame(geometry=[box(14.35, 50.00, 14.50, 50.12)], crs="EPSG:4326").to_file(
+        pkg / "EMSR-045_06Prague_20130603_CZE_FL_v2_AreaOfInterest.shp"
+    )
+    gpd.GeoDataFrame(geometry=[box(14.41, 50.04, 14.415, 50.08)], crs="EPSG:4326").to_file(
+        pkg / "EMSR-045_06Prague_20130603_CZE_FL_v2_Hydrology_A_LAF.shp"
+    )
+    _, _, permanent, info = load_ems(tmp_path / "EMSR045")
+    assert info["permanent_water_layers"] == 1 and permanent is not None
+    assert info["flood_layers"] == 1 and info["aoi_layers"] == 1

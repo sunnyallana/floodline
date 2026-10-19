@@ -1,0 +1,139 @@
+{
+ "stage": "agreement",
+ "params": {
+  "photos": "results\\eu_flood_2013_mappable.csv",
+  "layers": [
+   "results\\satellite_EMSR044.csv",
+   "results\\satellite_EMSR045.csv",
+   "results\\satellite_EMSR046.csv"
+  ],
+  "k": 1
+ },
+ "metrics": {
+  "photos_located": 883,
+  "photos_in_mapped_area": 442,
+  "photos_outside_mapped_area": 441,
+  "all_mapped": {
+   "n": 442,
+   "own_hex_wet": 0.502,
+   "within_1_ring_wet": 0.566,
+   "within_1_ring_flood_or_permanent": 1.0
+  },
+  "rel_flooding": {
+   "n": 364,
+   "own_hex_wet": 0.481,
+   "within_1_ring_wet": 0.514,
+   "within_1_ring_flood_or_permanent": 1.0
+  },
+  "not_rel_flooding": {
+   "n": 78,
+   "own_hex_wet": 0.603,
+   "within_1_ring_wet": 0.808,
+   "within_1_ring_flood_or_permanent": 1.0
+  },
+  "rel_depth": {
+   "n": 195,
+   "own_hex_wet": 0.467,
+   "within_1_ring_wet": 0.513,
+   "within_1_ring_flood_or_permanent": 1.0
+  },
+  "not_rel_depth": {
+   "n": 247,
+   "own_hex_wet": 0.53,
+   "within_1_ring_wet": 0.607,
+   "within_1_ring_flood_or_permanent": 1.0
+  },
+  "distances": {
+   "EMSR044": {
+    "per_photo": {
+     "n": 173,
+     "d_flood_m": {
+      "p25": 76.3,
+      "median": 142.0,
+      "p75": 186.0
+     },
+     "d_permanent_m": {
+      "p25": 9.8,
+      "median": 35.4,
+      "p75": 96.8
+     },
+     "within_50m_flood": 0.179,
+     "within_50m_flood_or_permanent": 0.642,
+     "within_150m_flood": 0.526,
+     "within_150m_flood_or_permanent": 0.925,
+     "within_300m_flood": 0.919,
+     "within_300m_flood_or_permanent": 0.988
+    },
+    "per_unique_location": {
+     "n": 171,
+     "d_flood_m": {
+      "p25": 75.2,
+      "median": 142.0,
+      "p75": 185.6
+     },
+     "d_permanent_m": {
+      "p25": 10.0,
+      "median": 35.4,
+      "p75": 98.0
+     },
+     "within_50m_flood": 0.181,
+     "within_50m_flood_or_permanent": 0.637,
+     "within_150m_flood": 0.526,
+     "within_150m_flood_or_permanent": 0.924,
+     "within_300m_flood": 0.918,
+     "within_300m_flood_or_permanent": 0.988
+    }
+   },
+   "EMSR045": {
+    "per_photo": {
+     "n": 268,
+     "d_flood_m": {
+      "p25": 184.8,
+      "median": 3088.1,
+      "p75": 3671.9
+     },
+     "d_permanent_m": {
+      "p25": 1.2,
+      "median": 23.3,
+      "p75": 82.3
+     },
+     "within_50m_flood": 0.164,
+     "within_50m_flood_or_permanent": 0.698,
+     "within_150m_flood": 0.228,
+     "within_150m_flood_or_permanent": 0.873,
+     "within_300m_flood": 0.265,
+     "within_300m_flood_or_permanent": 0.989
+    },
+    "per_unique_location": {
+     "n": 252,
+     "d_flood_m": {
+      "p25": 236.9,
+      "median": 3102.0,
+      "p75": 3671.9
+     },
+     "d_permanent_m": {
+      "p25": 0.7,
+      "median": 21.2,
+      "p75": 80.2
+     },
+     "within_50m_flood": 0.163,
+     "within_50m_flood_or_permanent": 0.71,
+     "within_150m_flood": 0.218,
+     "within_150m_flood_or_permanent": 0.877,
+     "within_300m_flood": 0.258,
+     "within_300m_flood_or_permanent": 0.988
+    }
+   }
+  }
+ },
+ "started_at": "2026-10-19T21:55:36+00:00",
+ "finished_at": "2026-10-19T21:55:39+00:00",
+ "seconds": 2.8,
+ "git_sha": "a6ad672",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

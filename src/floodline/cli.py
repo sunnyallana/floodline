@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--out", default="hexes", help="output stem under results/")
 
     sat = sub.add_parser("satellite", help="Copernicus EMS flood extent -> satellite_water_fraction per H3 hex")
-    sat.add_argument("ems_source", help="EMS vector package directory, or one observedEventA file")
+    sat.add_argument("ems_source", help="directory holding one activation's EMS vector packages")
     sat.add_argument("--out", default="satellite_layer.csv")
 
     rc = sub.add_parser("reach", help="OSM travel time from staging points to each hex in a layer CSV")
@@ -73,6 +73,13 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--subtitle", default="")
 
     sub.add_parser("external", help="index the European Flood 2013 geotagged set under data/external/")
+
+    ag = sub.add_parser("agree", help="share of located photos that fall where the satellite maps water")
+    ag.add_argument("photos_csv", help="CSV with an h3 column (e.g. results/eu_flood_2013_mappable.csv)")
+    ag.add_argument("layers", nargs="+", help="one or more satellite layer CSVs")
+    ag.add_argument("--k", type=int, default=1, help="neighbour rings counted as agreement")
+    ag.add_argument("--out", default="agreement")
+    ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
 
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
@@ -161,6 +168,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import external
 
             external.run(paths)
+        elif args.command == "agree":
+            from pathlib import Path
+
+            from floodline.stages import agreement
+
+            agreement.run(
+                paths,
+                Path(args.photos_csv),
+                [Path(p) for p in args.layers],
+                out_stem=args.out,
+                k=args.k,
+                ems_dirs=[Path(d) for d in args.ems_dirs],
+            )
         elif args.command == "overlay":
             from pathlib import Path
 

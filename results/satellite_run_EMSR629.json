@@ -1,0 +1,27 @@
+{
+ "stage": "satellite",
+ "params": {
+  "ems_source": "data\\external\\ems\\EMSR629",
+  "resolution": 8
+ },
+ "metrics": {
+  "cells": 3802,
+  "flooded_cells": 3614,
+  "flood_layers": 3,
+  "aoi_layers": 3,
+  "permanent_water_layers": 3,
+  "flood_km2": 1588.3,
+  "aoi_km2": 2890.7,
+  "permanent_water_km2": 163.8
+ },
+ "started_at": "2026-10-19T21:51:49+00:00",
+ "finished_at": "2026-10-19T21:54:00+00:00",
+ "seconds": 130.3,
+ "git_sha": "a6ad672",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

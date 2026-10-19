@@ -1,10 +1,20 @@
 """Stage 4: satellite flood extent per H3 hexagon.
 
-Reference extent comes from Copernicus Emergency Management Service rapid-mapping products: each activation ships
-vector packages whose ``observedEventA`` (area) layer is the mapped flood extent at the sensing time. This stage
-reads one or more of those layers, dissolves them, and reports the flooded fraction of every hex that intersects
-the area of interest. The Sentinel-1 water mask from a foundation model is a planned second source and would feed
-the same per-hex fraction.
+Reference extent comes from Copernicus Emergency Management Service rapid-mapping products. Each activation ships
+vector packages per area of interest (AOI) with the mapped flood extent at the sensing time. Two schemas exist:
+
+- 2019 onwards: ``*_observedEventA*`` (flood extent) and ``*_areaOfInterestA*`` (mapped area);
+- 2013-era:     ``*_Crisis_event_A*`` (flood extent) and ``*_AreaOfInterest*`` (mapped area).
+
+Permanent water (rivers and lakes at normal level: ``*_hydrographyA*`` / ``*_Hydrology_A*``) is reported in its own
+column. "Water is visible here" and "this place is flooded" are different questions: in Prague 2013 the Vltava rose
+inside its embankments, so photos of a high river sit metres from the channel and kilometres from any overflow.
+
+The AOI decides which hexes get a value at all. A hex inside an AOI but outside the flood polygons is a real 0
+(mapped, dry); a hex outside every AOI is absent from the output, i.e. unknown, because nobody mapped it. Without
+this distinction unmapped areas would be read as dry.
+
+The Sentinel-1 water mask from a foundation model is a planned second source and would feed the same column.
 """
 
 from __future__ import annotations
@@ -20,6 +30,12 @@ from floodline.runs import RunManifest
 
 log = get_logger(__name__)
 
+FLOOD_LAYER_HINTS: tuple[str, ...] = ("observedeventa", "crisis_event_a")
+AOI_LAYER_HINTS: tuple[str, ...] = ("areaofinteresta", "areaofinterest")
+PERMANENT_WATER_HINTS: tuple[str, ...] = ("hydrographya", "hydrology_a")  # area layers only, not *L lines
+VECTOR_SUFFIXES = {".shp", ".gpkg", ".json", ".geojson"}
+EQUAL_AREA_CRS = "EPSG:6933"
+
 
 def hex_polygons(cells: list[str]):
     import h3
@@ -29,7 +45,7 @@ def hex_polygons(cells: list[str]):
 
 
 def cells_covering(geometry, resolution: int = H3_RESOLUTION) -> list[str]:
-    """All H3 cells whose centre falls inside the geometry (h3 v4 polygon fill), in lon/lat order of the input."""
+    """All H3 cells whose centre falls inside the geometry (h3 v4 polygon fill)."""
     import h3
     from shapely.geometry import MultiPolygon, Polygon
 
@@ -45,53 +61,98 @@ def cells_covering(geometry, resolution: int = H3_RESOLUTION) -> list[str]:
 
 
 def water_fraction_per_cell(flood_geometry, cells: list[str]) -> pd.DataFrame:
-    """Fraction of each hex covered by the flood geometry (planar on lon/lat; fine at hex scale)."""
-    polys = hex_polygons(cells)
-    rows = []
-    for cell, poly in zip(cells, polys, strict=True):
-        inter = poly.intersection(flood_geometry)
-        rows.append({"h3": cell, "satellite_water_fraction": round(inter.area / poly.area, 4) if poly.area else 0.0})
-    return pd.DataFrame(rows)
+    """Fraction of each hex covered by the flood geometry (planar on lon/lat; fine at hex scale).
 
-
-def load_ems_extent(paths_or_dir: list[Path] | Path, layer_hint: str = "observedEventA"):
-    """Read EMS observed-event area layers (shapefile or GeoPackage) and dissolve them into one geometry.
-
-    ``paths_or_dir`` may be a directory (searched recursively for files whose name contains ``layer_hint``) or an
-    explicit list of vector files. Returns a shapely geometry in EPSG:4326.
+    The flood geometry is split into its parts and indexed in an STRtree, so each hex is intersected only with the
+    few parts that touch it. Intersecting every hex with one dissolved multipolygon is quadratic in practice and
+    does not finish for activations with thousands of polygons.
     """
+    from shapely import STRtree
+    from shapely.geometry import MultiPolygon
+
+    parts = list(flood_geometry.geoms) if isinstance(flood_geometry, MultiPolygon) else [flood_geometry]
+    parts = [p for p in parts if not p.is_empty]
+    tree = STRtree(parts)
+    fractions: list[float] = []
+    for poly in hex_polygons(cells):
+        hits = tree.query(poly, predicate="intersects")
+        if len(hits) == 0 or poly.area == 0:
+            fractions.append(0.0)
+            continue
+        inter = sum(poly.intersection(parts[i]).area for i in hits)
+        fractions.append(round(min(inter / poly.area, 1.0), 4))
+    return pd.DataFrame({"h3": cells, "satellite_water_fraction": fractions})
+
+
+_FORMAT_PREFERENCE = {".gpkg": 0, ".shp": 1, ".geojson": 2, ".json": 3}
+
+
+def _find_layers(root: Path, hints: tuple[str, ...]) -> list[Path]:
+    """Matching vector layers, one file per layer: EMS packages ship each layer as both .shp and .json."""
+    best: dict[Path, Path] = {}
+    for p in root.rglob("*"):
+        if p.suffix.lower() not in VECTOR_SUFFIXES:
+            continue
+        if not any(h in p.name.lower().replace("-", "_") for h in hints):
+            continue
+        key = p.with_suffix("")
+        if key not in best or _FORMAT_PREFERENCE[p.suffix.lower()] < _FORMAT_PREFERENCE[best[key].suffix.lower()]:
+            best[key] = p
+    return sorted(best.values())
+
+
+def _dissolve(files: list[Path]):
     import geopandas as gpd
 
-    if isinstance(paths_or_dir, Path):
-        files = [
-            p
-            for p in paths_or_dir.rglob("*")
-            if layer_hint.lower() in p.name.lower() and p.suffix.lower() in {".shp", ".gpkg", ".json", ".geojson"}
-        ]
-    else:
-        files = list(paths_or_dir)
-    if not files:
-        raise FileNotFoundError(f"no EMS layer matching '{layer_hint}' under {paths_or_dir}")
-    frames = [gpd.read_file(f).to_crs("EPSG:4326") for f in files]
-    gdf = pd.concat(frames, ignore_index=True)
-    geom = (
-        gdf.geometry.buffer(0).union_all() if hasattr(gdf.geometry, "union_all") else gdf.geometry.buffer(0).unary_union
-    )
-    log.info("EMS extent from %d file(s): %.1f km²", len(files), geom.area * 111.32 * 111.32)
-    return geom
+    gdf = pd.concat([gpd.read_file(f).to_crs("EPSG:4326") for f in files], ignore_index=True)
+    geoms = gdf.geometry.buffer(0)
+    geom = geoms.union_all() if hasattr(geoms, "union_all") else geoms.unary_union
+    return geom, gpd.GeoSeries([geom], crs="EPSG:4326").to_crs(EQUAL_AREA_CRS).area.iloc[0] / 1e6
 
 
-def run(
-    paths: Paths, ems_source: Path, out_name: str = "satellite_layer.csv", aoi_cells: list[str] | None = None
-) -> pd.DataFrame:
+def load_ems(root: Path):
+    """Flood extent and mapped AOI for every package under ``root``. Returns (flood, aoi, info) in EPSG:4326.
+
+    The AOI layer of the "observedEventA" schema is matched first; ``AreaOfInterest`` alone would also match it.
+    """
+    flood_files = _find_layers(root, FLOOD_LAYER_HINTS)
+    if not flood_files:
+        raise FileNotFoundError(f"no EMS flood-extent layer ({', '.join(FLOOD_LAYER_HINTS)}) under {root}")
+    aoi_files = _find_layers(root, AOI_LAYER_HINTS)
+    if not aoi_files:
+        raise FileNotFoundError(f"no EMS area-of-interest layer under {root}")
+    flood, flood_km2 = _dissolve(flood_files)
+    aoi, aoi_km2 = _dissolve(aoi_files)
+    water_files = _find_layers(root, PERMANENT_WATER_HINTS)
+    permanent, permanent_km2 = _dissolve(water_files) if water_files else (None, 0.0)
+    info = {
+        "flood_layers": len(flood_files),
+        "aoi_layers": len(aoi_files),
+        "permanent_water_layers": len(water_files),
+        "flood_km2": round(float(flood_km2), 1),
+        "aoi_km2": round(float(aoi_km2), 1),
+        "permanent_water_km2": round(float(permanent_km2), 1),
+    }
+    log.info("EMS %s: %s", root.name, info)
+    return flood, aoi, permanent, info
+
+
+def run(paths: Paths, ems_source: Path, out_name: str = "satellite_layer.csv") -> pd.DataFrame:
     manifest = RunManifest("satellite", params={"ems_source": str(ems_source), "resolution": H3_RESOLUTION})
-    geom = load_ems_extent(ems_source)
-    cells = aoi_cells or cells_covering(geom.buffer(0.02))  # ~2 km margin so dry hexes around the extent get 0
-    df = water_fraction_per_cell(geom, cells)
+    flood, aoi, permanent, info = load_ems(ems_source)
+    cells = cells_covering(aoi)
+    df = water_fraction_per_cell(flood, cells)
+    df["permanent_water_fraction"] = (
+        water_fraction_per_cell(permanent, cells).satellite_water_fraction.to_numpy()
+        if permanent is not None
+        else float("nan")
+    )
+    df["ems_activation"] = ems_source.name
     out = paths.results / out_name
     df.to_csv(out, index=False)
-    manifest.finish(cells=len(df), flooded_cells=int((df.satellite_water_fraction > 0).sum())).write(
-        paths.results / "satellite_run.json"
+    flooded = int((df.satellite_water_fraction > 0).sum())
+    manifest.finish(cells=len(df), flooded_cells=flooded, **info).write(
+        paths.results / f"satellite_run_{ems_source.name}.json"
     )
-    log.info("%d hexes, %d with water -> %s", len(df), (df.satellite_water_fraction > 0).sum(), out)
+    log.info("%s: %d hexes in mapped area, %d with water -> %s", ems_source.name, len(df), flooded, out)
     return df

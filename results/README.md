@@ -69,7 +69,39 @@ call. Splitting the task fixes it: pass 1 describes, pass 2 maps the description
 by deterministic phrase rules with an LLM text-only fallback, and the depth class is computed in code. The full
 538-image run is scheduled after segmentation finishes.
 
-## 5. Supervised baselines carried over from v1
+## 5. Satellite flood extent and photo ⇄ satellite agreement
+
+`satellite_EMSR*.csv`, `satellite_run_EMSR*.json` · Copernicus EMS rapid-mapping delineation products, H3 res 8.
+A hex inside a mapped area of interest gets a real value (0 = mapped dry); hexes outside every AOI are unknown.
+
+| Activation | Event | Mapped area | Flooded | Hexes mapped | Hexes with water |
+|---|---|---|---|---|---|
+| EMSR044 | Elbe, Germany (Dresden, Meissen, Riesa), June 2013 | 421 km² | 21 km² | 620 | 200 |
+| EMSR045 | Vltava/Elbe, Czechia (Prague, Kralupy, Mělník, Brandýs), June 2013 | 1,167 km² | 36 km² | 1,674 | 243 |
+| EMSR046 | Danube, Hungary (Győr), June 2013 | 215 km² | 9 km² | 290 | 95 |
+| EMSR517 | Western Germany, July 2021 | 5,209 km² | 34 km² | 7,946 | 759 |
+| EMSR629 | Sindh, Pakistan (Larkana, Shikarpur, Jacobabad), Aug–Sep 2022 | 2,891 km² | 1,588 km² | 3,802 | 3,614 |
+
+`agreement_euflood_run.json`, `agreement_euflood_photos.csv`, `agreement_euflood_distances.csv` · the 883 geotagged
+European Flood 2013 photos against the 2013 layers. 442 photos fall inside a mapped area; the rest (including all 83
+Győr photos, which share a single copied geotag) are outside and counted as unknown, not as disagreement.
+
+Distances, per unique location (one point per geotag; batches sharing a copied geotag are counted once):
+
+| City | Locations | Median to mapped flood | Median to river channel | Within 150 m of flood | Within 150 m of flood or river |
+|---|---|---|---|---|---|
+| Dresden | 171 | 142 m | 35 m | 53% | 92% |
+| Prague | 252 | 3,102 m | 21 m | 22% | 88% |
+
+Finding: in Dresden the photos sit at the edge of the mapped flood, as expected for people photographing a
+flooded floodplain from dry ground. In Prague they sit on the river and kilometres from any mapped overflow: the
+Vltava rose inside its embankments and mobile barriers in the centre, so the photos show a high river, not flooded
+streets, and the satellite map is right to show no overflow there. "Water is visible in the photo" and "this place
+is flooded" are different questions, which is why the satellite stage reports permanent water in its own column
+and the fusion layer must not read a river photo as a flooded hex. Hex-level agreement alone cannot show this:
+within one ring of a 0.7 km² hex, every photo in both cities touches either flood or river (100%).
+
+## 6. Supervised baselines carried over from v1
 
 `../legacy/v1-results/` · seven backbones, three seeds, binary flooded / not-flooded
 
@@ -84,5 +116,8 @@ The 25-point out-of-distribution drop is the reason v2 does not train a classifi
 ```bash
 floodline index && floodline sheets --split test && floodline depth && floodline segment
 floodline waterline
+floodline external
+floodline satellite data/external/ems/EMSR045 --out satellite_EMSR045.csv
+floodline agree results/eu_flood_2013_mappable.csv results/satellite_EMSR04{4,5,6}.csv     --ems-dirs data/external/ems/EMSR04{4,5,6} --out agreement_euflood
 floodline assess --model Qwen3VL-8B-Instruct-Q8_0.gguf --mmproj mmproj-Qwen3VL-8B-Instruct-F16.gguf
 ```
