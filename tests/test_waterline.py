@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from floodline.stages.waterline import ORDER, depth_consistent, estimate_with_offset, score_against_labels
+from floodline.geometry import silhouette, touches_water, visible_fraction
+from floodline.stages.waterline import ORDER, estimate_with_offset, score_against_labels
 
 
 def test_window_offset_adds_sill_height():
@@ -10,16 +11,34 @@ def test_window_offset_adds_sill_height():
     assert estimate_with_offset("window", 0.0, 100.0) is None
 
 
-def test_depth_consistency_vetoes_distant_objects():
-    obj = np.zeros((60, 60), bool)
-    obj[10:30, 20:30] = True
-    water = np.zeros((60, 60), bool)
-    water[25:, :] = True
-    near = np.full((60, 60), 10.0, np.float32)
-    assert depth_consistent(obj, water, near)
-    far_object = near.copy()
-    far_object[obj] = 40.0  # object four times further away than the water beside it
-    assert not depth_consistent(obj, water, far_object)
+def _person(h_px, shoulder_px, top=5, left=20, size=80):
+    m = np.zeros((size, size), bool)
+    head = max(2, shoulder_px // 3)
+    m[top : top + head, left + (shoulder_px - head) // 2 : left + (shoulder_px + head) // 2] = True
+    m[top + head : top + h_px, left : left + shoulder_px] = True
+    return m
+
+
+def test_full_person_is_not_submerged_and_half_person_is():
+    full = _person(h_px=40, shoulder_px=10)
+    assert visible_fraction("person", silhouette(full)) == 1.0
+    waist = _person(h_px=22, shoulder_px=10)
+    assert 0.45 <= visible_fraction("person", silhouette(waist)) <= 0.6
+
+
+def test_touch_requires_water_at_the_base_and_same_distance():
+    obj = _person(h_px=30, shoulder_px=10)
+    sil = silhouette(obj)
+    water = np.zeros_like(obj)
+    water[sil.bottom + 1 : sil.bottom + 4, :] = True
+    near = np.full(obj.shape, 8.0, np.float32)
+    assert touches_water(obj, water, near)
+    far_water = near.copy()
+    far_water[water] = 30.0
+    assert not touches_water(obj, water, far_water)
+    water_behind_only = np.zeros_like(obj)
+    water_behind_only[: sil.top + 5, :] = True
+    assert not touches_water(obj, water_behind_only, near)
 
 
 def test_benchmark_scoring_counts_exact_and_adjacent():

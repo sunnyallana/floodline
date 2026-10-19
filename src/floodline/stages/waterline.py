@@ -19,7 +19,8 @@ from PIL import Image
 
 from floodline.config import Paths
 from floodline.cvfd import eval_split, load_index
-from floodline.depth import REFERENCE_HEIGHTS_CM, DepthEstimate, combine, submerged_fraction
+from floodline.depth import REFERENCE_HEIGHTS_CM, DepthEstimate, combine
+from floodline.geometry import silhouette, submerged_fraction_from_visible, touches_water, visible_fraction
 from floodline.log import get_logger
 from floodline.runs import RunManifest
 
@@ -35,7 +36,6 @@ REFERENCES: dict[str, tuple[str, float]] = {
     "window": ("window", 100.0),
 }
 MIN_OBJECT_PIXELS = 40
-DEPTH_RATIO_TOLERANCE = 0.35  # object vs adjacent-water distance may differ by this fraction
 DRY_MAX_WATER_FRACTION = 0.15  # above this much water in frame, "no object in the water" is unknown, not dry
 
 
@@ -51,23 +51,6 @@ class ObjectReading:
 def instances(label_png: Path) -> list[np.ndarray]:
     labels = np.asarray(Image.open(label_png))
     return [labels == k for k in range(1, int(labels.max()) + 1) if (labels == k).sum() >= MIN_OBJECT_PIXELS]
-
-
-def depth_consistent(
-    obj: np.ndarray, water: np.ndarray, depth_m: np.ndarray, tol: float = DEPTH_RATIO_TOLERANCE
-) -> bool:
-    """Is the object about as far from the camera as the water touching it?"""
-    ys, xs = np.nonzero(obj)
-    pad = 6
-    y0, y1 = max(ys.min() - pad, 0), min(ys.max() + pad, water.shape[0] - 1)
-    x0, x1 = max(xs.min() - pad, 0), min(xs.max() + pad, water.shape[1] - 1)
-    ring = np.zeros_like(water)
-    ring[y0 : y1 + 1, x0 : x1 + 1] = True
-    ring &= water & ~obj
-    if ring.sum() < MIN_OBJECT_PIXELS:
-        return True  # nothing to compare against; do not veto
-    d_obj, d_water = float(np.median(depth_m[obj])), float(np.median(depth_m[ring]))
-    return abs(d_obj - d_water) <= tol * max(d_obj, d_water, 1e-6)
 
 
 def estimate_with_offset(ref_class: str, frac: float, base_cm: float) -> DepthEstimate | None:
@@ -88,11 +71,14 @@ def read_image(paths: Paths, image_id: str, depth_map: np.ndarray | None) -> tup
         if not png.exists():
             continue
         for k, obj in enumerate(instances(png), start=1):
-            frac = submerged_fraction(obj, water)
-            consistent = depth_map is None or depth_consistent(obj, water, depth_map)
-            readings.append(ObjectReading(prompt, k, frac, estimate_with_offset(ref_class, frac, base_cm), consistent))
+            sil = silhouette(obj)
+            in_water = touches_water(obj, water, depth_map)
+            vis = visible_fraction(ref_class, sil) if (sil is not None and in_water) else None
+            frac = submerged_fraction_from_visible(vis) if vis is not None else 0.0
+            est = estimate_with_offset(ref_class, frac, base_cm) if (in_water and vis is not None) else None
+            readings.append(ObjectReading(prompt, k, frac, est, in_water))
     usable = [r.estimate for r in readings if r.consistent and r.estimate is not None]
-    touched = any(r.submerged_fraction > 0 for r in readings)
+    touched = any(r.consistent for r in readings)
     summary = combine(usable)
     water_fraction = float(water.mean())
     if not usable:
@@ -110,7 +96,9 @@ def read_image(paths: Paths, image_id: str, depth_map: np.ndarray | None) -> tup
 def run(paths: Paths, limit: int | None = None) -> pd.DataFrame:
     ev = eval_split(load_index(paths.cvfd_index), limit=limit)
     labels = pd.read_csv(paths.depth_labels, dtype=str).fillna("") if paths.depth_labels.exists() else None
-    manifest = RunManifest("waterline", params={"references": REFERENCES, "depth_tolerance": DEPTH_RATIO_TOLERANCE})
+    manifest = RunManifest(
+        "waterline", params={"references": REFERENCES, "method": "visible-fraction + depth-consistent touch"}
+    )
     rows: list[dict[str, Any]] = []
     for _, r in ev.iterrows():
         npz = paths.depth_maps / f"{r.image_id}.npz"
