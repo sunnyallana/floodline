@@ -137,10 +137,13 @@ def load_ems(root: Path):
     return flood, aoi, permanent, info
 
 
-def run(paths: Paths, ems_source: Path, out_name: str = "satellite_layer.csv") -> pd.DataFrame:
-    manifest = RunManifest("satellite", params={"ems_source": str(ems_source), "resolution": H3_RESOLUTION})
+def run(
+    paths: Paths, ems_source: Path, out_name: str = "satellite_layer.csv", resolution: int = H3_RESOLUTION
+) -> pd.DataFrame:
+    """Res 8 (0.74 km² hexes) suits province-scale activations; res 9 (0.11 km²) suits a city package."""
+    manifest = RunManifest("satellite", params={"ems_source": str(ems_source), "resolution": resolution})
     flood, aoi, permanent, info = load_ems(ems_source)
-    cells = cells_covering(aoi)
+    cells = cells_covering(aoi, resolution)
     df = water_fraction_per_cell(flood, cells)
     df["permanent_water_fraction"] = (
         water_fraction_per_cell(permanent, cells).satellite_water_fraction.to_numpy()
@@ -152,7 +155,7 @@ def run(paths: Paths, ems_source: Path, out_name: str = "satellite_layer.csv") -
     df.to_csv(out, index=False)
     flooded = int((df.satellite_water_fraction > 0).sum())
     manifest.finish(cells=len(df), flooded_cells=flooded, **info).write(
-        paths.results / f"satellite_run_{ems_source.name}.json"
+        paths.results / f"satellite_run_{Path(out_name).stem.removeprefix('satellite_')}.json"
     )
     log.info("%s: %d hexes in mapped area, %d with water -> %s", ems_source.name, len(df), flooded, out)
     return df

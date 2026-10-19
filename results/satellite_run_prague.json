@@ -1,0 +1,27 @@
+{
+ "stage": "satellite",
+ "params": {
+  "ems_source": "data\\external\\ems\\EMSR045\\EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector",
+  "resolution": 9
+ },
+ "metrics": {
+  "cells": 2612,
+  "flooded_cells": 223,
+  "flood_layers": 1,
+  "aoi_layers": 1,
+  "permanent_water_layers": 1,
+  "flood_km2": 5.6,
+  "aoi_km2": 260.9,
+  "permanent_water_km2": 5.9
+ },
+ "started_at": "2026-10-19T22:14:10+00:00",
+ "finished_at": "2026-10-19T22:14:10+00:00",
+ "seconds": 0.8,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

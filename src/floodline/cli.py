@@ -51,26 +51,38 @@ def build_parser() -> argparse.ArgumentParser:
     w = sub.add_parser("waterline", help="flood depth from SAM 3 masks + metric depth (no language model)")
     w.add_argument("--limit", type=int)
 
-    f = sub.add_parser("fuse", help="aggregate located reports on H3 hexagons and rank them")
-    f.add_argument(
-        "reports", help="CSV with lat, lon, depth_class, people_*, confidence, location_confidence, captured_at"
-    )
-    f.add_argument("--layers", help="optional CSV keyed by h3 with satellite_water_fraction and reach_minutes")
+    f = sub.add_parser("fuse", help="join per-hex layers and located reports, and rank hexes")
+    f.add_argument("layers", nargs="+", help="CSVs keyed by h3; the first (satellite) defines the hexes")
+    f.add_argument("--reports", help="CSV with lat, lon and, when assessed, depth_class, people_*, confidence")
     f.add_argument("--out", default="hexes", help="output stem under results/")
 
     sat = sub.add_parser("satellite", help="Copernicus EMS flood extent -> satellite_water_fraction per H3 hex")
     sat.add_argument("ems_source", help="directory holding one activation's EMS vector packages")
     sat.add_argument("--out", default="satellite_layer.csv")
+    sat.add_argument("--resolution", type=int, default=8, help="H3 resolution: 8 for a province, 9 for a city")
 
-    rc = sub.add_parser("reach", help="OSM travel time from staging points to each hex in a layer CSV")
+    rc = sub.add_parser("reach", help="OSM travel time to each hex, before and with flooded roads removed")
     rc.add_argument("cells_csv", help="CSV with an h3 column (e.g. results/satellite_layer.csv)")
-    rc.add_argument("--staging", nargs="+", required=True, help="lat,lon pairs, e.g. 24.86,67.00")
-    rc.add_argument("--out", default="reach_layer.csv")
+    rc.add_argument("--ems", required=True, help="EMS directory whose flood extent closes roads")
+    rc.add_argument("--staging", nargs="*", default=[], help="lat,lon pairs; default: OSM fire stations, hospitals")
+    rc.add_argument("--out", default="reach", help="output stem under results/")
 
-    sv = sub.add_parser("serve", help="GeoJSON + MapLibre page for a ranked hex CSV")
-    sv.add_argument("hexes_csv")
+    ex = sub.add_parser("exposure", help="OSM buildings in the flood and in cut-off hexes")
+    ex.add_argument("layer_csv", help="satellite layer CSV")
+    ex.add_argument("--ems", required=True)
+    ex.add_argument("--reach", help="reach CSV, to count buildings in cut-off hexes")
+    ex.add_argument("--out", default="exposure.csv")
+
+    sv = sub.add_parser("serve", help="add one city to the static web map (docs/ by default)")
+    sv.add_argument("hexes_csv", help="ranked hexes from `floodline fuse`")
+    sv.add_argument("--key", required=True, help="short id used in the URL, e.g. prague")
     sv.add_argument("--title", required=True)
     sv.add_argument("--subtitle", default="")
+    sv.add_argument("--ems", required=True, help="EMS directory for the flood extent and mapped area")
+    sv.add_argument("--roads", help="closed roads GeoJSON from `floodline reach`")
+    sv.add_argument("--staging", help="staging points GeoJSON from `floodline reach`")
+    sv.add_argument("--photos", help="photo CSV with lat, lon, title, license, source_url")
+    sv.add_argument("--out-dir", help="site directory; default docs/")
 
     sub.add_parser("external", help="index the European Flood 2013 geotagged set under data/external/")
 
@@ -141,13 +153,18 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             from floodline.stages import fuse
 
-            fuse.run(paths, Path(args.reports), Path(args.layers) if args.layers else None, out_stem=args.out)
+            fuse.run(
+                paths,
+                [Path(p) for p in args.layers],
+                Path(args.reports) if args.reports else None,
+                out_stem=args.out,
+            )
         elif args.command == "satellite":
             from pathlib import Path
 
             from floodline.stages import satellite
 
-            satellite.run(paths, Path(args.ems_source), out_name=args.out)
+            satellite.run(paths, Path(args.ems_source), out_name=args.out, resolution=args.resolution)
         elif args.command == "reach":
             from pathlib import Path
 
@@ -157,13 +174,39 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             cells = pd.read_csv(Path(args.cells_csv)).h3.dropna().astype(str).tolist()
             staging = [tuple(float(x) for x in s.split(",")) for s in args.staging]
-            reach.run(paths, cells, staging, out_name=args.out)
+            reach.run(paths, cells, Path(args.ems), staging or None, out_stem=args.out)
+        elif args.command == "exposure":
+            from pathlib import Path
+
+            from floodline.stages import exposure
+
+            exposure.run(
+                paths,
+                Path(args.layer_csv),
+                Path(args.ems),
+                Path(args.reach) if args.reach else None,
+                out_name=args.out,
+            )
         elif args.command == "serve":
             from pathlib import Path
 
             from floodline.stages import serve
 
-            serve.run(paths, Path(args.hexes_csv), title=args.title, subtitle=args.subtitle)
+            def opt(v: str | None) -> Path | None:
+                return Path(v) if v else None
+
+            serve.run(
+                paths,
+                Path(args.hexes_csv),
+                key=args.key,
+                title=args.title,
+                ems_source=Path(args.ems),
+                subtitle=args.subtitle,
+                out_dir=opt(args.out_dir),
+                roads=opt(args.roads),
+                staging=opt(args.staging),
+                photos=opt(args.photos),
+            )
         elif args.command == "external":
             from floodline.stages import external
 

@@ -76,20 +76,47 @@ def _reports():
 
 
 def test_aggregate_groups_nearby_reports_and_drops_unlocated():
-    hexes = aggregate(_reports(), now=pd.Timestamp("2022-08-28T12:00:00Z"))
+    hexes = aggregate(_reports())
     assert len(hexes) == 2
     top = hexes.sort_values("n_reports", ascending=False).iloc[0]
     assert top.n_reports == 2 and top.severity_max == pytest.approx(0.9) and top.people_in_water == 3
-    assert top.hours_since_last == pytest.approx(1.0)
 
 
-def test_score_ranks_people_and_depth_first_and_lowers_confidence_without_layers():
-    hexes = aggregate(_reports(), now=pd.Timestamp("2022-08-28T12:00:00Z"))
+def test_aggregate_accepts_located_but_unassessed_photos():
+    photos = pd.DataFrame({"lat": [24.8607, 24.8608], "lon": [67.0011, 67.0012], "location_confidence": [0.95, 0.95]})
+    hexes = aggregate(photos)
+    assert len(hexes) == 1 and hexes.n_reports.iloc[0] == 2 and np.isnan(hexes.severity_max.iloc[0])
+
+
+def test_score_gates_dry_hexes_and_ranks_exposure():
+    hexes = pd.DataFrame(
+        {
+            "h3": ["a", "b", "c", "d"],
+            "satellite_water_fraction": [0.9, 0.2, 0.0, 0.0],
+            "buildings_in_flood": [0, 30, 0, 0],
+            "buildings_total": [0, 40, 50, 50],
+            "cut_off": [False, False, True, False],
+            "delay_min": [0.0, 0.0, np.nan, 0.0],
+            "reach_dry_min": [2.0, 2.0, 3.0, 2.0],
+        }
+    )
+    ranked = score(hexes).set_index("h3")
+    assert ranked.loc["d", "priority"] == 0  # dry and reachable: nothing to do
+    assert ranked.loc["b", "priority"] > ranked.loc["a", "priority"]  # flooded street beats flooded meadow
+    assert ranked.loc["c", "priority"] > ranked.loc["a", "priority"]  # dry but cut off with 50 buildings
+    assert ranked.loc["c", "buildings_affected"] == 50 and ranked.loc["b", "buildings_affected"] == 30
+    assert ranked.priority.between(0, 1).all()
+
+
+def test_photos_raise_confidence_not_priority():
+    base = pd.DataFrame({"h3": ["a"], "satellite_water_fraction": [0.5], "buildings_in_flood": [10]})
+    with_photo = base.assign(n_reports=[2], location_confidence=[0.95])
+    a, b = score(base).iloc[0], score(with_photo).iloc[0]
+    assert b.priority == a.priority and b.confidence > a.confidence
+
+
+def test_photo_depth_overrides_satellite_hazard():
+    hexes = pd.DataFrame({"h3": ["a"], "satellite_water_fraction": [0.1], "severity_max": [0.9]})
     ranked = score(hexes)
-    assert ranked.iloc[0].n_reports == 2
-    assert ranked.priority.min() >= 0 and ranked.priority.max() <= 1
-    assert ranked.confidence.max() < 0.8  # no satellite or reach layers supplied
-    with_layers = hexes.assign(satellite_water_fraction=[0.8, 0.1], reach_minutes=[120.0, 10.0])
-    ranked2 = score(with_layers)
-    assert ranked2.confidence.max() > ranked.confidence.max()
-    assert "photo_satellite_agreement" in ranked2
+    assert ranked.hazard.iloc[0] == pytest.approx(0.9)
+    assert ranked.photo_satellite_agreement.iloc[0] == pytest.approx(0.2)

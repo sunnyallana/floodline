@@ -1,0 +1,88 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "results\\satellite_dresden.csv",
+   "results\\reach_dresden.csv",
+   "results\\exposure_dresden.csv"
+  ],
+  "reports": "results\\eu_flood_2013_mappable.csv"
+ },
+ "metrics": {
+  "hexes": 796,
+  "hexes_with_priority": 71,
+  "hexes_with_reports": 20,
+  "top10": [
+   {
+    "h3": "891f1b0905bffff",
+    "priority": 0.201,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b0963bffff",
+    "priority": 0.193,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b0904bffff",
+    "priority": 0.181,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b092b3ffff",
+    "priority": 0.175,
+    "confidence": 0.6,
+    "buildings_affected": 2
+   },
+   {
+    "h3": "891f1b54aa3ffff",
+    "priority": 0.169,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b0962fffff",
+    "priority": 0.168,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b09653ffff",
+    "priority": 0.157,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "891f1b09603ffff",
+    "priority": 0.149,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b0960bffff",
+    "priority": 0.148,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891f1b0960fffff",
+    "priority": 0.146,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   }
+  ]
+ },
+ "started_at": "2026-10-19T22:48:23+00:00",
+ "finished_at": "2026-10-19T22:48:23+00:00",
+ "seconds": 0.3,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

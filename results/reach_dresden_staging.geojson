@@ -1,0 +1,28 @@
+{
+"type": "FeatureCollection",
+"name": "reach_dresden_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Stadtteilfeuerwehr Bühlau", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.8492082, 51.0612081 ] } },
+{ "type": "Feature", "properties": { "name": "Betriebliche Feuerwehr der Technischen Universität Dresden", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.7271078, 51.0281545 ] } },
+{ "type": "Feature", "properties": { "name": "Klinik am Waldschlößchen", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.7773451, 51.0691175 ] } },
+{ "type": "Feature", "properties": { "name": "STF Rockau", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.8664756, 51.026673 ] } },
+{ "type": "Feature", "properties": { "name": "Diakonissenkrankenhaus", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.761497393823987, 51.063117 ] } },
+{ "type": "Feature", "properties": { "name": "Universitätsklinikum Carl Gustav Carus", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.782577854439531, 51.05651155 ] } },
+{ "type": "Feature", "properties": { "name": "Städtisches Klinikum Dresden-Friedrichstadt", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.71760414663221, 51.0582274 ] } },
+{ "type": "Feature", "properties": { "name": "Feuer- und Rettungswache Altstadt", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.745270404711452, 51.03553885 ] } },
+{ "type": "Feature", "properties": { "name": "Werkfeuerwehr", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.691159985261891, 51.09713715 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Pappritz", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.854100561888117, 51.0368665 ] } },
+{ "type": "Feature", "properties": { "name": "Stadtteilfeuerwehr Dresden-Kaitz", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.727690354308804, 51.0145769 ] } },
+{ "type": "Feature", "properties": { "name": "Klinikum Weißer Hirsch", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.835877788790597, 51.06497245 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Pappritz", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.857440418236035, 51.0406316 ] } },
+{ "type": "Feature", "properties": { "name": "Krankenhaus St. Joseph-Stift", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.761221219780342, 51.04731055 ] } },
+{ "type": "Feature", "properties": { "name": "Feuer- und Rettungswache Dresden-Albertstadt", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.756982117185057, 51.08241955 ] } },
+{ "type": "Feature", "properties": { "name": "Krankenhaus Sankt Joseph-Stift", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.761537152734878, 51.0463884 ] } },
+{ "type": "Feature", "properties": { "name": "Städtisches Klinikum Dresden-Neustadt", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.708354873335558, 51.0906033 ] } },
+{ "type": "Feature", "properties": { "name": "Feuer- und Rettungswache Löbtau", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.695842458514822, 51.03833165 ] } },
+{ "type": "Feature", "properties": { "name": "Feuer- und Rettungswache 3 Striesen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.79357942941914, 51.04154145 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Dresden-Bühlau", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.849294193808664, 51.06126565 ] } },
+{ "type": "Feature", "properties": { "name": "Feuer- und Rettungswache 2 Dresden-Übigau", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.691530400515353, 51.0717461 ] } }
+]
+}

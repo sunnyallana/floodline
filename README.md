@@ -6,6 +6,9 @@
 Ground-level flood photos from field responders and connected residents as evidence: estimate **flood depth and human impact zero-shot**, locate each
 report with a stated confidence, and fuse the result with **satellite flood extent** to prioritise rescue.
 
+**Map:** https://sunnyallana.github.io/floodline/ shows Prague and Dresden in June 2013. It combines satellite flood
+extent, roads closed by water, exposed buildings and geotagged photos, with a priority per hexagon.
+
 Status: active development (October 2026). Successor to the GroundTruth final-year project. Nothing below is a claim until its result file exists under `results/`.
 
 ## Scope: who takes the photos, and when
@@ -38,9 +41,11 @@ test split and **74.1%** on AlleyFloodNet. It learned the dataset, not floods. v
 | Depth | waterline against reference objects of known height + metric monocular depth | 300-image depth-bin benchmark labelled from CVFD |
 | Impact | open-weight VLM with a strict JSON schema (people, roofs, vehicles, flow, signs, depth class, confidence) | DINOv3 kept as the cheap offline screen; compared on accuracy, latency, memory |
 | Location | tier 1 EXIF GPS · tier 2 text and landmarks read from the image, geocoded · tier 3 report text or district | CVFD has no GPS; mapping uses geotagged external imagery and live capture |
-| Satellite | Sentinel-1 water mask (Prithvi-EO 2.0 flood head) with Copernicus EMS polygons as reference | |
-| Fusion | H3 hexagons: depth distribution, people, satellite water fraction, agreement/conflict, road reachability (OSM) | |
-| Serving | GeoParquet + PMTiles + MapLibre; QGIS project; ONNX offline path | |
+| Satellite | Copernicus EMS rapid-mapping flood polygons per H3 hexagon, with the mapped area and permanent water kept apart (built: five activations); Sentinel-1 water mask planned as a second source | |
+| Reach | OSM drive network; travel time from fire stations and hospitals before and after removing roads under water; cut-off hexes | |
+| Exposure | OSM building footprints inside the flood and in cut-off hexes | |
+| Fusion | per hexagon: hazard (photo depth, else satellite water), exposure, access; priority and a separate confidence | |
+| Serving | static MapLibre site on GitHub Pages (`docs/`), GeoParquet and GeoJSON; PMTiles for province scale | |
 
 ## Layout
 
@@ -56,12 +61,14 @@ floodline/
     llama.py               llama-server as a context manager; one JSON-constrained chat call
     resume.py              append-only JSONL / CSV stores so long runs survive restarts
     runs.py                run manifests: git sha, params, metrics, timing, next to every result
-    cli.py                 `floodline index|sheets|depth|segment|overlay|assess`
-    stages/                one module per stage, each with a resumable `run()`
+    cli.py                 `floodline <stage>`: perception, satellite, reach, exposure, fuse, agree, serve
+    stages/                one module per stage, each with a `run()` that writes a run manifest
+    web/map.html           the map page `floodline serve` publishes
   tests/                   pure-logic tests; no model downloads, run in CI on 3.11 and 3.12
   data/                    derived indexes and labels (small); raw CVFD under data/cvfd (see data/README.md)
   legacy/v1-results/       aggregate metrics of the supervised v1 baselines, quoted in the write-up
   results/                 metrics, manifests, previews (committed); masks and depth maps (ignored)
+  docs/                    the published map: page, cities.json, per-city GeoJSON
   models/, tools/          local GGUF weights and llama.cpp binaries (ignored)
 ```
 
@@ -77,6 +84,17 @@ floodline assess --limit 20      # VLM structured assessment via llama-server (C
 floodline overlay flooded_0003   # original | SAM 3 | CVFD mask preview
 ```
 
+Geospatial stages, for one Copernicus EMS city package (`pip install -e ".[geo]"`):
+
+```bash
+EMS=data/external/ems/EMSR045/EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector
+floodline satellite $EMS --resolution 9 --out satellite_prague.csv
+floodline reach results/satellite_prague.csv --ems $EMS --out reach_prague
+floodline exposure results/satellite_prague.csv --ems $EMS --reach results/reach_prague.csv --out exposure_prague.csv
+floodline fuse results/satellite_prague.csv results/reach_prague.csv results/exposure_prague.csv     --reports results/eu_flood_2013_mappable.csv --out hexes_prague
+floodline serve results/hexes_prague.csv --key prague --title "Prague, June 2013" --ems $EMS     --roads results/reach_prague_flooded_roads.geojson --staging results/reach_prague_staging.geojson     --photos results/agreement_euflood_distances.csv
+```
+
 Every stage writes `results/<stage>_run.json` with the git sha, model ids, parameters and timing. Long stages
 are resumable: rerun the same command and it continues from the last record.
 
@@ -84,5 +102,5 @@ are resumable: rerun the same command and it continues from the last record.
 
 - Every number in the README or CV points to a file in `results/`.
 - Locations carry a tier and a confidence. No coordinates are invented or inferred beyond the stated tier.
-- CVFD is released under a research-use, non-commercial licence with a takedown policy, because the sources
-  of the video frames were not recorded. The datasheet says so.
+- CVFD is released under CC BY-SA 4.0 with a takedown policy, because the sources of the web-scraped images
+  were not recorded. The dataset card (`data/DATASET_CARD.md`) says so.

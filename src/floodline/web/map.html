@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floodline map</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='%23bd0026'/%3E%3Cpath d='M6 20c3-2 5-2 8 0s5 2 8 0 4-2 4-2v4c-2 1-3 2-4 2-3 0-5-2-8-2s-5 2-8 2z' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="description" content="Where responders are needed in a flood: satellite flood extent, road access and exposed buildings per hexagon, with geotagged photos as evidence.">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+:root{
+  --bg:#ffffff; --fg:#1d232a; --muted:#5b6670; --line:#e3e7eb; --chip:#f3f5f7; --accent:#bd0026;
+  --flood:#2b7bb9; --road:#d7191c; --photo:#6a3d9a;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#16191d; --fg:#e8ecef; --muted:#9aa5ae; --line:#2b3138; --chip:#20252b; }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#map{position:absolute;inset:0}
+.panel{position:absolute;top:12px;left:12px;bottom:12px;width:360px;background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.14);display:flex;flex-direction:column;overflow:hidden;z-index:2}
+.head{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand b{font-size:17px;letter-spacing:.2px}
+.brand a{margin-left:auto;font-size:12px;color:var(--muted)}
+select{width:100%;margin-top:8px;padding:7px 8px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);font:inherit}
+.sub{color:var(--muted);font-size:12.5px;margin-top:6px}
+.body{overflow:auto;padding:12px 16px 16px;flex:1}
+h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:16px 0 6px;font-weight:600}
+h3:first-child{margin-top:2px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stat{background:var(--chip);border-radius:6px;padding:7px 9px}
+.stat .v{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.stat .k{font-size:11.5px;color:var(--muted)}
+.ramp{height:10px;border-radius:3px;background:linear-gradient(90deg,#ffffb2,#fecc5c,#fd8d3c,#f03b20,#bd0026)}
+.ramp-l{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:2px}
+label.t{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block;flex:none}
+.top{list-style:none;margin:0;padding:0}
+.top li{padding:7px 9px;border-radius:6px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.top li:hover{background:var(--chip)}
+.top .p{font-weight:650;font-variant-numeric:tabular-nums;min-width:38px}
+.top .d{color:var(--muted);font-size:12.5px}
+#detail{background:var(--chip);border-radius:6px;padding:9px 10px;font-size:13px}
+#detail table{width:100%;border-collapse:collapse}
+#detail td{padding:1px 0;vertical-align:top}
+#detail td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted)}
+.note p{margin:6px 0}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:9px;background:var(--accent);color:#fff;margin-left:4px}
+.maplibregl-popup-content{background:var(--bg);color:var(--fg);font:13px system-ui,sans-serif;padding:10px;max-width:300px}
+.maplibregl-popup-tip{display:none}
+.popup img{width:100%;border-radius:4px;display:block;margin-bottom:6px;background:var(--chip);min-height:60px}
+.popup a{color:var(--flood)}
+#toggle{display:none}
+@media (max-width:720px){
+  .panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:48vh;border-radius:12px 12px 0 0}
+  .panel.collapsed .body{display:none}
+  #toggle{display:inline-block;margin-left:8px;border:1px solid var(--line);background:var(--chip);color:var(--fg);border-radius:6px;font:inherit;font-size:12px;padding:2px 8px}
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="panel" id="panel">
+  <div class="head">
+    <div class="brand"><b>Floodline</b><button id="toggle" type="button">details</button>
+      <a href="https://github.com/sunnyallana/floodline">Code and method</a></div>
+    <div class="sub" style="margin-top:2px">Where responders are needed in a flood, per hexagon.</div>
+    <select id="city" aria-label="City"></select>
+    <div class="sub" id="subtitle"></div>
+  </div>
+  <div class="body">
+    <h3>This map</h3>
+    <div class="stats" id="stats"></div>
+
+    <h3>Priority per hexagon</h3>
+    <div class="ramp"></div><div class="ramp-l"><span>low</span><span>high</span></div>
+    <p class="note" style="margin-top:6px">Opacity shows confidence. A dark outline marks a hexagon whose roads are cut off by the flood.</p>
+
+    <h3>Layers</h3>
+    <label class="t"><input type="checkbox" data-layer="hex" checked><span class="sw" style="background:#fd8d3c"></span>Priority hexagons</label>
+    <label class="t"><input type="checkbox" data-layer="flood" checked><span class="sw" style="background:var(--flood);opacity:.6"></span>Mapped flood extent (satellite)</label>
+    <label class="t"><input type="checkbox" data-layer="roads" checked><span class="sw" style="background:var(--road);height:4px"></span>Roads under water (closed)</label>
+    <label class="t"><input type="checkbox" data-layer="staging" checked><span class="sw" style="background:#fff;border:2px solid #333;border-radius:50%"></span>Fire stations
+      <span class="sw" style="background:#fff;border:2px solid #1a9850;border-radius:50%;margin-left:6px"></span>hospitals</label>
+    <label class="t"><input type="checkbox" data-layer="photos" checked><span class="sw" style="background:var(--photo);border-radius:50%"></span>Geotagged photos</label>
+
+    <h3>Highest priority</h3>
+    <ul class="top" id="top"></ul>
+
+    <h3>Selected hexagon</h3>
+    <div id="detail" class="note">Click a hexagon or a photo.</div>
+
+    <h3>How it is scored</h3>
+    <div class="note">
+      <p><b>Hazard</b>: share of the hexagon inside the satellite flood polygons, or photo depth when a photo has been assessed.</p>
+      <p><b>Exposure</b>: OpenStreetMap buildings inside the flood, plus every building in a hexagon the flood cuts off.</p>
+      <p><b>Access</b>: travel time from the nearest fire station or hospital, with every road that runs at least 15&nbsp;m through the flood removed.</p>
+      <p>Priority is zero unless a hexagon is wet or cut off. Photos add confidence, not priority, until they are assessed.</p>
+    </div>
+
+    <h3>Sources</h3>
+    <div class="note" id="sources">
+      <p>Flood extent: Copernicus Emergency Management Service rapid mapping, <span id="act"></span>, © European Union.
+      Roads, buildings, stations: © OpenStreetMap contributors (ODbL), current map. Photos: Wikimedia Commons via the
+      European Flood 2013 dataset (Barz et al., 2018), each under its own licence. Hexagons: H3.</p>
+    </div>
+  </div>
+</div>
+<script>
+const RAMP = ['interpolate',['linear'],['get','priority'],0,'#ffffb2',0.15,'#fecc5c',0.3,'#fd8d3c',0.5,'#f03b20',0.75,'#bd0026'];
+const LAYERS = {hex:['hex-fill','hex-cut'], flood:['flood-fill'], roads:['roads'], staging:['staging'], photos:['photos']};
+const fmt = (v, d=0) => v === null || v === undefined ? '–' : (+v).toLocaleString('en', {maximumFractionDigits:d, minimumFractionDigits:d});
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let cities = [], current = null;
+
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+const map = new maplibregl.Map({
+  container:'map',
+  style: dark ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+              : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  center:[14.0,50.5], zoom:8, attributionControl:{compact:true}
+});
+map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-right');
+
+function setData(id, url){
+  const empty = {type:'FeatureCollection', features:[]};
+  if (map.getSource(id)) map.getSource(id).setData(url || empty);
+  else map.addSource(id, {type:'geojson', data:url || empty});
+}
+
+function addLayers(){
+  map.addLayer({id:'flood-fill', type:'fill', source:'flood', paint:{'fill-color':'#2b7bb9','fill-opacity':0.45}});
+  map.addLayer({id:'aoi', type:'line', source:'aoi', paint:{'line-color':dark?'#aab':'#556','line-width':1.2,'line-dasharray':[3,2]}});
+  map.addLayer({id:'hex-fill', type:'fill', source:'hexes', filter:['>',['get','priority'],0], paint:{
+    'fill-color':RAMP, 'fill-opacity':['interpolate',['linear'],['get','confidence'],0,0.25,1,0.62],
+    'fill-outline-color':'rgba(0,0,0,0.15)'}});
+  map.addLayer({id:'hex-cut', type:'line', source:'hexes', filter:['==',['get','cut_off'],true],
+    paint:{'line-color':dark?'#fff':'#111','line-width':2}});
+  map.addLayer({id:'hex-sel', type:'line', source:'hexes', filter:['==',['get','h3'],''],
+    paint:{'line-color':'#00a2ff','line-width':3}});
+  map.addLayer({id:'roads', type:'line', source:'roads', paint:{'line-color':'#d7191c','line-width':['interpolate',['linear'],['zoom'],11,2,16,5]}});
+  map.addLayer({id:'staging', type:'circle', source:'staging', paint:{
+    'circle-radius':['interpolate',['linear'],['zoom'],10,3,15,7], 'circle-color':'#fff',
+    'circle-stroke-color':['match',['get','kind'],'hospital','#1a9850','#333'], 'circle-stroke-width':2}});
+  map.addLayer({id:'photos', type:'circle', source:'photos', paint:{
+    'circle-radius':['interpolate',['linear'],['zoom'],10,3,16,7], 'circle-color':'#6a3d9a',
+    'circle-stroke-color':'#fff','circle-stroke-width':1}});
+}
+
+function stat(v, k){ return `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`; }
+
+function showPanel(key){
+  current = cities.find(c => c.key === key) || cities[0];
+  const s = current.stats;
+  document.getElementById('subtitle').textContent = current.subtitle;
+  document.getElementById('act').textContent = current.activation.split('_').slice(0,2).join(' ');
+  document.getElementById('stats').innerHTML =
+    stat(fmt(s.flood_km2,1)+' km²', 'flooded of '+fmt(s.mapped_km2,0)+' km² mapped') +
+    stat(fmt(s.hexes_with_priority), 'hexagons with priority') +
+    stat(fmt(s.buildings_in_flood), 'buildings inside the flood') +
+    stat(fmt(s.hexes_cut_off), 'hexagons cut off by road') +
+    stat(fmt(s.closed_road_segments), 'roads closed by water') +
+    stat(fmt(s.photos), 'geotagged photos');
+  document.getElementById('top').innerHTML = current.top.map(t =>
+    `<li data-lat="${t.lat}" data-lon="${t.lon}" data-h3="${t.h3}"><span class="p">${fmt(t.priority,2)}</span>
+     <span class="d">${fmt(t.buildings_affected)} buildings affected${t.cut_off?'<span class="tag">cut off</span>':''}</span></li>`).join('');
+  document.getElementById('detail').innerHTML = 'Click a hexagon or a photo.';
+  try { history.replaceState(null, '', '#'+current.key); } catch(e) {}
+}
+
+function showCity(key){
+  showPanel(key);
+  const base = `data/${current.key}/`;
+  for (const [id, f] of [['hexes','hexes'],['flood','flood'],['aoi','aoi'],['roads','roads'],['staging','staging'],['photos','photos']])
+    setData(id, base + f + '.geojson');
+  map.fitBounds([[current.bounds[0],current.bounds[1]],[current.bounds[2],current.bounds[3]]], {padding:innerWidth>720?{left:390,top:30,right:30,bottom:30}:{left:12,right:12,top:12,bottom:Math.round(innerHeight*0.5)}, duration:0});
+  map.setFilter('hex-sel', ['==',['get','h3'],'']);
+}
+
+function hexDetail(p){
+  map.setFilter('hex-sel', ['==',['get','h3'],p.h3]);
+  const rows = [
+    ['Priority', fmt(p.priority,2)], ['Confidence', fmt(p.confidence,2)],
+    ['Satellite water', p.satellite_water_fraction==null?'not mapped':fmt(100*p.satellite_water_fraction,0)+'% of hexagon'],
+    ['Buildings in flood', fmt(p.buildings_in_flood)], ['Buildings affected', fmt(p.buildings_affected)],
+    ['Drive time, normal', p.reach_dry_min==null?'no road':fmt(p.reach_dry_min,1)+' min'],
+    ['Drive time, flooded', p.cut_off?'<b>cut off</b>':(p.reach_flood_min==null?'no road':fmt(p.reach_flood_min,1)+' min')],
+    ['Photos here', fmt(p.n_reports)]
+  ];
+  document.getElementById('detail').innerHTML = '<table>'+rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')+'</table>';
+}
+
+const citiesReady = fetch('cities.json').then(r => r.json()).then(list => {
+  cities = list;
+  const sel = document.getElementById('city');
+  sel.innerHTML = cities.map(c => `<option value="${c.key}">${esc(c.title)}</option>`).join('');
+  const want = location.hash.slice(1);
+  sel.value = cities.some(c => c.key === want) ? want : cities[0].key;
+  showPanel(sel.value);
+  return sel;
+});
+
+map.on('load', async () => {
+  for (const id of ['hexes','flood','aoi','roads','staging','photos']) setData(id, null);
+  addLayers();
+  const sel = await citiesReady;
+  sel.onchange = () => showCity(sel.value);
+  showCity(sel.value);
+
+  map.on('click', 'hex-fill', e => hexDetail(e.features[0].properties));
+  map.on('click', 'photos', e => {
+    const p = e.features[0].properties;
+    const file = encodeURIComponent(String(p.title).replace(/ /g,'_'));
+    const near = p.d_flood_m==null ? '' :
+      `<br>${fmt(p.d_flood_m)} m from mapped flood · ${fmt(p.d_permanent_m)} m from river channel`;
+    new maplibregl.Popup({maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+      `<div class="popup"><img alt="" loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=320">
+       <b>${esc(p.title)}</b><br>${esc((p.captured_at||'').replace('T',' '))}${near}<br>
+       <a href="${esc(p.source_url)}" target="_blank" rel="noopener">Wikimedia Commons</a> · ${esc(p.license)}</div>`).addTo(map);
+  });
+  map.on('click', 'roads', e => {
+    const p = e.features[0].properties;
+    new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${esc(p.name||'(unnamed road)')}</b><br>${esc(p.highway)}<br>
+      ${fmt(p.under_water_m)} m of a ${fmt(p.segment_m)} m segment under water: segment closed`).addTo(map);
+  });
+  map.on('click', 'staging', e => {
+    const p = e.features[0].properties;
+    new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${esc(p.name||'(unnamed)')}</b><br>${esc((p.kind||'').replace('_',' '))}`).addTo(map);
+  });
+  for (const l of ['hex-fill','photos','staging','roads']) {
+    map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', l, () => map.getCanvas().style.cursor = '');
+  }
+  document.getElementById('top').onclick = e => {
+    const li = e.target.closest('li'); if (!li) return;
+    map.flyTo({center:[+li.dataset.lon, +li.dataset.lat], zoom:15});
+    const f = map.querySourceFeatures('hexes', {filter:['==',['get','h3'],li.dataset.h3]})[0];
+    if (f) hexDetail(f.properties);
+  };
+  document.querySelectorAll('input[data-layer]').forEach(cb => cb.onchange = () =>
+    LAYERS[cb.dataset.layer].forEach(id => map.setLayoutProperty(id, 'visibility', cb.checked ? 'visible' : 'none')));
+});
+document.getElementById('toggle').onclick = () => document.getElementById('panel').classList.toggle('collapsed');
+</script>
+</body>
+</html>

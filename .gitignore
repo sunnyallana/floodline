@@ -24,3 +24,6 @@ data/cvfd/
 data/external/
 results/map/
 results/synthetic_*
+
+# osmnx HTTP cache
+cache/

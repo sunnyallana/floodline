@@ -1,0 +1,88 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "results\\satellite_prague.csv",
+   "results\\reach_prague.csv",
+   "results\\exposure_prague.csv"
+  ],
+  "reports": "results\\eu_flood_2013_mappable.csv"
+ },
+ "metrics": {
+  "hexes": 2612,
+  "hexes_with_priority": 219,
+  "hexes_with_reports": 53,
+  "top10": [
+   {
+    "h3": "891e30b26a3ffff",
+    "priority": 0.796,
+    "confidence": 0.6,
+    "buildings_affected": 45
+   },
+   {
+    "h3": "891e3549813ffff",
+    "priority": 0.641,
+    "confidence": 0.6,
+    "buildings_affected": 40
+   },
+   {
+    "h3": "891e30b26b3ffff",
+    "priority": 0.593,
+    "confidence": 0.6,
+    "buildings_affected": 5
+   },
+   {
+    "h3": "891e354888bffff",
+    "priority": 0.575,
+    "confidence": 0.6,
+    "buildings_affected": 22
+   },
+   {
+    "h3": "891e3548c27ffff",
+    "priority": 0.509,
+    "confidence": 0.6,
+    "buildings_affected": 7
+   },
+   {
+    "h3": "891e354988fffff",
+    "priority": 0.487,
+    "confidence": 0.6,
+    "buildings_affected": 15
+   },
+   {
+    "h3": "891e30b241bffff",
+    "priority": 0.462,
+    "confidence": 0.6,
+    "buildings_affected": 18
+   },
+   {
+    "h3": "891e3548aa3ffff",
+    "priority": 0.424,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891e3548aabffff",
+    "priority": 0.384,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891e354884bffff",
+    "priority": 0.375,
+    "confidence": 0.6,
+    "buildings_affected": 16
+   }
+  ]
+ },
+ "started_at": "2026-10-19T22:48:41+00:00",
+ "finished_at": "2026-10-19T22:48:42+00:00",
+ "seconds": 0.3,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

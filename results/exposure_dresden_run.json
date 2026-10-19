@@ -1,0 +1,24 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "results\\satellite_dresden.csv",
+  "ems_source": "data\\external\\ems\\EMSR044\\EMSR044_08DRESDEN_DELINEATION_DETAIL01_v1_vector",
+  "reach": "results\\reach_dresden.csv"
+ },
+ "metrics": {
+  "target_hexes": 74,
+  "buildings_queried": 1322,
+  "buildings_in_flood": 10,
+  "hexes_with_flooded_buildings": 6
+ },
+ "started_at": "2026-10-19T22:18:46+00:00",
+ "finished_at": "2026-10-19T22:20:34+00:00",
+ "seconds": 108.6,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

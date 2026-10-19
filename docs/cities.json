@@ -1,0 +1,134 @@
+[
+ {
+  "key": "prague",
+  "title": "Prague, June 2013",
+  "subtitle": "Vltava flood. Copernicus EMS rapid map dated 3 June 2013.",
+  "bounds": [
+   14.29405,
+   49.94682,
+   14.48724,
+   50.1256
+  ],
+  "activation": "EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector",
+  "stats": {
+   "mapped_km2": 260.9,
+   "flood_km2": 5.6,
+   "hexes": 2612,
+   "hexes_with_priority": 219,
+   "hexes_cut_off": 9,
+   "buildings_in_flood": 116,
+   "closed_road_segments": 34,
+   "staging_points": 80,
+   "photos": 203,
+   "resolution": 9
+  },
+  "top": [
+   {
+    "h3": "891e30b26a3ffff",
+    "lat": 49.94754,
+    "lon": 14.39347,
+    "priority": 0.796,
+    "buildings_affected": 45,
+    "cut_off": true
+   },
+   {
+    "h3": "891e3549813ffff",
+    "lat": 49.95952,
+    "lon": 14.32901,
+    "priority": 0.641,
+    "buildings_affected": 40,
+    "cut_off": true
+   },
+   {
+    "h3": "891e30b26b3ffff",
+    "lat": 49.94997,
+    "lon": 14.39088,
+    "priority": 0.593,
+    "buildings_affected": 5,
+    "cut_off": true
+   },
+   {
+    "h3": "891e354888bffff",
+    "lat": 50.00128,
+    "lon": 14.39286,
+    "priority": 0.575,
+    "buildings_affected": 22,
+    "cut_off": true
+   },
+   {
+    "h3": "891e3548c27ffff",
+    "lat": 50.01174,
+    "lon": 14.39717,
+    "priority": 0.509,
+    "buildings_affected": 7,
+    "cut_off": true
+   }
+  ]
+ },
+ {
+  "key": "dresden",
+  "title": "Dresden, June 2013",
+  "subtitle": "Elbe flood. Copernicus EMS rapid map dated 3 June 2013, three days before the crest.",
+  "bounds": [
+   13.70968,
+   51.02351,
+   13.85021,
+   51.09645
+  ],
+  "activation": "EMSR044_08DRESDEN_DELINEATION_DETAIL01_v1_vector",
+  "stats": {
+   "mapped_km2": 77.3,
+   "flood_km2": 1.5,
+   "hexes": 796,
+   "hexes_with_priority": 71,
+   "hexes_cut_off": 0,
+   "buildings_in_flood": 10,
+   "closed_road_segments": 2,
+   "staging_points": 21,
+   "photos": 173,
+   "resolution": 9
+  },
+  "top": [
+   {
+    "h3": "891f1b0905bffff",
+    "lat": 51.06079,
+    "lon": 13.79813,
+    "priority": 0.201,
+    "buildings_affected": 0,
+    "cut_off": false
+   },
+   {
+    "h3": "891f1b0963bffff",
+    "lat": 51.06258,
+    "lon": 13.78557,
+    "priority": 0.193,
+    "buildings_affected": 0,
+    "cut_off": false
+   },
+   {
+    "h3": "891f1b0904bffff",
+    "lat": 51.05842,
+    "lon": 13.80078,
+    "priority": 0.181,
+    "buildings_affected": 0,
+    "cut_off": false
+   },
+   {
+    "h3": "891f1b092b3ffff",
+    "lat": 51.05605,
+    "lon": 13.80342,
+    "priority": 0.175,
+    "buildings_affected": 2,
+    "cut_off": false
+   },
+   {
+    "h3": "891f1b54aa3ffff",
+    "lat": 51.06623,
+    "lon": 13.71815,
+    "priority": 0.169,
+    "buildings_affected": 0,
+    "cut_off": false
+   }
+  ]
+ }
+]

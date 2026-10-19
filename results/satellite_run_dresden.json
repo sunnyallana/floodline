@@ -1,0 +1,27 @@
+{
+ "stage": "satellite",
+ "params": {
+  "ems_source": "data\\external\\ems\\EMSR044\\EMSR044_08DRESDEN_DELINEATION_DETAIL01_v1_vector",
+  "resolution": 9
+ },
+ "metrics": {
+  "cells": 796,
+  "flooded_cells": 74,
+  "flood_layers": 1,
+  "aoi_layers": 1,
+  "permanent_water_layers": 1,
+  "flood_km2": 1.5,
+  "aoi_km2": 77.3,
+  "permanent_water_km2": 2.6
+ },
+ "started_at": "2026-10-19T22:10:03+00:00",
+ "finished_at": "2026-10-19T22:10:04+00:00",
+ "seconds": 0.5,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

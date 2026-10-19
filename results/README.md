@@ -101,7 +101,44 @@ is flooded" are different questions, which is why the satellite stage reports pe
 and the fusion layer must not read a river photo as a flooded hex. Hex-level agreement alone cannot show this:
 within one ring of a 0.7 km² hex, every photo in both cities touches either flood or river (100%).
 
-## 6. Supervised baselines carried over from v1
+## 6. Responder layer: roads, buildings and priority (Prague and Dresden, June 2013)
+
+`satellite_{prague,dresden}.csv`, `reach_*`, `exposure_*`, `hexes_*` with their `_run.json` files · one EMS city
+package each, H3 res 9 (0.1 km² hexagons). Published as the map in `../docs/`.
+
+| | Prague | Dresden |
+|---|---|---|
+| Mapped area / flood (EMS map dated 3 June 2013) | 261 km² / 5.6 km² | 77 km² / 1.5 km² |
+| Hexagons mapped / with priority > 0 | 2,612 / 219 | 796 / 71 |
+| Drive-network nodes (OSM) | 16,935 | 4,950 |
+| Staging points (OSM fire stations and hospitals, outside the flood) | 80 | 21 |
+| Roads closed by water / length under water | 34 / 4.2 km | 2 / 0.3 km |
+| Hexagons cut off by road | 9 | 0 |
+| OSM buildings inside the flood | 116 | 10 |
+
+How it is computed:
+- **Reach.** Multi-source Dijkstra from the staging points. The drive network is run twice: once intact, once
+  with every road that runs at least 15 m through the flood polygons removed. The 15 m threshold matters: at
+  1:10,000 the polygons are placed to about 10-20 m, and without it, 6 of 10 Dresden closures were roads
+  grazing the boundary.
+- **Cut off.** A hexagon is cut off when it has a road, is reachable on the intact network, and is not
+  reachable on the flooded one.
+- **Priority.** It is zero unless the hexagon is wet or cut off. Otherwise it is
+  0.45·exposure + 0.30·hazard + 0.25·access, where exposure is 1 − e^(−buildings/20).
+
+Findings:
+- **Prague.** The flood map puts the damage on the southern edge of the city, not the centre. All five
+  top-ranked hexagons are cut off: Zbraslav, Lipence, Lahovice and Velká Chuchle, at the Berounka–Vltava
+  confluence. The highest-ranked one has 45 buildings affected and no road in. The 203 geotagged photos cluster
+  along the embankments in the centre, kilometres north of those hexagons. This is the coverage bias the scope
+  section predicts: the people taking photos were not where the need was.
+- **Dresden.** The EMS map is dated 3 June, three days before the Elbe crested on 6 June. It shows riverside
+  meadows under water and almost nothing else: 10 buildings, no hexagon cut off. Its top priority is 0.20.
+  The low score is the correct reading of that map. It does not show the flood's peak.
+- **Caveat.** The OSM network and buildings are the current map, not the 2013 one, and whether a bridge was
+  closed is not in the data. Photos raise confidence, not priority, until their depth has been assessed.
+
+## 7. Supervised baselines carried over from v1
 
 `../legacy/v1-results/` · seven backbones, three seeds, binary flooded / not-flooded
 

@@ -57,6 +57,9 @@ floodline = "floodline.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"floodline.web" = ["*.html"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"

@@ -1,0 +1,24 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "results\\satellite_prague.csv",
+  "ems_source": "data\\external\\ems\\EMSR045\\EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector",
+  "reach": "results\\reach_prague.csv"
+ },
+ "metrics": {
+  "target_hexes": 224,
+  "buildings_queried": 3984,
+  "buildings_in_flood": 116,
+  "hexes_with_flooded_buildings": 28
+ },
+ "started_at": "2026-10-19T22:21:34+00:00",
+ "finished_at": "2026-10-19T22:23:11+00:00",
+ "seconds": 97.2,
+ "git_sha": "ce4f1ab",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}
