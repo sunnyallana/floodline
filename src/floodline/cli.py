@@ -45,6 +45,13 @@ def build_parser() -> argparse.ArgumentParser:
     w = sub.add_parser("waterline", help="flood depth from SAM 3 masks + metric depth (no language model)")
     w.add_argument("--limit", type=int)
 
+    f = sub.add_parser("fuse", help="aggregate located reports on H3 hexagons and rank them")
+    f.add_argument(
+        "reports", help="CSV with lat, lon, depth_class, people_*, confidence, location_confidence, captured_at"
+    )
+    f.add_argument("--layers", help="optional CSV keyed by h3 with satellite_water_fraction and reach_minutes")
+    f.add_argument("--out", default="hexes", help="output stem under results/")
+
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
     o.add_argument("--out")
@@ -95,6 +102,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import waterline
 
             waterline.run(paths, limit=args.limit)
+        elif args.command == "fuse":
+            from pathlib import Path
+
+            from floodline.stages import fuse
+
+            fuse.run(paths, Path(args.reports), Path(args.layers) if args.layers else None, out_stem=args.out)
         elif args.command == "overlay":
             from pathlib import Path
 
