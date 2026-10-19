@@ -45,25 +45,13 @@ def cells_covering(geometry, resolution: int = H3_RESOLUTION) -> list[str]:
 
 
 def water_fraction_per_cell(flood_geometry, cells: list[str]) -> pd.DataFrame:
-    """Fraction of each hex covered by the flood geometry (planar on lon/lat; fine at hex scale).
-
-    Uses an STRtree so only hexes that actually touch the flood polygons are intersected; the rest are 0.
-    """
-    from shapely import STRtree
-    from shapely.geometry import MultiPolygon
-
+    """Fraction of each hex covered by the flood geometry (planar on lon/lat; fine at hex scale)."""
     polys = hex_polygons(cells)
-    parts = list(flood_geometry.geoms) if isinstance(flood_geometry, MultiPolygon) else [flood_geometry]
-    tree = STRtree(parts)
-    fractions = []
-    for poly in polys:
-        hits = tree.query(poly, predicate="intersects")
-        if len(hits) == 0 or poly.area == 0:
-            fractions.append(0.0)
-            continue
-        inter = sum(poly.intersection(parts[i]).area for i in hits)
-        fractions.append(round(min(inter / poly.area, 1.0), 4))
-    return pd.DataFrame({"h3": cells, "satellite_water_fraction": fractions})
+    rows = []
+    for cell, poly in zip(cells, polys, strict=True):
+        inter = poly.intersection(flood_geometry)
+        rows.append({"h3": cell, "satellite_water_fraction": round(inter.area / poly.area, 4) if poly.area else 0.0})
+    return pd.DataFrame(rows)
 
 
 def load_ems_extent(paths_or_dir: list[Path] | Path, layer_hint: str = "observedEventA"):
