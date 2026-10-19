@@ -93,6 +93,10 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--out", default="agreement")
     ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
 
+    rl = sub.add_parser("release", help="package the depth benchmark as a Hugging Face dataset")
+    rl.add_argument("--repo", default="sunnyallana/cvfd-flood-depth")
+    rl.add_argument("--push", action="store_true", help="upload; needs HF_WRITE_TOKEN with write access")
+
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
     o.add_argument("--out")
@@ -224,6 +228,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 k=args.k,
                 ems_dirs=[Path(d) for d in args.ems_dirs],
             )
+        elif args.command == "release":
+            from floodline.stages import release
+
+            release.run(paths, repo=args.repo, push=args.push)
         elif args.command == "overlay":
             from pathlib import Path
 

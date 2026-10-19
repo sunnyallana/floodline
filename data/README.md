@@ -9,5 +9,5 @@
 Provenance (from the dataset card): FloodIMG (CC0) for most flooded scenes, web-scraped non-flood scenes, and
 343 self-collected images from Pakistan. All images are 224×224 with EXIF removed; there is no geolocation.
 
-Committed here: `depth_labels.csv`, the hand-labelled 300-image depth benchmark (in progress), and the CVFD
+Committed here: `depth_labels.csv`, the 300-image depth benchmark (labelled from contact sheets with an AI assistant; human review pending), and the CVFD
 index is regenerated with `floodline index`.

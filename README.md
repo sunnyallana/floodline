@@ -6,7 +6,7 @@
 Ground-level flood photos from field responders and connected residents as evidence: estimate **flood depth and human impact zero-shot**, locate each
 report with a stated confidence, and fuse the result with **satellite flood extent** to prioritise rescue.
 
-**Map:** https://sunnyallana.github.io/floodline/ shows Prague and Dresden in June 2013. It combines satellite flood
+**Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013. It combines satellite flood
 extent, roads closed by water, exposed buildings and geotagged photos, with a priority per hexagon.
 
 Status: active development (October 2026). Successor to the GroundTruth final-year project. Nothing below is a claim until its result file exists under `results/`.

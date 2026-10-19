@@ -9,7 +9,7 @@ size_categories: [1K<n<10K]
 # Close-View Flood Dataset (CVFD)
 
 Ground-level flood imagery for classification (flooded / non-flooded) and semantic segmentation (flood water,
-humans, buildings), with a 300-image hand-labelled **flood-depth benchmark** added in Floodline v2.
+humans, buildings), with a 300-image **flood-depth benchmark** added in Floodline v2 (labels AI-assisted, human review pending).
 
 - Images: 7,774 on disk (7,855 at first release; 81 files were lost from LFS), 224×224 RGB, EXIF removed.
 - Splits: train / val / test ≈ 70 / 15 / 15, pre-sorted by class.

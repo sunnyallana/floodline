@@ -1,0 +1,30 @@
+{
+ "stage": "release",
+ "params": {
+  "repo": "sunnyallana/cvfd-flood-depth",
+  "push": false
+ },
+ "metrics": {
+  "images": 300,
+  "classes": {
+   "unknown": 203,
+   "knee": 29,
+   "ankle": 27,
+   "dry": 16,
+   "waist": 10,
+   "chest": 9,
+   "above_head": 6
+  },
+  "url": null
+ },
+ "started_at": "2026-10-19T23:03:29+00:00",
+ "finished_at": "2026-10-19T23:03:29+00:00",
+ "seconds": 0.3,
+ "git_sha": "9339e0e",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

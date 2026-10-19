@@ -21,7 +21,8 @@ the depth benchmark and the VLM comparison below.
 
 ## 2. Depth benchmark
 
-`../data/depth_labels.csv` · 300 flooded images from the CVFD **test** split, hand-labelled into
+`../data/depth_labels.csv` · 300 flooded images from the CVFD **test** split, labelled from contact sheets with an AI
+assistant (not yet reviewed by a second, human annotator) into
 dry / ankle / knee / waist / chest / above_head / unknown, with the reference object and a note.
 
 | Class | Images |

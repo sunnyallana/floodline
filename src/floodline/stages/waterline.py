@@ -127,7 +127,7 @@ ORDER = ["dry", "ankle", "knee", "waist", "chest", "above_head"]
 
 
 def score_against_labels(pred: pd.DataFrame, labels: pd.DataFrame) -> dict[str, Any]:
-    """Exact and within-one-bin agreement on the hand-labelled images that have a geometric estimate."""
+    """Exact and within-one-bin agreement on the labelled benchmark images that have a geometric estimate."""
     lab = labels[labels.depth_bin.isin(ORDER)][["image_id", "depth_bin"]].rename(columns={"depth_bin": "label"})
     m = pred.merge(lab, on="image_id")
     m = m[m.depth_bin.isin(ORDER)]
