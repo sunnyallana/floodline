@@ -14,14 +14,15 @@ from floodline.schema import DepthReading, ReferenceObject, WaterLevel
 
 # Reference nouns, most specific first. The first family found in the description wins.
 _OBJECT_PATTERNS: tuple[tuple[ReferenceObject, str], ...] = (
-    ("rickshaw", r"\brickshaws?\b|\btuk-?tuks?\b"),
-    ("bus", r"\bbus(es)?\b|\btrucks?\b|\blorr(y|ies)\b"),
-    ("motorbike", r"\bmotor ?(bike|cycle)s?\b|\bscooters?\b|\bbikes?\b"),
-    ("car", r"\bcars?\b|\bvehicles?\b|\bsuvs?\b|\bvans?\b|\bjeeps?\b|\btaxis?\b"),
+    # Person first: body-part phrases are unambiguous, so a person mention wins over a vehicle in the same sentence.
     (
         "person",
         r"\bperson\b|\bpeople\b|\bman\b|\bwoman\b|\bmen\b|\bwomen\b|\bchild(ren)?\b|\bboy\b|\bgirl\b|\bpedestrians?\b|\bresidents?\b|\brescuers?\b",
     ),
+    ("rickshaw", r"\brickshaws?\b|\btuk-?tuks?\b"),
+    ("bus", r"\bbus(es)?\b|\btrucks?\b|\blorr(y|ies)\b"),
+    ("motorbike", r"\bmotor ?(bike|cycle)s?\b|\bscooters?\b|\bbikes?\b"),
+    ("car", r"\bcars?\b|\bvehicles?\b|\bsuvs?\b|\bvans?\b|\bjeeps?\b|\btaxis?\b"),
     ("door", r"\bdoors?\b|\bdoorways?\b|\bdoorsteps?\b|\bthreshold\b"),
     ("window", r"\bwindows?\b|\bwindow ?sills?\b"),
     ("building_ground_floor", r"\bground floor\b|\bfirst floor\b|\bbuildings?\b|\bhouses?\b|\bshops?\b|\bwalls?\b"),
@@ -77,6 +78,10 @@ _LEVELS["motorbike"] = (
 _LEVELS["rickshaw"] = _LEVELS["car"]
 _LEVELS["bus"] = _LEVELS["car"]
 
+_NON_REFERENCE = re.compile(
+    r"(pillars?|lamp ?posts?|poles?|trees?|trunks?|bushes|shrubs?|signs?|fences?|railings?|benches|bollards?)",
+    re.I,
+)
 _DRY = re.compile(
     r"\bdry (ground|pavement|land|road|street)\b|standing on dry|not (in|touching) (the )?water|beside the water|next to the water|edge of the water",
     re.I,
@@ -94,7 +99,11 @@ class RuleReading:
 
 
 def read_from_text(description: str) -> RuleReading | None:
-    """Return a reading when the description names a reference object and a level for it; otherwise ``None``."""
+    """Return a reading when the description names a reference object and a level for it.
+
+    Returns a ``none`` reading when the only thing in the water is a non-reference object (pillar, tree, sign),
+    so the LLM fallback is never asked to invent a reference. Returns ``None`` only when nothing matched at all.
+    """
     text = description.lower()
     for obj, pat in _OBJECT_PATTERNS:
         m = re.search(pat, text)
@@ -120,4 +129,13 @@ def read_from_text(description: str) -> RuleReading | None:
                 matched_object=m.group(0),
                 matched_level="dry",
             )
+    nr = _NON_REFERENCE.search(text)
+    if nr:
+        return RuleReading(
+            DepthReading(
+                reference_object="none", water_level="not_touching", basis=f"only a {nr.group(0)} in the water"
+            ),
+            matched_object=nr.group(0),
+            matched_level="none",
+        )
     return None

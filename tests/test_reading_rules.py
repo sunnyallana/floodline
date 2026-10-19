@@ -28,6 +28,17 @@ def test_dry_ground_is_not_touching():
     assert r is not None and r.reading.water_level == "not_touching"
 
 
-def test_no_reference_returns_none():
-    assert read_from_text("A flooded river with water around a lamppost and some trees.") is None
+def test_person_wins_over_vehicle_in_same_sentence():
+    r = read_from_text("A man stands in the flooded street beside submerged vehicles; the water reaches his knees.")
+    assert r is not None and (r.reading.reference_object, r.reading.water_level) == ("person", "quarter")
+
+
+def test_non_reference_objects_short_circuit_to_none():
+    r = read_from_text("A flooded river with water around a lamppost and some trees.")
+    assert r is not None and r.reading.reference_object == "none"
+    r2 = read_from_text("The water reaches the base of a stone pillar, covering it up to about waist height.")
+    assert r2 is not None and r2.reading.reference_object == "none"
+
+
+def test_nothing_matched_returns_none():
     assert read_from_text("Aerial view of fields covered in brown water.") is None
