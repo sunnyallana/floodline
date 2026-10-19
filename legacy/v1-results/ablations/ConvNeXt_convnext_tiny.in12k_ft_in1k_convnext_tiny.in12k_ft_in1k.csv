@@ -1,0 +1,2 @@
+Experiment,Pretrained,Two-Stage,Augmentation,Warmup,S2 Epochs,Test Acc,Precision,Recall,F1,ROC AUC,PR AUC,Seeds
+Baseline (Full Pipeline),True,True,True,True,20,98.53% +-0.28,0.9803 +-0.0052,0.9885 +-0.0017,0.9844 +-0.0029,0.9991 +-0.0002,0.9989 +-0.0003,"[42, 123, 777]"

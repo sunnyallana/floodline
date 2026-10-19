@@ -1,0 +1,2 @@
+n_checkpoints,model,dataset,n,accuracy_mean,accuracy_std,f1_macro_mean,f1_macro_std,f1_flood_mean,f1_flood_std,roc_auc_mean,roc_auc_std,pr_auc_mean,pr_auc_std
+3,swin_base_patch4_window7_224,/home/onyxd/Downloads/AlleyFloodNet,1110,80.1201,2.0082,0.7989,0.0213,0.7782,0.0283,0.9285,0.01,0.9499,0.0058

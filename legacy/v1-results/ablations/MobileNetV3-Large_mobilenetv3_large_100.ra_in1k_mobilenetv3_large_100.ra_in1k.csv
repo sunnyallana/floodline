@@ -1,0 +1,2 @@
+Experiment,Pretrained,Two-Stage,Augmentation,Warmup,S2 Epochs,Test Acc,Precision,Recall,F1,ROC AUC,PR AUC,Model,Seeds
+Baseline (Full Pipeline),True,True,True,True,20,89.12% +-1.25,0.8694 +-0.0151,0.9034 +-0.0152,0.8860 +-0.0129,0.9629 +-0.0045,0.9580 +-0.0046,mobilenetv3_large_100.ra_in1k,"[42, 123, 777]"

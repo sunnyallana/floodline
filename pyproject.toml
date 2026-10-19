@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "floodline"
+version = "0.2.0"
+description = "Zero-shot flood depth and impact from ground-level photos, fused with satellite flood extent."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sunny Shaban Ali" }]
+
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "pyarrow>=16",
+    "pillow>=10",
+    "pydantic>=2.7",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+# Perception models (CPU or GPU). Kept out of the base install so tests and the fusion layer stay light.
+models = [
+    "torch>=2.4",
+    "torchvision>=0.19",
+    "transformers>=4.57",
+    "accelerate>=1.0",
+    "huggingface_hub>=0.25",
+]
+# Geospatial fusion and serving.
+geo = [
+    "h3>=4.0",
+    "shapely>=2.0",
+    "geopandas>=1.0",
+    "duckdb>=1.0",
+    "rasterio>=1.4",
+    "rioxarray>=0.17",
+    "pystac-client>=0.8",
+]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/sunnyallana/floodline"
+Dataset = "https://www.kaggle.com/datasets/sunnyshabanali/close-view-flood-dataset-cvfd"
+
+[project.scripts]
+floodline = "floodline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "N", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # en dashes in prose strings are intentional
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

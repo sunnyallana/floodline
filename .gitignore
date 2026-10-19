@@ -1,0 +1,23 @@
+# Environments and build artefacts
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# Local binaries and model weights (downloaded, never committed)
+tools/
+models/
+# Bulk outputs: mask PNGs and depth maps; summaries and manifests are committed instead
+results/depth_maps/
+results/sam3_masks/
+results/*.log
+results/*.err
+results/vlm_raw/
+# Derived data that is regenerated from the CVFD index
+data/depth_sheets/
+data/bundle/
+# graphify working files; graph.json, GRAPH_REPORT.md and cost.json are committed
+graphify-out/.graphify_*
+graphify-out/cache/
+data/cvfd/

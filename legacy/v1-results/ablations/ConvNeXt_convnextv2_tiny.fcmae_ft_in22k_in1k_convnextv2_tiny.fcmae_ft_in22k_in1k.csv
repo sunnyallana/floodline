@@ -1,0 +1,2 @@
+Experiment,Pretrained,Two-Stage,Augmentation,Warmup,S2 Epochs,Test Acc,Precision,Recall,F1,ROC AUC,PR AUC,Model,Seeds
+Baseline (Full Pipeline),True,True,True,True,20,98.36% +-0.17,0.9855 +-0.0038,0.9795 +-0.0062,0.9824 +-0.0019,0.9988 +-0.0001,0.9986 +-0.0001,convnextv2_tiny.fcmae_ft_in22k_in1k,"[42, 123, 777]"

@@ -1,0 +1,6 @@
+# Keep LF in the v2 package regardless of the Windows checkout default.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.npz binary
+*.parquet binary

@@ -1,0 +1,2 @@
+Experiment,Pretrained,Two-Stage,Augmentation,Warmup,S2 Epochs,Test Acc,Precision,Recall,F1,ROC AUC,PR AUC,Model,Seeds
+Baseline (Full Pipeline),True,True,True,True,20,98.84% +-0.08,0.9862 +-0.0022,0.9891 +-0.0015,0.9876 +-0.0008,0.9994 +-0.0000,0.9993 +-0.0000,vit_small_patch16_dinov3.lvd1689m,"[42, 123, 777]"

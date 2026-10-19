@@ -1,0 +1,7 @@
+split,label,images,with_flood_mask,with_humans_mask,with_buildings_mask
+test,flooded,538,482,138,229
+test,non-flooded,627,0,0,0
+train,flooded,2519,2313,600,1102
+train,non-flooded,2921,0,0,0
+val,flooded,544,492,127,236
+val,non-flooded,625,0,0,0

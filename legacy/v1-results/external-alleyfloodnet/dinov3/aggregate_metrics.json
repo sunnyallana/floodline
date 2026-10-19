@@ -1,0 +1,116 @@
+{
+  "n_checkpoints": 3,
+  "checkpoints": [
+    "/home/onyxd/Downloads/repo/najat.ai/services/ai/vision/classification/models/ViT-Small (DINOv3)/vit_small_patch16_dinov3.lvd1689m/vit_small_patch16_dinov3.lvd1689m/baseline/seed_42/baseline_seed42_checkpoint.pth",
+    "/home/onyxd/Downloads/repo/najat.ai/services/ai/vision/classification/models/ViT-Small (DINOv3)/vit_small_patch16_dinov3.lvd1689m/vit_small_patch16_dinov3.lvd1689m/baseline/seed_123/baseline_seed123_checkpoint.pth",
+    "/home/onyxd/Downloads/repo/najat.ai/services/ai/vision/classification/models/ViT-Small (DINOv3)/vit_small_patch16_dinov3.lvd1689m/vit_small_patch16_dinov3.lvd1689m/baseline/seed_777/baseline_seed777_checkpoint.pth"
+  ],
+  "n_total": 1110,
+  "n_flood": 601,
+  "n_non_flood": 509,
+  "aggregate": {
+    "accuracy": {
+      "mean": 74.1441,
+      "std": 1.2243,
+      "per_seed": [
+        72.4324,
+        75.2252,
+        74.7748
+      ]
+    },
+    "f1_macro": {
+      "mean": 0.7345,
+      "std": 0.014,
+      "per_seed": [
+        0.7149,
+        0.7467,
+        0.7418
+      ]
+    },
+    "f1_flood": {
+      "mean": 0.6916,
+      "std": 0.0204,
+      "per_seed": [
+        0.663,
+        0.709,
+        0.7028
+      ]
+    },
+    "roc_auc": {
+      "mean": 0.9017,
+      "std": 0.0035,
+      "per_seed": [
+        0.9054,
+        0.897,
+        0.9027
+      ]
+    },
+    "pr_auc": {
+      "mean": 0.9276,
+      "std": 0.0014,
+      "per_seed": [
+        0.9296,
+        0.9261,
+        0.927
+      ]
+    }
+  },
+  "per_class": {
+    "Non-Flooded": {
+      "precision": {
+        "mean": 0.6427,
+        "std": 0.0116
+      },
+      "recall": {
+        "mean": 0.9836,
+        "std": 0.0033
+      },
+      "f1-score": {
+        "mean": 0.7773,
+        "std": 0.0076
+      }
+    },
+    "Flooded": {
+      "precision": {
+        "mean": 0.975,
+        "std": 0.0041
+      },
+      "recall": {
+        "mean": 0.5363,
+        "std": 0.0252
+      },
+      "f1-score": {
+        "mean": 0.6916,
+        "std": 0.0204
+      }
+    },
+    "macro avg": {
+      "precision": {
+        "mean": 0.8088,
+        "std": 0.0041
+      },
+      "recall": {
+        "mean": 0.76,
+        "std": 0.0111
+      },
+      "f1-score": {
+        "mean": 0.7345,
+        "std": 0.014
+      }
+    },
+    "weighted avg": {
+      "precision": {
+        "mean": 0.8226,
+        "std": 0.0035
+      },
+      "recall": {
+        "mean": 0.7414,
+        "std": 0.0122
+      },
+      "f1-score": {
+        "mean": 0.7309,
+        "std": 0.0145
+      }
+    }
+  }
+}

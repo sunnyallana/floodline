@@ -1,0 +1,9 @@
+{
+ "model": "depth-anything/Depth-Anything-V2-Metric-Outdoor-Large-hf",
+ "images_total": 793,
+ "images_new": 790,
+ "seconds": 2472.9,
+ "s_per_image": 3.13,
+ "device": "cpu",
+ "threads": 22
+}

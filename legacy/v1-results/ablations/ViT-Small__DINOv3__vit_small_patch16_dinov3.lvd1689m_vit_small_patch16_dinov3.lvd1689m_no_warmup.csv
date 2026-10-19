@@ -1,0 +1,2 @@
+Experiment,Pretrained,Two-Stage,Augmentation,Warmup,S2 Epochs,Test Acc,Precision,Recall,F1,ROC AUC,PR AUC,Model,Seeds
+No LR Warmup,True,True,True,False,20,98.70% +-0.22,0.9809 +-0.0044,0.9915 +-0.0009,0.9862 +-0.0023,0.9993 +-0.0000,0.9993 +-0.0000,vit_small_patch16_dinov3.lvd1689m,"[42, 123, 777]"
