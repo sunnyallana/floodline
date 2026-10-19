@@ -29,13 +29,16 @@
   "images": 187,
   "with_estimate": 50,
   "benchmark": {
-   "n": 0
+   "n": 15,
+   "exact": 0.1333,
+   "within_one": 0.4667,
+   "mean_abs_bins": 1.8
   }
  },
- "started_at": "2026-10-19T19:07:26+00:00",
- "finished_at": "2026-10-19T19:07:29+00:00",
- "seconds": 2.0,
- "git_sha": "250e00b",
+ "started_at": "2026-10-19T19:37:10+00:00",
+ "finished_at": "2026-10-19T19:37:11+00:00",
+ "seconds": 1.2,
+ "git_sha": "c6a889a",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",
