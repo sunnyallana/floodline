@@ -118,6 +118,7 @@ floodline index && floodline sheets --split test && floodline depth && floodline
 floodline waterline
 floodline external
 floodline satellite data/external/ems/EMSR045 --out satellite_EMSR045.csv
-floodline agree results/eu_flood_2013_mappable.csv results/satellite_EMSR04{4,5,6}.csv     --ems-dirs data/external/ems/EMSR04{4,5,6} --out agreement_euflood
+floodline agree results/eu_flood_2013_mappable.csv results/satellite_EMSR04{4,5,6}.csv \
+    --ems-dirs data/external/ems/EMSR04{4,5,6} --out agreement_euflood
 floodline assess --model Qwen3VL-8B-Instruct-Q8_0.gguf --mmproj mmproj-Qwen3VL-8B-Instruct-F16.gguf
 ```
