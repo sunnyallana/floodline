@@ -1,0 +1,45 @@
+{
+ "stage": "waterline",
+ "params": {
+  "references": {
+   "person": [
+    "person",
+    0.0
+   ],
+   "car": [
+    "car",
+    0.0
+   ],
+   "motorbike": [
+    "motorbike",
+    0.0
+   ],
+   "door": [
+    "door",
+    0.0
+   ],
+   "window": [
+    "window",
+    100.0
+   ]
+  },
+  "depth_tolerance": 0.35
+ },
+ "metrics": {
+  "images": 187,
+  "with_estimate": 84,
+  "benchmark": {
+   "n": 0
+  }
+ },
+ "started_at": "2026-10-19T19:06:20+00:00",
+ "finished_at": "2026-10-19T19:06:34+00:00",
+ "seconds": 14.0,
+ "git_sha": "2c5770a",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

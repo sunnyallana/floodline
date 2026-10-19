@@ -41,6 +41,9 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--threshold", type=float, default=0.5)
     g.add_argument("--threads", type=int)
 
+    w = sub.add_parser("waterline", help="flood depth from SAM 3 masks + metric depth (no language model)")
+    w.add_argument("--limit", type=int)
+
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
     o.add_argument("image_ids", nargs="+")
     o.add_argument("--out")
@@ -81,6 +84,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             for k, v in segment.summarise_scores(scores).items():
                 log.info("%-22s mean %.3f  median %.3f  n=%d", k, v["mean"], v["median"], v["n"])
+        elif args.command == "waterline":
+            from floodline.stages import waterline
+
+            waterline.run(paths, limit=args.limit)
         elif args.command == "overlay":
             from pathlib import Path
 

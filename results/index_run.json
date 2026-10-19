@@ -1,0 +1,20 @@
+{
+ "stage": "index",
+ "params": {
+  "cvfd": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\cvfd"
+ },
+ "metrics": {
+  "images": 7774,
+  "flooded": 3601
+ },
+ "started_at": "2026-10-19T19:05:11+00:00",
+ "finished_at": "2026-10-19T19:05:12+00:00",
+ "seconds": 0.9,
+ "git_sha": "2c5770a",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}
