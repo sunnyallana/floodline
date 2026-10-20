@@ -111,7 +111,7 @@ def _to_segmentation(masks: Any, size_hw: tuple[int, int]) -> Segmentation:
     labels = np.zeros(size_hw, np.uint8)
     for i, inst in enumerate(m[:255]):
         labels[inst & (labels == 0)] = i + 1
-    return Segmentation(len(m), m.any(axis=0), labels)
+    return Segmentation(len(m), np.asarray(m.any(axis=0), dtype=bool), labels)
 
 
 def run(
