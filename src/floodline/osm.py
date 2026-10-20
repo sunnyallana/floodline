@@ -263,8 +263,13 @@ class OsmSource:
         return ox.simplify_graph(g)
 
     def features(self, area, tags):
+        """OSM features inside ``area``; an empty GeoDataFrame (not an error) when there are none."""
+        import geopandas as gpd
         import osmnx as ox
 
-        if not self.local:
-            return call(ox.features_from_polygon, area, tags)
-        return ox.features_from_xml(self._file(area.bounds, "features"), polygon=area, tags=tags)
+        try:
+            if not self.local:
+                return call(ox.features_from_polygon, area, tags)
+            return ox.features_from_xml(self._file(area.bounds, "features"), polygon=area, tags=tags)
+        except ox._errors.InsufficientResponseError:
+            return gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")

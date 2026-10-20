@@ -35,6 +35,7 @@ log = get_logger(__name__)
 DEFAULT_SPEED_KMH = 30.0  # conservative urban speed for a loaded rescue vehicle
 STAGING_TAGS: dict[str, list[str]] = {"amenity": ["fire_station", "hospital"]}
 MAX_SNAP_M = 500.0  # a staging point further than this from any road is dropped
+STAGING_SEARCH_M = 15_000.0  # no station near the town: responders come from the nearest one within this distance
 # Length of road inside the flood before the segment counts as closed. Chosen against EMS road damage grading
 # for EMSR517 (results/validation_roads.csv): 5 m maximises F1 pooled over 11 towns (precision 0.94, recall 0.85
 # against graded roads); 0 m adds 3 points of recall for 12 points of precision lost to boundary grazes, and
@@ -225,6 +226,12 @@ def run(
         staging = pd.DataFrame(staging_latlon, columns=["lat", "lon"]).assign(name="", kind="named")
     else:
         staging = staging_from_osm(area, source=source)
+        if staging.empty:
+            wider = aoi_gs.to_crs(metric).buffer(STAGING_SEARCH_M).to_crs("EPSG:4326").iloc[0]
+            log.warning(
+                "no fire station or hospital within %.0f m; searching %.0f km", buffer_m, STAGING_SEARCH_M / 1e3
+            )
+            staging = staging_from_osm(wider, source=source)
     st = gpd.GeoDataFrame(staging, geometry=gpd.points_from_xy(staging.lon, staging.lat), crs="EPSG:4326")
     st["in_flood"] = st.geometry.to_crs(metric).within(flood_m).to_numpy()
     st = st[~st.in_flood].reset_index(drop=True)  # a station under water stages nothing

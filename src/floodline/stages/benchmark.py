@@ -51,6 +51,15 @@ BOOTSTRAP = 1000
 TOP = 0.10
 
 
+def _read_json(path: Path) -> dict[str, Any] | None:
+    import json
+
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data.get("metrics", data)
+
+
 FLOOD_SOURCES: tuple[str, ...] = ("ems", "sentinel1", "sentinel1_otsu")
 
 
@@ -146,6 +155,15 @@ def run_event(
                 info["error"] = f"{type(exc).__name__}: {exc}"[:300]
         towns[key] = info
     table = pd.concat(roads, ignore_index=True) if roads else pd.DataFrame()
+    previous = _read_json(epaths.results / "event_run.json")
+    if only and previous:
+        # A rerun of some towns keeps the others' results.
+        towns = {**previous.get("towns", {}), **towns}
+        old_roads = epaths.results / "roads.csv"
+        if old_roads.exists() and old_roads.stat().st_size > 1:
+            kept = pd.read_csv(old_roads)
+            kept = kept[~kept.aoi.isin(only)] if "aoi" in kept else kept
+            table = pd.concat([kept, table], ignore_index=True)
     table.to_csv(epaths.results / "roads.csv", index=False)
     summary = {"event": event, "flood_source": flood_source, "towns": towns, "road_rows": len(table)}
     RunManifest("benchmark_event", params={"event": event, "osm": [str(p) for p in osm_pbfs],
