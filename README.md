@@ -9,7 +9,7 @@ report with a stated confidence, and fuse the result with **satellite flood exte
 **Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013. It combines satellite flood
 extent, roads closed by water, exposed buildings and geotagged photos, with a priority per hexagon.
 
-**Depth benchmark:** https://huggingface.co/datasets/sunnyallana/cvfd-flood-depth has 300 flood photos with depth
+**Depth benchmark:** https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark has 300 flood photos with depth
 classes. The labels are AI-assisted and a human review is pending.
 
 Status: active development (October 2026). Successor to the GroundTruth final-year project. Nothing below is a claim until its result file exists under `results/`.

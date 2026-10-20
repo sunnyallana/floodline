@@ -22,14 +22,14 @@ from floodline.runs import RunManifest
 
 log = get_logger(__name__)
 
-DEFAULT_REPO = "sunnyallana/cvfd-flood-depth"
+DEFAULT_REPO = "sunnyallana/flood-depth-benchmark"
 CLASS_ORDER = ("dry", "ankle", "knee", "waist", "chest", "above_head", "unknown")
 # Update when a person has checked the labels; the card states it either way.
 REVIEW_STATUS = "have not yet been checked by a second, human annotator"
 
 CARD = """---
 license: cc-by-sa-4.0
-pretty_name: CVFD Flood Depth Benchmark
+pretty_name: Flood Depth Benchmark
 task_categories:
 - image-classification
 tags:
@@ -46,7 +46,7 @@ configs:
     path: "images/**"
 ---
 
-# CVFD Flood Depth Benchmark
+# Flood Depth Benchmark
 
 {n} ground-level flood photos from the test split of the Close-View Flood Dataset (CVFD), each labelled with
 how deep the water is against an object of known height. It is the depth benchmark of
@@ -89,9 +89,9 @@ removed, open an issue at https://github.com/sunnyallana/floodline with the imag
 ## Citation
 
 ```
-@dataset{{shabanali2026cvfddepth,
+@dataset{{shabanali2026flooddepth,
   author = {{Shaban Ali, Sunny}},
-  title  = {{CVFD Flood Depth Benchmark}},
+  title  = {{Flood Depth Benchmark}},
   year   = {{2026}},
   url    = {{https://huggingface.co/datasets/{repo}}}
 }}
@@ -150,7 +150,7 @@ def build(paths: Paths, out_dir: Path, repo: str = DEFAULT_REPO) -> pd.DataFrame
 
 
 def run(paths: Paths, out_dir: Path | None = None, repo: str = DEFAULT_REPO, push: bool = False) -> Path:
-    out_dir = out_dir or paths.data / "bundle" / "cvfd-flood-depth"
+    out_dir = out_dir or paths.data / "bundle" / "flood-depth-benchmark"
     manifest = RunManifest("release", params={"repo": repo, "push": push})
     meta = build(paths, out_dir, repo)
     url = None

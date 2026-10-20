@@ -1,7 +1,7 @@
 {
  "stage": "release",
  "params": {
-  "repo": "sunnyallana/cvfd-flood-depth",
+  "repo": "sunnyallana/flood-depth-benchmark",
   "push": true
  },
  "metrics": {
@@ -15,12 +15,12 @@
    "chest": 9,
    "above_head": 6
   },
-  "url": "https://huggingface.co/datasets/sunnyallana/cvfd-flood-depth"
+  "url": "https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark"
  },
- "started_at": "2026-10-20T05:49:28+00:00",
- "finished_at": "2026-10-20T05:50:22+00:00",
- "seconds": 54.7,
- "git_sha": "3c090c4",
+ "started_at": "2026-10-20T05:59:47+00:00",
+ "finished_at": "2026-10-20T05:59:56+00:00",
+ "seconds": 9.1,
+ "git_sha": "e4a0b81",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

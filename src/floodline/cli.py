@@ -94,7 +94,7 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
 
     rl = sub.add_parser("release", help="package the depth benchmark as a Hugging Face dataset")
-    rl.add_argument("--repo", default="sunnyallana/cvfd-flood-depth")
+    rl.add_argument("--repo", default="sunnyallana/flood-depth-benchmark")
     rl.add_argument("--push", action="store_true", help="upload; needs HF_WRITE_TOKEN with write access")
 
     o = sub.add_parser("overlay", help="render original | SAM 3 | CVFD mask rows for a few images")
