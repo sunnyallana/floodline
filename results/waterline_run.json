@@ -26,19 +26,19 @@
   "method": "visible-fraction + depth-consistent touch"
  },
  "metrics": {
-  "images": 188,
-  "with_estimate": 46,
+  "images": 538,
+  "with_estimate": 135,
   "benchmark": {
-   "n": 14,
-   "exact": 0.2857,
-   "within_one": 0.7857,
-   "mean_abs_bins": 1.0
+   "n": 40,
+   "exact": 0.4,
+   "within_one": 0.775,
+   "mean_abs_bins": 0.85
   }
  },
- "started_at": "2026-10-19T19:40:18+00:00",
- "finished_at": "2026-10-19T19:40:19+00:00",
- "seconds": 1.1,
- "git_sha": "04c99d8",
+ "started_at": "2026-10-20T14:26:15+00:00",
+ "finished_at": "2026-10-20T14:26:22+00:00",
+ "seconds": 7.6,
+ "git_sha": "787c043",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

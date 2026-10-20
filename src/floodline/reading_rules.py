@@ -98,6 +98,19 @@ class RuleReading:
     matched_level: str
 
 
+_CONTACT = re.compile(r"\b(water|flood\w*)\b[^.;]{0,40}\b(reach\w*|up to|cover\w*|around|over|submerg\w*)\b", re.I)
+
+
+def _asserts_contact(text: str, level_start: int) -> bool:
+    """Whether the clause holding the level phrase says the water reaches it ("the water reaches his ankles").
+
+    A description can say both "stands on dry ground" and "the water reaches his ankles"; the explicit contact
+    statement wins. Without one ("on dry ground at the water's edge, feet visible"), dry ground means not touching.
+    """
+    start = max(text.rfind(".", 0, level_start), text.rfind(";", 0, level_start)) + 1
+    return bool(_CONTACT.search(text[start : level_start + 20]))
+
+
 def read_from_text(description: str) -> RuleReading | None:
     """Return a reading when the description names a reference object and a level for it.
 
@@ -115,7 +128,7 @@ def read_from_text(description: str) -> RuleReading | None:
             for level, lpat in _LEVELS[obj]:
                 lm = re.search(lpat, scope)
                 if lm:
-                    if _DRY.search(scope) and level == "base":
+                    if _DRY.search(scope) and level == "base" and not _asserts_contact(scope, lm.start()):
                         level = "not_touching"
                     basis = scope[max(0, lm.start() - 40) : lm.end() + 20].strip()
                     return RuleReading(

@@ -81,8 +81,8 @@ class ModelIds:
 
     sam3: str = "facebook/sam3"
     depth: str = "depth-anything/Depth-Anything-V2-Metric-Outdoor-Large-hf"
-    vlm_gguf: str = "Qwen2.5-VL-7B-Instruct-Q8_0.gguf"
-    vlm_mmproj: str = "mmproj-Qwen2.5-VL-7B-Instruct-f16.gguf"
+    vlm_gguf: str = "Qwen3VL-8B-Instruct-Q8_0.gguf"  # chosen over Qwen2.5-VL-7B in the 6-image comparison
+    vlm_mmproj: str = "mmproj-Qwen3VL-8B-Instruct-F16.gguf"
 
 
 SAM3_PROMPTS: tuple[str, ...] = ("water", "person", "car", "motorbike", "door", "window", "building")

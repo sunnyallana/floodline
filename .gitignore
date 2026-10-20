@@ -34,3 +34,4 @@ data/field/
 # local run logs
 logs_*.txt
 .coverage
+logs/

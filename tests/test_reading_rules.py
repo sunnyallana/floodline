@@ -42,3 +42,16 @@ def test_non_reference_objects_short_circuit_to_none():
 
 def test_nothing_matched_returns_none():
     assert read_from_text("Aerial view of fields covered in brown water.") is None
+
+
+def test_explicit_contact_beats_a_dry_ground_phrase():
+    from floodline.reading_rules import read_from_text
+
+    text = (
+        "A man stands on dry ground looking at a flooded street with submerged vehicles and buildings in the "
+        "background; the water reaches his ankles."
+    )
+    r = read_from_text(text)
+    assert r is not None and r.reading.reference_object == "person" and r.reading.water_level == "base"
+    dry = read_from_text("A woman is standing on dry ground at the edge of the water, her feet visible.")
+    assert dry is not None and dry.reading.water_level == "not_touching"

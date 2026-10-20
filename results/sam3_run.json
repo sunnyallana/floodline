@@ -1,0 +1,79 @@
+{
+ "stage": "segment",
+ "params": {
+  "model": "facebook/sam3",
+  "prompts": [
+   "water",
+   "person",
+   "car",
+   "motorbike",
+   "door",
+   "window",
+   "building"
+  ],
+  "threshold": 0.5,
+  "threads": 30,
+  "device": "cpu"
+ },
+ "metrics": {
+  "images": 538,
+  "calls": 686,
+  "summary": {
+   "water_iou": {
+    "mean": 0.9589,
+    "median": 0.989,
+    "n": 482
+   },
+   "water_dice": {
+    "mean": 0.9715,
+    "median": 0.9945,
+    "n": 482
+   },
+   "water_boundary_f1": {
+    "mean": 0.9601,
+    "median": 0.997,
+    "n": 482
+   },
+   "person_iou": {
+    "mean": 0.8819,
+    "median": 0.9451,
+    "n": 138
+   },
+   "person_dice": {
+    "mean": 0.9283,
+    "median": 0.9718,
+    "n": 138
+   },
+   "person_boundary_f1": {
+    "mean": 0.951,
+    "median": 1.0,
+    "n": 138
+   },
+   "building_iou": {
+    "mean": 0.7748,
+    "median": 0.9479,
+    "n": 229
+   },
+   "building_dice": {
+    "mean": 0.8241,
+    "median": 0.9732,
+    "n": 229
+   },
+   "building_boundary_f1": {
+    "mean": 0.8142,
+    "median": 0.9413,
+    "n": 229
+   }
+  }
+ },
+ "started_at": "2026-10-20T09:52:14+00:00",
+ "finished_at": "2026-10-20T13:54:31+00:00",
+ "seconds": 14536.7,
+ "git_sha": "bddffff",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

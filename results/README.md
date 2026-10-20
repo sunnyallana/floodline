@@ -4,20 +4,21 @@ Every number here points to a file in this directory, and every run file carries
 parameters and timing of the run that produced it. Interim figures are marked as such and replaced as runs
 complete.
 
-## 1. Zero-shot segmentation vs. the CVFD masks (interim)
+## 1. Zero-shot segmentation vs. the CVFD masks
 
-`sam3_scores.csv`, `sam3_run.json` · SAM 3 (`facebook/sam3`), concept prompts, CPU · flooded test images
+`sam3_scores.csv`, `sam3_run.json` · SAM 3 (`facebook/sam3`), concept prompts, CPU · all 538 flooded evaluation
+images, 686 prompt calls with a CVFD mask to score against
 
 | Prompt → CVFD mask | Mean IoU | Median IoU | Mean boundary F1 | n |
 |---|---|---|---|---|
-| water → flood | 0.959 | 0.988 | 0.957 | 167 |
-| person → humans | 0.868 | 0.937 | 0.940 | 43 |
-| building → buildings | 0.755 | 0.944 | 0.805 | 81 |
+| water → flood | 0.959 | 0.989 | 0.960 | 482 |
+| person → humans | 0.882 | 0.945 | 0.951 | 138 |
+| building → buildings | 0.775 | 0.948 | 0.814 | 229 |
 
-First 180 of 538 images. The CVFD masks were produced SAM 3-assisted with manual review, so this partly measures
-SAM 3 against itself; the medians near 0.99 are that circularity, and the gap between mean and median is the set
-of images where a reviewer changed the mask (mostly aerials and building outlines). The independent checks are
-the depth benchmark and the VLM comparison below.
+The CVFD masks were produced SAM 3-assisted with manual review, so this partly measures SAM 3 against itself; the
+medians near 0.99 are that circularity, and the gap between mean and median is the set of images where a reviewer
+changed the mask (mostly aerials and building outlines). The independent checks are the depth benchmark below and
+the damage-grading validation in section 7.
 
 ## 2. Depth benchmark
 
@@ -39,21 +40,28 @@ Two thirds of web-sourced "flood" imagery has no object in the water that could 
 about the data, and it is why the production design treats satellite extent as the coverage backbone and photos as
 depth evidence where they exist. 42 of the 97 labelled images carry a "low confidence" note.
 
-## 3. Waterline geometry (interim)
+## 3. Waterline geometry
 
 `waterline_depth.csv`, `waterline_run.json` · SAM 3 instance masks + Depth Anything V2 metric depth, no language model
 
 | Version | Exact | Within one bin | Mean error (bins) | n |
 |---|---|---|---|---|
 | v0: submerged fraction read from the mask | 0.13 | 0.47 | 1.8 | 15 |
-| v1: visible-fraction stature + depth-consistent touch | 0.29 | 0.79 | 1.0 | 14 |
+| v1: visible-fraction stature + depth-consistent touch (interim) | 0.29 | 0.79 | 1.0 | 14 |
+| v1, all 538 images (estimate for 135; 40 in the benchmark) | 0.40 | 0.78 | 0.85 | 40 |
+| baseline: always "ankle", the commonest class on the same 40 | 0.38 | 0.83 | | 40 |
+
+The geometric estimate is no better than guessing the commonest class on this sample. Its errors are not random:
+it recognises dry scenes (10 of 11), calls ankle-deep water knee-deep (7 of 15), and never predicts above head. 40
+images is small and the labels are AI-assisted (section 2), so this is a weak result in both directions. What it
+does show is that geometry alone should not decide depth; model-assessed depth corroborates a report only through
+the rules in `fuse.score`, and section 4 tests the language-model path on the same benchmark.
 
 Why v0 failed, from the debug overlays (`waterline_debug.png`): a mask only covers the part of an object above the
 surface, so its bottom edge *is* the waterline and "fraction below water" is zero by construction; and water visible
 behind an object sits higher in the image than its base, which v0 read as submersion. v1 infers depth from how much
 of the object's height is visible (stature from shoulder width, door height from width) and only accepts water that
-touches the object's base at the object's distance in the depth map. Numbers will be re-run on the full overlap when
-segmentation completes.
+touches the object's base at the object's distance in the depth map.
 
 ## 4. Vision-language assessment (smoke tests, 6 images)
 
