@@ -1,6 +1,6 @@
 # Floodline paper (draft)
 
-IEEE conference format (`IEEEtran`, two columns), 6 pages. Three results are still pending (red markers): the full SAM 3, waterline and VLM runs.
+IEEE conference format (`IEEEtran`, two columns), 6 pages. One result is still pending (red marker): the two-pass Qwen3-VL depth accuracy on the benchmark. The page budget is full: adding its number should replace text, not add it.
 
 ## Build
 

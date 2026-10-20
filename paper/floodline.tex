@@ -61,7 +61,7 @@ Our contributions are:
 
 \textbf{Social media and citizen observations.} Fohringer et al.\ derived inundation extent and depth from eyewitness photos of the 2013 Dresden flood~\cite{fohringer2015social}; Assump\c{c}\~ao et al.\ review citizen data across the flood modelling cycle~\cite{assumpcao2018citizen}. MediaEval 2017 combined social-media image retrieval with satellite flood segmentation~\cite{bischke2017mediaeval}. Barz et al.\ released the European Flood 2013 set of 3,710 Wikimedia Commons images with expert relevance labels~\cite{barz2018flood}; we use its geotagged subset. The 2013 event was exceptional because of extreme antecedent wetness~\cite{schroter2015june2013}.
 
-\textbf{Depth from images.} Chaudhary et al.\ estimate water level from the submerged fraction of objects of known size~\cite{chaudhary2019water}; recent work fine-tunes vision--language models for depth from street-level images~\cite{fuad2026floodllama}. Floodline's perception stage is zero-shot, using concept segmentation~\cite{kirillov2023sam,carion2026sam3}, metric monocular depth~\cite{yang2024depthv2} and a vision--language model~\cite{bai2025qwen3vl}; its evaluation is interim.
+\textbf{Depth from images.} Chaudhary et al.\ estimate water level from the submerged fraction of objects of known size~\cite{chaudhary2019water}; recent work fine-tunes vision--language models for depth from street-level images~\cite{fuad2026floodllama}. Floodline's perception stage is zero-shot, using concept segmentation~\cite{kirillov2023sam,carion2026sam3}, metric monocular depth~\cite{yang2024depthv2} and a vision--language model~\cite{bai2025qwen3vl}.
 
 \textbf{Accessibility under flooding.} Green et al.\ modelled emergency-responder access in Leicester under modelled flood scenarios~\cite{green2017accessibility}, and Pregnolato et al.\ fitted a depth--disruption function for vehicle speed~\cite{pregnolato2017depth}. We apply the idea to observed rapid-mapping polygons and OpenStreetMap~\cite{haklay2008osm} networks built with OSMnx~\cite{boeing2017osmnx}, and validate the closures against graded road damage.
 
@@ -280,7 +280,7 @@ EMSR045 (Prague area) & 252 & 3102\,m & 21\,m & 87.7\% \\
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}
-\begin{semilogxaxis}[width=\columnwidth, height=42mm, xmin=1, xmax=10000, ymin=0, ymax=1,
+\begin{semilogxaxis}[width=\columnwidth, height=36mm, xmin=1, xmax=10000, ymin=0, ymax=1,
   xlabel={Distance (m), per unique location}, ylabel={Cumulative share}, legend pos=south east,
   legend style={font=\scriptsize}, tick label style={font=\scriptsize}, label style={font=\scriptsize}]
 \addplot[thick, blue] table[x=d, y=p] {figures/cdf_EMSR044_flood.dat};
@@ -367,11 +367,28 @@ Spearman, per-hexagon water (8,337 hexagons) & 0.94 \\
 \label{fig:larkana}
 \end{figure}
 
-\subsection{Perception (interim)}
-Perception numbers are interim. Concept segmentation with SAM~3~\cite{carion2026sam3} on the first 180 flooded test images reaches a mean IoU of 0.959 for water, 0.868 for people and 0.755 for buildings against dataset masks that were themselves made with SAM~3 assistance, so the comparison is partly circular. % results/README.md section 1
-Waterline geometry, which reads depth from how much of a person, car or door remains visible and accepts only water touching the object's base at its metric depth~\cite{yang2024depthv2}, gets 29\% exactly right and 79\% within one class on 14 images, up from 13\% and 47\% for a first version. % results/waterline_run.json, results/README.md section 3
-A vision--language model~\cite{bai2025qwen3vl} run through llama.cpp~\cite{llamacpp} classified 3 of 6 smoke-test images in a two-pass design and correctly returned unknown for the other 3. % results/README.md section 4
-Full-set results: \pending{SAM~3 on 538 images}, \pending{waterline on the full benchmark}, \pending{VLM on 538 images}.
+\subsection{Perception}
+\textbf{Segmentation.} SAM~3~\cite{carion2026sam3} with concept prompts on all 538 flooded evaluation images (686 scored calls) reaches a mean IoU of 0.959 for water (median 0.989, boundary F1 0.960, $n$=482), 0.882 for people (0.945, $n$=138) and 0.775 for buildings (0.948, $n$=229) against the dataset masks. % results/sam3_run.json, results/README.md section 1
+Those masks were made with SAM~3 assistance and manual review, so this partly measures SAM~3 against itself; the gap between mean and median is the set of images a reviewer corrected.
+
+\textbf{Waterline geometry} reads depth from how much of a person, car or door remains visible above the water, and accepts only water touching the object's base at its metric depth~\cite{yang2024depthv2}. A first version that read the submerged fraction from the mask failed by construction, since a mask stops at the waterline. The current version gives an estimate for 135 of 538 images, 40 of them in the benchmark, and is no better there than always answering the commonest class (Table~\ref{tab:waterline}). % results/waterline_run.json, results/README.md section 3
+Its errors are systematic: it recognises dry scenes (10 of 11), calls ankle-deep water knee-deep (7 of 15) and never predicts above head. On 40 AI-labelled images this is a weak result in both directions, but it shows that geometry alone should not decide depth. That is why model-assessed depth enters the ranking only through the corroboration rules of Sec.~\ref{sec:trust}, and why the vision--language path~\cite{bai2025qwen3vl,llamacpp} is evaluated on the same benchmark: \pending{two-pass Qwen3-VL-8B depth accuracy on the benchmark}.
+
+\begin{table}[t]
+\caption{Waterline depth class on the benchmark.}
+\label{tab:waterline}
+\centering\scriptsize
+% results/README.md section 3, results/waterline_run.json
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Method & Exact & Within one & Mean error (bins) & $n$ \\
+\midrule
+v0: submerged fraction & 0.13 & 0.47 & 1.8 & 15 \\
+v1: visible fraction, all 538 images & 0.40 & 0.78 & 0.85 & 40 \\
+always ``ankle'' (commonest class) & 0.38 & 0.83 & -- & 40 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Discussion and Limitations}
@@ -381,7 +398,7 @@ Full-set results: \pending{SAM~3 on 538 images}, \pending{waterline on the full 
 \textbf{Maps are snapshots.} Each EMS product shows one acquisition; Dresden's 3 June map precedes the crest.
 \textbf{Current OSM, historical flood.} Roads and buildings come from today's OpenStreetMap; closures ordered by authorities, such as bridges, are not in the data.
 \textbf{Building coverage.} OSM is near-complete in the European towns and nearly empty in rural Sindh; exposure there depends on machine-learned footprints, whose quality varies by region.\\
-\textbf{Labels and perception.} The depth benchmark's labels are AI-assisted and await human review, and all perception numbers are interim.
+\textbf{Labels and perception.} The depth benchmark's labels are AI-assisted and await human review, and waterline geometry does not beat the majority class on them.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Conclusion}
@@ -392,7 +409,7 @@ Floodline ranks flood hexagons for responders from what the satellite mapped, wh
 \url{https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark}.
 
 \section*{Acknowledgment}
-Flood extent and damage grading \copyright{} European Union, Copernicus EMS. Map data \copyright{} OpenStreetMap contributors (ODbL). Contains modified Copernicus Sentinel data (2022), via Microsoft Planetary Computer. Building footprints for Larkana from Microsoft Global ML Building Footprints. Photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
+Flood extent and grading \copyright{} European Union, Copernicus EMS; modified Copernicus Sentinel data (2022) via Microsoft Planetary Computer; map data \copyright{} OpenStreetMap contributors (ODbL); Microsoft Global ML Building Footprints; photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
