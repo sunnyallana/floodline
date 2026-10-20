@@ -27,3 +27,6 @@ results/synthetic_*
 
 # osmnx HTTP cache
 cache/
+
+# Field reports: photos of people and exact positions. Never commit.
+data/field/

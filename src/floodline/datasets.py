@@ -2,7 +2,8 @@
 
 Each set yields a frame with at least ``image_id`` and ``image_path`` (relative to the set's root). CVFD also
 carries mask columns for scoring; the geotagged European Flood 2013 set carries ``lat``, ``lon``, ``h3`` and
-``captured_at`` instead. Stages read images as ``dataset.root / row.image_path`` and never assume a layout.
+``captured_at`` instead. ``field`` is what the Floodline Field app has sent, as pulled by ``floodline ingest``.
+Stages read images as ``dataset.root / row.image_path`` and never assume a layout.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import pandas as pd
 from floodline.config import Paths
 from floodline.cvfd import eval_split, load_index
 
-DATASETS: tuple[str, ...] = ("cvfd", "euflood")
+DATASETS: tuple[str, ...] = ("cvfd", "euflood", "field")
 
 
 @dataclass(frozen=True)
@@ -45,4 +46,19 @@ def load(paths: Paths, name: str = "cvfd", limit: int | None = None, depth_relev
             df = df[df.rel_depth]
         df = df.reset_index(drop=True)
         return Dataset(name, paths.data / "external" / "eu-flood-2013", df.head(limit) if limit else df)
+    if name == "field":
+        table = paths.data / "field" / "reports.parquet"
+        if not table.exists():
+            raise FileNotFoundError(f"{table} missing; run `floodline ingest` first")
+        df = pd.read_parquet(table)
+        df = pd.DataFrame(
+            {
+                "image_id": "field_" + df.id.astype(str),
+                "image_path": "photos/" + df.photo_path,
+                "lat": df.lat,
+                "lon": df.lon,
+                "captured_at": df.captured_at,
+            }
+        )
+        return Dataset(name, paths.data / "field", df.head(limit) if limit else df)
     raise ValueError(f"unknown dataset {name!r}; expected one of {DATASETS}")

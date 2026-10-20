@@ -24,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--dataset",
         default="cvfd",
-        choices=["cvfd", "euflood"],
+        choices=["cvfd", "euflood", "field"],
         help="image set for depth/segment/waterline/assess; non-default sets write to results/<dataset>/",
     )
     sub = p.add_subparsers(dest="command", required=True)
@@ -92,6 +92,9 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--k", type=int, default=1, help="neighbour rings counted as agreement")
     ag.add_argument("--out", default="agreement")
     ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
+
+    ig = sub.add_parser("ingest", help="pull new Floodline Field reports from Supabase into data/field/")
+    ig.add_argument("--prune-orphans", action="store_true", help="delete photos with no report after 24 h")
 
     rl = sub.add_parser("release", help="package the depth benchmark as a Hugging Face dataset")
     rl.add_argument("--repo", default="sunnyallana/flood-depth-benchmark")
@@ -228,6 +231,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 k=args.k,
                 ems_dirs=[Path(d) for d in args.ems_dirs],
             )
+        elif args.command == "ingest":
+            from floodline.stages import ingest
+
+            ingest.run(paths, prune_orphans=args.prune_orphans)
         elif args.command == "release":
             from floodline.stages import release
 

@@ -91,3 +91,21 @@ def exif_location(path: Path) -> Location | None:
         return Location.from_tier(lat, lon, "gps", when)
     except ValueError:
         return None
+
+
+def accuracy_confidence(accuracy_m: float | None, source: str) -> float:
+    """Location confidence for a field report from the reported horizontal accuracy of its GPS fix.
+
+    The field app sends ``device`` (the phone's fix at capture) or ``exif`` (GPS the camera wrote into the photo).
+    A fix within 25 m is as good as tier-1 EXIF GPS; a fix of several hundred metres can put the report in the
+    neighbouring hexagon, so confidence falls with it. A camera fix without a stated accuracy is treated as a
+    typical phone fix.
+    """
+    if source not in ("device", "exif"):
+        return 0.0
+    if accuracy_m is None or accuracy_m != accuracy_m:  # NaN
+        return 0.8
+    for limit, confidence in ((25.0, TIER_CONFIDENCE["gps"]), (100.0, 0.8), (300.0, 0.6), (1000.0, 0.4)):
+        if accuracy_m <= limit:
+            return confidence
+    return 0.2

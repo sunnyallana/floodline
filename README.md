@@ -9,6 +9,10 @@ report with a stated confidence, and fuse the result with **satellite flood exte
 **Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013. It combines satellite flood
 extent, roads closed by water, exposed buildings and geotagged photos, with a priority per hexagon.
 
+**Field app:** https://floodline.sunnyshabanali.dev/field/ is an offline-first web app for responders. It
+captures a photo with location, time and quick tags, keeps it on the phone until there is signal, and sends it to
+the coordination team. `floodline ingest` brings those reports into the pipeline. See `app/` and `supabase/`.
+
 **Depth benchmark:** https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark has 300 flood photos with depth
 classes. The labels are AI-assisted and a human review is pending.
 
@@ -71,7 +75,9 @@ floodline/
   data/                    derived indexes and labels (small); raw CVFD under data/cvfd (see data/README.md)
   legacy/v1-results/       aggregate metrics of the supervised v1 baselines, quoted in the write-up
   results/                 metrics, manifests, previews (committed); masks and depth maps (ignored)
-  docs/                    the published map: page, cities.json, per-city GeoJSON
+  docs/                    the published map: page, cities.json, per-city GeoJSON; docs/field/ is the built app
+  app/                     Floodline Field: TypeScript web app, offline queue, unit, policy and end-to-end tests
+  supabase/                schema and row-level security for field reports (phones may insert, never read)
   models/, tools/          local GGUF weights and llama.cpp binaries (ignored)
 ```
 
@@ -85,6 +91,13 @@ floodline depth                  # Depth Anything V2 metric depth maps (CPU, ~3 
 floodline segment                # SAM 3 concept segmentation, scored vs CVFD masks (CPU, ~18 s/call)
 floodline assess --limit 20      # VLM structured assessment via llama-server (CPU)
 floodline overlay flooded_0003   # original | SAM 3 | CVFD mask preview
+```
+
+Field reports (needs `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`; see `supabase/README.md`):
+
+```bash
+floodline ingest --prune-orphans          # new reports -> data/field/ (git-ignored)
+floodline --dataset field depth           # perception stages run on field photos like any other set
 ```
 
 Geospatial stages, for one Copernicus EMS city package (`pip install -e ".[geo]"`):

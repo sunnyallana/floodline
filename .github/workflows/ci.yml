@@ -27,3 +27,25 @@ jobs:
         run: pytest --cov=floodline --cov-report=term-missing
       - name: CLI smoke
         run: floodline --help
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit and database-policy tests
+        run: npm test
+      - name: End-to-end (offline queue, service worker, uploads against a faked Supabase)
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test
