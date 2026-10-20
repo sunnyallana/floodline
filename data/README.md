@@ -31,3 +31,14 @@ The `.poly` files are `koeln-regbez.poly` and `rheinland-pfalz.poly` from the sa
 Microsoft Global ML Building Footprints tiles are fetched on demand from the index at
 `https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv` and cached under
 `data/external/buildings/`; the release date (2026-02-03 for Pakistan) is part of each tile URL.
+
+## Extracts for the multi-event benchmark (`floodline benchmark`)
+
+| File | Source | MD5 |
+|---|---|---|
+| `australia-261019.osm.pbf` | https://download.geofabrik.de/australia-oceania/australia-261019.osm.pbf | `6535194d7966ea39bd888f3a5eef6920` |
+| `madagascar-261019.osm.pbf` | https://download.geofabrik.de/africa/madagascar-261019.osm.pbf | `e7f401bac4af73e6faf4e9d6de5532df` |
+| `centro-261018.osm.pbf` | https://download.geofabrik.de/europe/italy/centro-261018.osm.pbf | `9a60a4fb9b0cc60664a14deb42df4558` |
+| `isole-261018.osm.pbf` | https://download.geofabrik.de/europe/italy/isole-261018.osm.pbf | `c621f4e79b2a2a094d8486a753e5708c` |
+
+Pakistan uses `pakistan-261019.osm.pbf` above. GHSL population tiles (GHS-POP R2023A, epoch 2020, 100 m) are fetched on demand from the JRC server and cached under `data/external/ghsl/`. EMS grading packages for EMSR504, EMSR559, EMSR631, EMSR634 and EMSR649 come from the same S3 path as EMSR517.

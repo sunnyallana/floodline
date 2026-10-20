@@ -105,6 +105,16 @@ def build_parser() -> argparse.ArgumentParser:
     se.add_argument("hexes", nargs="+", help="fused hex CSVs from `floodline fuse`")
     se.add_argument("--validation-dir", help="results/validation/ to also report damage capture per variant")
 
+    bm = sub.add_parser("benchmark", help="multi-event validation against EMS damage grading")
+    bm.add_argument(
+        "event", help="activation code, e.g. EMSR504; 'summary' pools every event run so far; 'release' bundles it"
+    )
+    bm.add_argument("gra_root", nargs="?", help="directory of the event's unpacked grading packages")
+    bm.add_argument("--osm-pbf", nargs="*", default=[])
+    bm.add_argument("--buildings", default="max", choices=["osm", "microsoft", "max"])
+    bm.add_argument("--only", nargs="*", default=[])
+    bm.add_argument("--bootstrap", type=int, default=1000)
+
     lb = sub.add_parser("labels", help="agreement between the reviewed and first-pass depth labels")
     lb.add_argument("review_csv", help="CSV exported from docs/review/")
 
@@ -285,6 +295,28 @@ def main(argv: Sequence[str] | None = None) -> int:
                 [Path(h) for h in args.hexes],
                 Path(args.validation_dir) if args.validation_dir else None,
             )
+        elif args.command == "benchmark":
+            from pathlib import Path
+
+            from floodline.stages import benchmark
+
+            if args.event == "summary":
+                benchmark.summarise(paths, n=args.bootstrap)
+            elif args.event == "release":
+                from floodline.stages import benchmark_release
+
+                benchmark_release.run(paths)
+            else:
+                if not args.gra_root:
+                    raise FileNotFoundError("benchmark <event> needs the grading directory")
+                benchmark.run_event(
+                    paths,
+                    args.event,
+                    Path(args.gra_root),
+                    [Path(p) for p in args.osm_pbf],
+                    buildings_source=args.buildings,
+                    only=set(args.only) or None,
+                )
         elif args.command == "labels":
             from pathlib import Path
 
