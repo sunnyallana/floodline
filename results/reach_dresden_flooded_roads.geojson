@@ -4,6 +4,8 @@
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "highway": "residential", "name": "Böcklinstraße", "segment_m": 559.0, "under_water_m": 237.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 13.702861273125954, 51.075049479203621 ], [ 13.7044567, 51.0760538 ], [ 13.7049103, 51.0762807 ], [ 13.7050892, 51.076355 ], [ 13.70518948111939, 51.076389324757102 ] ], [ [ 13.705404135421867, 51.07646279731987 ], [ 13.705595024432517, 51.076528134897593 ] ] ] } },
-{ "type": "Feature", "properties": { "highway": "residential", "name": "Hafenweg", "segment_m": 1255.0, "under_water_m": 23.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 13.705873940908967, 51.065943383899054 ], [ 13.705802391131909, 51.065940510478171 ] ], [ [ 13.705349101206746, 51.065884949863744 ], [ 13.7051415, 51.0658425 ], [ 13.705109152382724, 51.065838841871987 ] ] ] } }
+{ "type": "Feature", "properties": { "highway": "residential", "name": "Fuchsstraße", "segment_m": 136.0, "under_water_m": 6.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 13.8104162, 51.0511341 ], [ 13.810347564000073, 51.051102776668607 ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "Hafenweg", "segment_m": 1255.0, "under_water_m": 23.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 13.705873940908967, 51.065943383899054 ], [ 13.705802391131909, 51.065940510478171 ] ], [ [ 13.705349101206746, 51.065884949863744 ], [ 13.7051415, 51.0658425 ], [ 13.705109152382724, 51.065838841871987 ] ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "Am Schillergarten", "segment_m": 67.0, "under_water_m": 8.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 13.809936, 51.0516417 ], [ 13.80984758400025, 51.051599945782542 ] ] } }
 ]
 }

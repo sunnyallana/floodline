@@ -1,0 +1,40 @@
+{
+ "stage": "trust_eval",
+ "params": {
+  "sample": 500,
+  "seed": 0
+ },
+ "metrics": {
+  "reference_images": 11563,
+  "sample": 500,
+  "recall_forwarded": 0.998,
+  "recall_cropped_10pct": 0.218,
+  "exact_duplicate_images_in_reference": 3885,
+  "distinct_hashes_with_a_near_neighbour": 0.1135,
+  "threshold_bits": 6,
+  "reject_bits": 2,
+  "euflood_photos": 3710,
+  "euflood_in_cvfd_le2_bits": 2371,
+  "euflood_ambiguous_3_to_6_bits": 27,
+  "cvfd_split_leakage": {
+   "val": {
+    "images": 1177,
+    "near_copy_in_train": 23
+   },
+   "test": {
+    "images": 1180,
+    "near_copy_in_train": 20
+   }
+  }
+ },
+ "started_at": "2026-10-20T11:04:52+00:00",
+ "finished_at": "2026-10-20T11:04:52+00:00",
+ "seconds": 0.0,
+ "git_sha": "262232f",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

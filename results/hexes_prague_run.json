@@ -56,6 +56,12 @@
     "buildings_affected": 18
    },
    {
+    "h3": "891e354ab6bffff",
+    "priority": 0.435,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
     "h3": "891e3548aa3ffff",
     "priority": 0.424,
     "confidence": 0.6,
@@ -66,19 +72,13 @@
     "priority": 0.384,
     "confidence": 0.6,
     "buildings_affected": 0
-   },
-   {
-    "h3": "891e354884bffff",
-    "priority": 0.375,
-    "confidence": 0.6,
-    "buildings_affected": 16
    }
   ]
  },
- "started_at": "2026-10-19T22:48:41+00:00",
- "finished_at": "2026-10-19T22:48:42+00:00",
+ "started_at": "2026-10-20T10:49:58+00:00",
+ "finished_at": "2026-10-20T10:49:58+00:00",
  "seconds": 0.3,
- "git_sha": "ce4f1ab",
+ "git_sha": "262232f",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

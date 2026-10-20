@@ -41,6 +41,7 @@ HEX_FIELDS: tuple[str, ...] = (
     "delay_min",
     "cut_off",
     "n_reports",
+    "needs_verification",
 )
 PHOTO_FIELDS: tuple[str, ...] = (
     "image_id",

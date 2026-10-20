@@ -9,6 +9,7 @@ import { Syncer } from "./sync";
 import { DEPTH_CLASSES, DEPTH_LABELS, NOTE_MAX, type DepthClass, type QueueItem } from "./types";
 
 const SETTINGS_KEY = "floodline.field.settings";
+const DEVICE_KEY = "floodline.field.device";
 const RETRY_INTERVAL_MS = 60_000;
 
 interface Settings {
@@ -33,6 +34,16 @@ function loadSettings(): Settings | null {
   } catch {
     return null;
   }
+}
+
+/** A random id created once per install. It is not tied to the person or the phone's hardware. */
+function deviceId(): string {
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
 }
 
 function saveSettings(s: Settings): void {
@@ -225,6 +236,7 @@ async function main(): Promise<void> {
       const now = Date.now();
       const report = buildReport(
         {
+          deviceId: deviceId(),
           teamCode: settings.teamCode,
           capturedAt: prepared.meta.takenAt ?? now,
           location: resolveLocation(prepared.meta, tracker?.best() ?? null, now),

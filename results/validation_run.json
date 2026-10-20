@@ -1,0 +1,215 @@
+{
+ "stage": "validate",
+ "params": {
+  "gra_root": "data\\external\\ems\\EMSR517_GRA",
+  "thresholds_m": [
+   0.0,
+   5.0,
+   10.0,
+   15.0,
+   25.0,
+   50.0,
+   100.0
+  ]
+ },
+ "metrics": {
+  "towns": {
+   "aoi07": {
+    "town": "Erftstadt",
+    "severe_buildings": 35
+   },
+   "aoi08": {
+    "town": "Euskirchen-Rheinbach-Steinbachtalsperre",
+    "severe_buildings": 9
+   },
+   "aoi09": {
+    "town": "Eschweiler",
+    "severe_buildings": 29
+   },
+   "aoi10": {
+    "town": "Wassenberg",
+    "severe_buildings": 59
+   },
+   "aoi11": {
+    "town": "Leverkusen",
+    "severe_buildings": 5
+   },
+   "aoi14": {
+    "town": "Dusseldorf",
+    "severe_buildings": 5
+   },
+   "aoi15": {
+    "town": "Bad Neuenahr-Ahrweiler",
+    "severe_buildings": 1023
+   },
+   "aoi16": {
+    "town": "Gerolstein",
+    "severe_buildings": 11
+   },
+   "aoi17": {
+    "town": "IRREL",
+    "severe_buildings": 1
+   },
+   "aoi18": {
+    "town": "Schleiden",
+    "severe_buildings": 0
+   },
+   "aoi20": {
+    "town": "Garzweiler",
+    "severe_buildings": 0
+   }
+  },
+  "roads_pooled": [
+   {
+    "target": "affected",
+    "threshold_m": 0.0,
+    "tp": 1493,
+    "fp": 332,
+    "fn": 209,
+    "precision": 0.818,
+    "recall": 0.877,
+    "f1": 0.846
+   },
+   {
+    "target": "affected",
+    "threshold_m": 5.0,
+    "tp": 1445,
+    "fp": 95,
+    "fn": 257,
+    "precision": 0.938,
+    "recall": 0.849,
+    "f1": 0.891
+   },
+   {
+    "target": "affected",
+    "threshold_m": 10.0,
+    "tp": 1375,
+    "fp": 80,
+    "fn": 327,
+    "precision": 0.945,
+    "recall": 0.808,
+    "f1": 0.871
+   },
+   {
+    "target": "affected",
+    "threshold_m": 15.0,
+    "tp": 1295,
+    "fp": 71,
+    "fn": 407,
+    "precision": 0.948,
+    "recall": 0.761,
+    "f1": 0.844
+   },
+   {
+    "target": "affected",
+    "threshold_m": 25.0,
+    "tp": 1152,
+    "fp": 66,
+    "fn": 550,
+    "precision": 0.946,
+    "recall": 0.677,
+    "f1": 0.789
+   },
+   {
+    "target": "affected",
+    "threshold_m": 50.0,
+    "tp": 848,
+    "fp": 44,
+    "fn": 854,
+    "precision": 0.951,
+    "recall": 0.498,
+    "f1": 0.654
+   },
+   {
+    "target": "affected",
+    "threshold_m": 100.0,
+    "tp": 517,
+    "fp": 27,
+    "fn": 1185,
+    "precision": 0.95,
+    "recall": 0.304,
+    "f1": 0.461
+   },
+   {
+    "target": "severe",
+    "threshold_m": 0.0,
+    "tp": 646,
+    "fp": 1179,
+    "fn": 41,
+    "precision": 0.354,
+    "recall": 0.94,
+    "f1": 0.514
+   },
+   {
+    "target": "severe",
+    "threshold_m": 5.0,
+    "tp": 634,
+    "fp": 906,
+    "fn": 53,
+    "precision": 0.412,
+    "recall": 0.923,
+    "f1": 0.57
+   },
+   {
+    "target": "severe",
+    "threshold_m": 10.0,
+    "tp": 593,
+    "fp": 862,
+    "fn": 94,
+    "precision": 0.408,
+    "recall": 0.863,
+    "f1": 0.554
+   },
+   {
+    "target": "severe",
+    "threshold_m": 15.0,
+    "tp": 546,
+    "fp": 820,
+    "fn": 141,
+    "precision": 0.4,
+    "recall": 0.795,
+    "f1": 0.532
+   },
+   {
+    "target": "severe",
+    "threshold_m": 25.0,
+    "tp": 485,
+    "fp": 733,
+    "fn": 202,
+    "precision": 0.398,
+    "recall": 0.706,
+    "f1": 0.509
+   },
+   {
+    "target": "severe",
+    "threshold_m": 50.0,
+    "tp": 360,
+    "fp": 532,
+    "fn": 327,
+    "precision": 0.404,
+    "recall": 0.524,
+    "f1": 0.456
+   },
+   {
+    "target": "severe",
+    "threshold_m": 100.0,
+    "tp": 221,
+    "fp": 323,
+    "fn": 466,
+    "precision": 0.406,
+    "recall": 0.322,
+    "f1": 0.359
+   }
+  ]
+ },
+ "started_at": "2026-10-20T10:48:22+00:00",
+ "finished_at": "2026-10-20T10:48:28+00:00",
+ "seconds": 5.5,
+ "git_sha": "262232f",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -1,6 +1,7 @@
 import { NOTE_MAX, PEOPLE_MAX, type DepthClass, type QueueItem, type Report, type ResolvedLocation } from "./types";
 
 export interface Draft {
+  deviceId: string;
   teamCode: string;
   capturedAt: number;
   location: ResolvedLocation;
@@ -24,6 +25,7 @@ export function buildReport(draft: Draft, id: string, appVersion: string): Repor
   const peopleElevated = clampCount(draft.peopleElevated);
   return {
     id,
+    deviceId: draft.deviceId,
     teamCode,
     capturedAt: new Date(draft.capturedAt).toISOString(),
     location: draft.location,

@@ -37,6 +37,16 @@ text were removed, and duplicates and corrupt files were dropped before release.
 - Masks were made with SAM 3 assistance and manual review. Scoring a SAM 3-based method against them is therefore
   partly circular; use the depth benchmark and external sets for independent evaluation.
 
+## Overlap with other sets and between splits
+
+Measured with a 64-bit perceptual hash (`floodline trust --evaluate`, `results/trust_eval.json`):
+
+- 2,371 of the 3,710 European Flood 2013 photos (Barz et al.) also appear in CVFD, resized, within 2 bits of
+  each other. The web-sourced part of CVFD evidently drew on the same Wikimedia Commons photos. Do not treat the
+  two sets as independent for any model trained on CVFD.
+- 20 of 1,180 test images and 23 of 1,177 validation images have a near-copy (within 6 bits) in the training
+  split. That is small, but a supervised score on the test split is slightly optimistic.
+
 ## Intended use
 
 Benchmarking zero-shot segmentation and flood-depth estimation from ground-level photos; training small

@@ -15,9 +15,9 @@
    "flood_km2": 5.6,
    "hexes": 2612,
    "hexes_with_priority": 219,
-   "hexes_cut_off": 9,
+   "hexes_cut_off": 10,
    "buildings_in_flood": 116,
-   "closed_road_segments": 34,
+   "closed_road_segments": 39,
    "staging_points": 80,
    "photos": 203,
    "resolution": 9
@@ -83,7 +83,7 @@
    "hexes_with_priority": 71,
    "hexes_cut_off": 0,
    "buildings_in_flood": 10,
-   "closed_road_segments": 2,
+   "closed_road_segments": 4,
    "staging_points": 21,
    "photos": 173,
    "resolution": 9

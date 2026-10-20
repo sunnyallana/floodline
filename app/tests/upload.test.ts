@@ -61,6 +61,7 @@ group("toRow", () => {
       photo_bytes: 900,
       consent: true,
     });
-    expect(Object.keys(row)).toHaveLength(16);
+    expect(row.device_id).toBe(sampleReport().deviceId);
+    expect(Object.keys(row)).toHaveLength(17);
   });
 });

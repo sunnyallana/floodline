@@ -34,6 +34,11 @@ async function as<T>(role: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
+/** A row as the app sends it, captured now (the server refuses photos older than 30 days). */
+function fresh(over: Parameters<typeof sampleReport>[0] = {}, bytes = 10): Record<string, unknown> {
+  return toRow(sampleReport({ capturedAt: new Date().toISOString(), ...over }), bytes);
+}
+
 function insertSql(row: Record<string, unknown>): { sql: string; params: unknown[] } {
   const cols = Object.keys(row);
   return {
@@ -55,7 +60,7 @@ beforeAll(async () => {
 
 group("reports table, as the anon role", () => {
   it("accepts a valid report for an active team", async () => {
-    const { sql, params } = insertSql(toRow(sampleReport(), 1234));
+    const { sql, params } = insertSql(fresh({}, 1234));
     await as("anon", () => db.query(sql, params));
     const n = await db.query<{ n: number }>("select count(*)::int as n from public.reports");
     expect(n.rows[0]?.n).toBe(1);
@@ -73,15 +78,14 @@ group("reports table, as the anon role", () => {
 
   it("rejects unknown or retired team codes", async () => {
     for (const code of ["NOT-A-TEAM-XX", "OLD-TEAM-2025"]) {
-      const r = sampleReport({ id: crypto.randomUUID(), teamCode: code });
-      const { sql, params } = insertSql(toRow(r, 10));
+      const { sql, params } = insertSql(fresh({ id: crypto.randomUUID(), teamCode: code }));
       await expect(as("anon", () => db.query(sql, params))).rejects.toThrow(/row-level security|foreign key/);
     }
   });
 
   it("enforces the contract: photo named after the id, location consistent, consent given", async () => {
     const id = crypto.randomUUID();
-    const base = toRow(sampleReport({ id }), 10);
+    const base = fresh({ id });
     const bad: Record<string, unknown>[] = [
       { ...base, photo_path: "someone-else.jpg" },
       { ...base, lat: null }, // lon without lat
@@ -94,19 +98,56 @@ group("reports table, as the anon role", () => {
       const { sql, params } = insertSql(row);
       await expect(as("anon", () => db.query(sql, params))).rejects.toThrow();
     }
-    const none = toRow(sampleReport({ id, location: { lat: null, lon: null, accuracyM: null, source: "none" } }), 10);
+    const none = fresh({ id, location: { lat: null, lon: null, accuracyM: null, source: "none" } });
     const { sql, params } = insertSql(none);
     await as("anon", () => db.query(sql, params)); // a report without a location is valid
   });
 
   it("rejects a second insert with the same id, which the app treats as already sent", async () => {
-    const { sql, params } = insertSql(toRow(sampleReport(), 1234));
+    const { sql, params } = insertSql(fresh({}, 1234));
     await expect(as("anon", () => db.query(sql, params))).rejects.toThrow(/duplicate key/);
   });
 
   it("lets the service role read everything (that is what `floodline ingest` uses)", async () => {
     const rows = await as("service_role", () => db.query("select id from public.reports"));
     expect(rows.rows.length).toBe(2);
+  });
+});
+
+group("report limits", () => {
+  const insertAs = (row: Record<string, unknown>) => {
+    const { sql, params } = insertSql(row);
+    return as("anon", () => db.query(sql, params));
+  };
+
+  it("refuses capture times in the future or more than 30 days back, with HTTP-mapped codes", async () => {
+    const future = new Date(Date.now() + 60 * 60_000).toISOString();
+    const old = new Date(Date.now() - 31 * 24 * 3600_000).toISOString();
+    for (const capturedAt of [future, old]) {
+      const err = await insertAs(fresh({ id: crypto.randomUUID(), capturedAt })).catch((e: { code?: string }) => e);
+      expect((err as { code?: string }).code).toBe("PT422"); // PostgREST answers 422: the app shows it, no retry
+    }
+  });
+
+  it("stamps received_at with the server clock, whatever the client sends", async () => {
+    const id = crypto.randomUUID();
+    await insertAs({ ...fresh({ id }), received_at: "2000-01-01T00:00:00Z" });
+    const r = await db.query<{ ok: boolean }>("select received_at > now() - interval '1 minute' as ok from public.reports where id = $1", [id]);
+    expect(r.rows[0]?.ok).toBe(true);
+  });
+
+  it("rate-limits one device to 30 reports in 10 minutes", async () => {
+    const deviceId = crypto.randomUUID();
+    for (let i = 0; i < 30; i++) await insertAs(fresh({ id: crypto.randomUUID(), deviceId }));
+    const err = await insertAs(fresh({ id: crypto.randomUUID(), deviceId })).catch((e: { code?: string }) => e);
+    expect((err as { code?: string }).code).toBe("PT429"); // the app retries a 429 later
+    await insertAs(fresh({ id: crypto.randomUUID(), deviceId: crypto.randomUUID() })); // other devices unaffected
+  });
+
+  it("requires a device id", async () => {
+    const row = { ...fresh({ id: crypto.randomUUID() }) };
+    delete row.device_id;
+    await expect(insertAs(row)).rejects.toThrow(/device_id/);
   });
 });
 

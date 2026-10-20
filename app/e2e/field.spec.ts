@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { type Page, type Request, expect, test } from "@playwright/test";
 import { FAKE_SUPABASE } from "../playwright.config";
@@ -46,7 +47,8 @@ async function setUp(page: Page): Promise<void> {
 async function capture(page: Page): Promise<void> {
   await expect(page.locator("#fix-text")).toContainText("Location ready");
   await expect(page.locator("#details")).toBeHidden(); // no form until there is a photo
-  await page.locator("#camera").setInputFiles(PHOTO);
+  // A camera capture is a file created now; the fixture on disk is older than the 10-minute freshness rule.
+  await page.locator("#camera").setInputFiles({ name: "capture.jpg", mimeType: "image/jpeg", buffer: readFileSync(PHOTO) });
   await expect(page.locator("#details")).toBeVisible();
   await expect(page.locator("#pick")).toBeHidden();
   await expect(page.locator("#loc-text")).toHaveText("Phone location ±8 m");
@@ -92,6 +94,7 @@ test("a report taken offline is kept, survives a reload, and is sent when signal
     photo_path: `${row.id as string}.jpg`,
   });
   expect(row.lat as number).toBeCloseTo(50.0123, 4);
+  expect(row.device_id as string).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 });
 
 test("a refused team code stops retrying and says why", async ({ page }) => {

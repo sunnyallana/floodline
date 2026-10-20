@@ -26,6 +26,8 @@ export interface ResolvedLocation {
 
 export interface Report {
   id: string;
+  /** Random per install; lets the pipeline count independent devices and the server rate-limit. */
+  deviceId: string;
   teamCode: string;
   capturedAt: string; // ISO 8601
   location: ResolvedLocation;

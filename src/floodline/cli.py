@@ -93,6 +93,14 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--out", default="agreement")
     ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
 
+    tr = sub.add_parser("trust", help="re-check ingested field reports; --build-index hashes the reference sets")
+    tr.add_argument("--build-index", action="store_true", help="hash CVFD and European Flood 2013 images first")
+    tr.add_argument("--evaluate", action="store_true", help="measure duplicate-detection recall and false matches")
+
+    va = sub.add_parser("validate", help="check road closures and priority against EMS damage grading")
+    va.add_argument("gra_root", help="directory of unpacked EMS grading packages, e.g. data/external/ems/EMSR517_GRA")
+    va.add_argument("--roads-only", action="store_true", help="skip the ranking runs (no OSM downloads)")
+
     ig = sub.add_parser("ingest", help="pull new Floodline Field reports from Supabase into data/field/")
     ig.add_argument("--prune-orphans", action="store_true", help="delete photos with no report after 24 h")
 
@@ -231,6 +239,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 k=args.k,
                 ems_dirs=[Path(d) for d in args.ems_dirs],
             )
+        elif args.command == "trust":
+            from floodline.stages import trust
+
+            trust.run(paths, build_index=args.build_index)
+            if args.evaluate:
+                trust.evaluate_hashing(paths)
+        elif args.command == "validate":
+            from pathlib import Path
+
+            from floodline.stages import validate
+
+            validate.run(paths, Path(args.gra_root), ranking=not args.roads_only)
         elif args.command == "ingest":
             from floodline.stages import ingest
 

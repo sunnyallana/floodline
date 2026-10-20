@@ -25,6 +25,7 @@ export function photoPath(reportId: string): string {
 export function toRow(report: Report, photoBytes: number): Record<string, unknown> {
   return {
     id: report.id,
+    device_id: report.deviceId,
     team_code: report.teamCode,
     captured_at: report.capturedAt,
     lat: report.location.lat,

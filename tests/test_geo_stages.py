@@ -89,3 +89,13 @@ def test_2013_schema_layer_names(tmp_path):
     _, _, permanent, info = load_ems(tmp_path / "EMSR045")
     assert info["permanent_water_layers"] == 1 and permanent is not None
     assert info["flood_layers"] == 1 and info["aoi_layers"] == 1
+
+
+def test_grading_layers_keep_flood_features_only():
+    gpd = pytest.importorskip("geopandas")
+    from floodline.stages.satellite import flood_features_only
+
+    g = gpd.GeoDataFrame({"event_type": ["5-Flood", "6-Mass Movement", "5-Flood"]}, geometry=[box(0, 0, 1, 1)] * 3)
+    assert flood_features_only(g).event_type.tolist() == ["5-Flood", "5-Flood"]
+    plain = gpd.GeoDataFrame(geometry=[box(0, 0, 1, 1)])
+    assert len(flood_features_only(plain)) == 1

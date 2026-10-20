@@ -25,6 +25,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+from floodline import osm
 from floodline.config import Paths
 from floodline.log import get_logger
 from floodline.runs import RunManifest
@@ -34,7 +35,11 @@ log = get_logger(__name__)
 DEFAULT_SPEED_KMH = 30.0  # conservative urban speed for a loaded rescue vehicle
 STAGING_TAGS: dict[str, list[str]] = {"amenity": ["fire_station", "hospital"]}
 MAX_SNAP_M = 500.0  # a staging point further than this from any road is dropped
-MIN_OVERLAP_M = 15.0  # length of road inside the flood before the segment counts as closed
+# Length of road inside the flood before the segment counts as closed. Chosen against EMS road damage grading
+# for EMSR517 (results/validation_roads.csv): 5 m maximises F1 pooled over 11 towns (precision 0.94, recall 0.85
+# against graded roads); 0 m adds 3 points of recall for 12 points of precision lost to boundary grazes, and
+# 15 m loses 9 points of recall. Rapid-mapping polygons are placed to about 10-20 m at 1:10,000.
+MIN_OVERLAP_M = 5.0
 
 
 def travel_minutes(graph: nx.MultiDiGraph, sources: Iterable[int], weight: str = "travel_time") -> dict[int, float]:
@@ -57,8 +62,8 @@ def ensure_travel_time(graph: nx.MultiDiGraph, speed_kmh: float = DEFAULT_SPEED_
 def flooded_edges(edges, flood_geometry, min_overlap_m: float = MIN_OVERLAP_M) -> pd.Series:
     """Boolean per edge row: does at least ``min_overlap_m`` of the edge lie in the flood? Metric CRS for both.
 
-    A road that only grazes the polygon boundary is not closed: rapid-mapping polygons at 1:10,000 are placed to
-    about 10-20 m, and a street running along the flood edge is how responders reach it.
+    A road that only touches the polygon boundary is not closed: a street running along the flood edge is how
+    responders reach it. See ``MIN_OVERLAP_M`` for how the threshold was chosen.
     """
     from shapely import STRtree
     from shapely.geometry import MultiPolygon
@@ -156,7 +161,7 @@ def staging_from_osm(polygon, tags: dict[str, list[str]] | None = None) -> pd.Da
     """Fire stations and hospitals inside ``polygon`` (EPSG:4326) as representative points."""
     import osmnx as ox
 
-    gdf = ox.features_from_polygon(polygon, tags or STAGING_TAGS)
+    gdf = osm.call(ox.features_from_polygon, polygon, tags or STAGING_TAGS)
     if gdf.empty:
         return pd.DataFrame(columns=["name", "kind", "lat", "lon"])
     pts = gdf.geometry.representative_point()
@@ -205,7 +210,7 @@ def run(
     metric = aoi_gs.estimate_utm_crs()
     area = aoi_gs.to_crs(metric).buffer(buffer_m).to_crs("EPSG:4326").iloc[0]
 
-    graph = ox.graph_from_polygon(area, network_type=network_type, truncate_by_edge=True)
+    graph = osm.call(ox.graph_from_polygon, area, network_type=network_type, truncate_by_edge=True)
     graph = ox.add_edge_travel_times(ox.add_edge_speeds(graph))
     nodes, edges = ox.graph_to_gdfs(graph)
     flood_m = gpd.GeoSeries([flood], crs="EPSG:4326").to_crs(metric).iloc[0]

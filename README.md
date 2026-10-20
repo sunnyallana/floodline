@@ -114,6 +114,12 @@ floodline serve results/hexes_prague.csv --key prague --title "Prague, June 2013
 Every stage writes `results/<stage>_run.json` with the git sha, model ids, parameters and timing. Long stages
 are resumable: rerun the same command and it continues from the last record.
 
+## Bogus reports
+
+`THREAT_MODEL.md` lists every way a report could mislead the ranking and what stops it. The rule behind all of
+them: one report can send someone to look, never a boat. Report claims count only with corroboration from a
+second device, the satellite, or the model; everything else goes to a verification list.
+
 ## Honesty rules for this repo
 
 - Every number in the README or CV points to a file in `results/`.

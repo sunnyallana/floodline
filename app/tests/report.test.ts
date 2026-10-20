@@ -3,6 +3,7 @@ import { buildReport, clampCount, type Draft } from "../src/report";
 import { fitWithin } from "../src/photo";
 
 const draft = (over: Partial<Draft> = {}): Draft => ({
+  deviceId: "dev-1",
   teamCode: "  TEAM-2026-01 ",
   capturedAt: Date.UTC(2026, 9, 20, 9, 30),
   location: { lat: 50, lon: 14.4, accuracyM: 9, source: "device" },

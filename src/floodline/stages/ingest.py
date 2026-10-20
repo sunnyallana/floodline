@@ -8,7 +8,8 @@ Outputs, all under ``data/field/`` (git-ignored: these are photos of people and 
 
 - ``photos/<id>.jpg``: the uploaded photo, checked to be a JPEG;
 - ``reports.parquet``: every report ever ingested, one row per id;
-- ``reports_for_fuse.csv``: the same reports in the shape ``floodline fuse --reports`` reads.
+- ``reports_for_fuse.csv``: the same reports in the shape ``floodline fuse --reports`` reads, each with a
+  ``trust`` verdict and its reasons from ``stages/trust.py``.
 
 The public outputs of the pipeline only ever see these through the hex aggregation in ``fuse``.
 Runs are incremental: only reports received after the newest one already stored are requested.
@@ -141,6 +142,9 @@ def for_fuse(reports: pd.DataFrame) -> pd.DataFrame:
         {
             "image_id": "field_" + reports.id.astype(str),
             "source": "field",
+            "device_id": reports.get("device_id"),
+            "trust": reports.get("trust", "accepted"),
+            "trust_flags": reports.get("trust_flags", ""),
             "lat": reports.lat,
             "lon": reports.lon,
             "location_tier": reports.location_source.map({"device": "gps", "exif": "gps"}).fillna("none"),
@@ -212,7 +216,10 @@ def run(paths: Paths, store: Store | None = None, prune_orphans: bool = False, n
     if len(new):
         combined = combined.drop_duplicates("id", keep="first").sort_values("received_at").reset_index(drop=True)
         combined.to_parquet(table, index=False)
-    for_fuse(combined).to_csv(root / "reports_for_fuse.csv", index=False)
+    from floodline.stages import trust
+
+    checked = trust.assess(combined, photos, trust.load_reference(paths)) if len(combined) else combined
+    for_fuse(checked).to_csv(root / "reports_for_fuse.csv", index=False)
 
     pruned: list[str] = []
     if prune_orphans:
@@ -224,6 +231,7 @@ def run(paths: Paths, store: Store | None = None, prune_orphans: bool = False, n
         "total_reports": len(combined),
         "with_location": int(combined.lat.notna().sum()) if len(combined) else 0,
         "rejected_non_jpeg": len(bad_photos),
+        "trust": checked.trust.value_counts().to_dict() if len(checked) else {},
         "orphan_photos_deleted": len(pruned),
     }
     # Counts only: the manifest is committed, the reports are not.

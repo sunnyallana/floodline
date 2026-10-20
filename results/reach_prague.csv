@@ -211,7 +211,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3540ac3ffff,2.7,2.7,False,0.0
 891e3540acbffff,2.0,2.0,False,0.0
 891e3540acfffff,1.5,1.5,False,0.0
-891e3540ad3ffff,2.8,2.8,False,0.0
+891e3540ad3ffff,2.7,2.7,False,0.0
 891e3540ad7ffff,3.2,3.2,False,0.0
 891e3540adbffff,2.4,2.4,False,0.0
 891e3540e0bffff,4.5,4.5,False,0.0
@@ -974,7 +974,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e35481afffff,2.4,2.4,False,0.0
 891e35481b3ffff,3.5,3.5,False,0.0
 891e35481b7ffff,4.1,4.1,False,0.0
-891e35481bbffff,3.6,3.6,False,0.0
+891e35481bbffff,3.5,3.5,False,0.0
 891e35481c3ffff,,,False,
 891e35481c7ffff,2.1,2.1,False,0.0
 891e35481cbffff,,,False,
@@ -1080,7 +1080,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3548507ffff,,,False,
 891e354850bffff,,,False,
 891e354850fffff,,,False,
-891e3548513ffff,1.8,1.8,False,0.0
+891e3548513ffff,1.6,1.6,False,0.0
 891e3548517ffff,,,False,
 891e354851bffff,,,False,
 891e3548523ffff,,,False,
@@ -1129,7 +1129,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3548807ffff,,,False,
 891e354880bffff,2.9,3.4,False,0.5
 891e354880fffff,,,False,
-891e3548813ffff,2.8,4.7,False,1.9
+891e3548813ffff,2.8,4.7,False,2.0
 891e3548817ffff,4.1,4.4,False,0.3
 891e354881bffff,,,False,
 891e3548823ffff,3.9,3.9,False,0.0
@@ -1155,7 +1155,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e354887bffff,2.8,2.8,False,0.0
 891e3548883ffff,4.4,4.4,False,0.1
 891e3548887ffff,,,False,
-891e354888bffff,2.2,inf,True,
+891e354888bffff,2.1,inf,True,
 891e354888fffff,2.0,4.2,False,2.2
 891e3548893ffff,,,False,
 891e3548897ffff,,,False,
@@ -1271,7 +1271,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3548acfffff,,,False,
 891e3548ad3ffff,0.8,0.8,False,0.0
 891e3548ad7ffff,,,False,
-891e3548adbffff,4.9,4.9,False,0.0
+891e3548adbffff,4.5,4.5,False,0.0
 891e3548b03ffff,,,False,
 891e3548b07ffff,,,False,
 891e3548b0bffff,,,False,
@@ -1285,7 +1285,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3548b2fffff,,,False,
 891e3548b33ffff,,,False,
 891e3548b37ffff,,,False,
-891e3548b3bffff,4.0,4.0,False,0.0
+891e3548b3bffff,3.8,3.8,False,0.0
 891e3548b43ffff,3.0,7.8,False,4.8
 891e3548b47ffff,,,False,
 891e3548b4bffff,1.5,1.5,False,0.0
@@ -1572,7 +1572,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3549b87ffff,,,False,
 891e3549b93ffff,,,False,
 891e3549b97ffff,,,False,
-891e3549b9bffff,5.4,5.4,False,0.0
+891e3549b9bffff,5.5,5.5,False,0.0
 891e3549bb3ffff,,,False,
 891e3549bb7ffff,,,False,
 891e3549c03ffff,,,False,
@@ -1637,7 +1637,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e3549d2fffff,,,False,
 891e3549d33ffff,2.7,2.7,False,0.0
 891e3549d37ffff,,,False,
-891e3549d3bffff,2.6,2.6,False,0.0
+891e3549d3bffff,2.3,2.3,False,0.0
 891e3549d43ffff,,,False,
 891e3549d47ffff,,,False,
 891e3549d4bffff,,,False,
@@ -2024,7 +2024,7 @@ h3,reach_dry_min,reach_flood_min,cut_off,delay_min
 891e354ab5bffff,,,False,
 891e354ab63ffff,4.6,4.6,False,0.0
 891e354ab67ffff,3.3,3.3,False,0.0
-891e354ab6bffff,2.4,6.6,False,4.1
+891e354ab6bffff,2.4,inf,True,
 891e354ab6fffff,3.8,3.8,False,0.0
 891e354ab73ffff,3.5,6.1,False,2.6
 891e354ab77ffff,,,False,

@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from floodline import osm
 from floodline.config import Paths
 from floodline.log import get_logger
 from floodline.runs import RunManifest
@@ -76,7 +77,7 @@ def run(
     cells = target_cells(layer, reach)
     flood, _, _, _ = load_ems(ems_source)
     area = unary_union(hex_polygons(cells))
-    feats = ox.features_from_polygon(area, {"building": True})
+    feats = osm.call(ox.features_from_polygon, area, {"building": True})
     feats = feats[feats.geometry.geom_type.isin(["Polygon", "MultiPolygon"])]
     buildings = gpd.GeoDataFrame(geometry=feats.geometry.to_numpy(), crs="EPSG:4326")
     df = count_buildings(buildings, flood, cells)

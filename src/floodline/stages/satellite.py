@@ -101,10 +101,19 @@ def _find_layers(root: Path, hints: tuple[str, ...]) -> list[Path]:
     return sorted(best.values())
 
 
+def flood_features_only(gdf):
+    """Grading products mix event types in one layer (``event_type`` "5-Flood", "6-Mass Movement"); keep floods.
+    Layers without the column (delineation products, AOIs, water bodies) pass through unchanged."""
+    if "event_type" not in gdf.columns:
+        return gdf
+    return gdf[gdf.event_type.astype(str).str.contains("flood", case=False, na=False)]
+
+
 def _dissolve(files: list[Path]):
     import geopandas as gpd
 
     gdf = pd.concat([gpd.read_file(f).to_crs("EPSG:4326") for f in files], ignore_index=True)
+    gdf = flood_features_only(gdf)
     geoms = gdf.geometry.buffer(0)
     geom = geoms.union_all() if hasattr(geoms, "union_all") else geoms.unary_union
     return geom, gpd.GeoSeries([geom], crs="EPSG:4326").to_crs(EQUAL_AREA_CRS).area.iloc[0] / 1e6

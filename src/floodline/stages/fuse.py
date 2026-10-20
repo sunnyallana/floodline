@@ -8,7 +8,8 @@ photos are evidence where they exist. Layers are CSVs keyed by ``h3`` and joined
 - exposure: ``buildings_in_flood``, ``buildings_total``.
 
 Reports (optional) need ``lat`` and ``lon``; assessment columns (``depth_class``, ``people_*``, ``confidence``) are
-used when present, so located but not yet assessed photos still count as corroboration.
+used when present. Field reports carry ``trust`` and ``device_id`` from ``stages/trust.py``; a report's claims move
+priority only when corroborated (see ``score``), otherwise they go to the verification list.
 
 Priority, in [0, 1], is zero unless the hex is wet or cut off. Otherwise it is a weighted sum of
 exposure (buildings and people affected), hazard (photo depth if known, else satellite water fraction) and access
@@ -62,50 +63,113 @@ def _col(df: pd.DataFrame, name: str, default=np.nan) -> pd.Series:
     return df[name] if name in df else pd.Series(default, index=df.index)
 
 
+DEPTH_ORDER: tuple[str, ...] = ("dry", "ankle", "knee", "waist", "chest", "above_head")
+CORROBORATING_DEVICES = 2  # independent devices whose depth claims agree within one class
+
+
+def _depth_ordinal(classes: pd.Series) -> pd.Series:
+    return classes.map({c: i for i, c in enumerate(DEPTH_ORDER)})
+
+
+def _class_at(ordinal: float) -> str | None:
+    return DEPTH_ORDER[int(ordinal)] if pd.notna(ordinal) else None
+
+
 def aggregate(reports: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.DataFrame:
-    """Per-hex evidence summary from located reports. Missing assessment columns become NaN, not errors."""
+    """Per-hex evidence summary from located reports.
+
+    Trust (see ``stages/trust.py``): ``rejected`` reports are dropped, ``review`` reports are only counted, and
+    ``accepted`` reports become evidence. Reports without a ``trust`` column (archive photos, model assessments)
+    count as accepted. Each device counts once, with its deepest claim in the hexagon. People are the maximum
+    over reports, not the sum, so two phones photographing the same group do not double it.
+    """
     r = reports.dropna(subset=["lat", "lon"]).copy()
     if r.empty:
         return pd.DataFrame(columns=["h3", "n_reports"])
     r["h3"] = to_cells(r, resolution)
-    r["severity"] = _col(r, "depth_class").map(DEPTH_SEVERITY)
+    trust = _col(r, "trust", "accepted").fillna("accepted")
+    unverified = r[trust == "review"].groupby("h3").size().rename("n_unverified")
+    r = r[trust == "accepted"].copy()
+    if r.empty:
+        return unverified.rename_axis("h3").reset_index().assign(n_reports=0)
+    r["ordinal"] = _depth_ordinal(_col(r, "depth_class"))
     r["captured_at"] = pd.to_datetime(_col(r, "captured_at", None), errors="coerce", utc=True)
-    for c in ("people_visible", "people_in_water", "people_on_roofs_or_elevated", "confidence"):
+    for c in ("people_visible", "people_in_water", "people_on_roofs_or_elevated", "confidence", "location_confidence"):
         r[c] = pd.to_numeric(_col(r, c), errors="coerce")
-    r["location_confidence"] = pd.to_numeric(_col(r, "location_confidence"), errors="coerce")
+    own_id = pd.Series(r.index.astype(str), index=r.index)
+    image = _col(r, "image_id", None).astype(object)
+    device = _col(r, "device_id", None).astype(object)
+    r["device"] = device.where(device.notna(), image.where(image.notna(), own_id))
+    r["assessed"] = _col(r, "assessed", False).fillna(False).astype(bool)
+
+    per_device = r.groupby(["h3", "device"]).ordinal.max().reset_index()
+    median = per_device.groupby("h3").ordinal.median().apply(np.floor)
+    per_device = per_device.join(median.rename("median"), on="h3")
+    close = (per_device.ordinal - per_device["median"]).abs() <= 1
+    agreeing = per_device[close].groupby("h3").device.nunique()
+    assessed = r[r.assessed].groupby("h3").ordinal.max()
+
     g = r.groupby("h3")
-    return pd.DataFrame(
+    out = pd.DataFrame(
         {
             "n_reports": g.size(),
-            "n_with_depth": g.severity.count(),
-            "severity_max": g.severity.max(),
-            "people_visible": g.people_visible.sum(min_count=1),
-            "people_in_water": g.people_in_water.sum(min_count=1),
-            "people_elevated": g.people_on_roofs_or_elevated.sum(min_count=1),
+            "n_devices": g.device.nunique(),
+            "n_with_depth": g.ordinal.count(),
+            "depth_claim": median.map(_class_at),
+            "depth_agreeing_devices": agreeing,
+            "depth_assessed": assessed.map(_class_at),
+            "people_visible": g.people_visible.max(),
+            "people_in_water": g.people_in_water.max(),
+            "people_elevated": g.people_on_roofs_or_elevated.max(),
             "assessment_confidence": g.confidence.mean(),
             "location_confidence": g.location_confidence.mean(),
             "first_report": g.captured_at.min(),
             "last_report": g.captured_at.max(),
         }
-    ).reset_index()
+    )
+    out = out.join(unverified, how="outer")
+    for c in ("n_reports", "n_unverified", "depth_agreeing_devices", "n_devices", "n_with_depth"):
+        out[c] = out[c].fillna(0).astype(int)
+    return out.rename_axis("h3").reset_index()
 
 
 def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
-    """Add ``exposure``, ``hazard``, ``access``, ``priority`` and ``confidence`` columns; sort by priority."""
+    """Add ``exposure``, ``hazard``, ``access``, ``priority``, ``confidence`` and the verification columns.
+
+    Report evidence (a depth claim, people in water or up high) counts towards priority only when it is
+    corroborated: at least two devices agree within one depth class, or the satellite maps water in the hexagon
+    or a neighbour (``satellite_water_near``), or the model has assessed the photo (``depth_assessed``). Anything
+    else sets ``needs_verification`` and a ``verify_score`` for the coordinator's check list, and leaves priority
+    where the independent layers put it. One report can send someone to look; it cannot send a boat.
+    """
     w = weights or Weights()
     h = hexes.copy()
     sat = _col(h, "satellite_water_fraction")
-    severity = _col(h, "severity_max")
     cut_off = _col(h, "cut_off", False).fillna(False).astype(bool)
     in_flood = _col(h, "buildings_in_flood", 0).fillna(0)
     total = _col(h, "buildings_total", 0).fillna(0)
-    people = _col(h, "people_in_water", 0).fillna(0) + _col(h, "people_elevated", 0).fillna(0)
+
+    claim = _col(h, "depth_claim", None).map(DEPTH_SEVERITY).astype(float)
+    assessed = _col(h, "depth_assessed", None).map(DEPTH_SEVERITY).astype(float)
+    claimed_people = _col(h, "people_in_water", 0).fillna(0) + _col(h, "people_elevated", 0).fillna(0)
+    sat_near = _col(h, "satellite_water_near", False).fillna(False).astype(bool)
+    by_devices = _col(h, "depth_agreeing_devices", 0).fillna(0) >= CORROBORATING_DEVICES
+    corroborated = by_devices | sat_near | assessed.notna()
+    has_claim = claim.notna() | (claimed_people > 0)
+    h["corroborated"] = has_claim & corroborated
+    h["needs_verification"] = (has_claim & ~corroborated) | (_col(h, "n_unverified", 0).fillna(0) > 0)
+    h["verify_score"] = np.where(
+        h.needs_verification,
+        np.fmax(claim.fillna(0).to_numpy(float), np.tanh(claimed_people.to_numpy(float) / 5.0)),
+        0.0,
+    ).round(3)
+    report_severity = np.fmax(assessed.to_numpy(float), np.where(corroborated, claim.to_numpy(float), np.nan))
+    people = np.where(corroborated, claimed_people, 0)
 
     affected = in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0) + PERSON_WEIGHT * people
     h["buildings_affected"] = (in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0)).astype(int)
     h["exposure"] = 1.0 - np.exp(-affected / EXPOSURE_SCALE)
-    h["hazard"] = np.fmax(severity.to_numpy(dtype=float), sat.to_numpy(dtype=float))
-    h["hazard"] = h.hazard.fillna(0.0).clip(0, 1)
+    h["hazard"] = pd.Series(np.fmax(report_severity, sat.to_numpy(dtype=float)), index=h.index).fillna(0.0).clip(0, 1)
     delay = _col(h, "delay_min").fillna(0).clip(lower=0)
     h["access"] = np.where(cut_off, 1.0, (delay / DELAY_SATURATION_MIN).clip(upper=1.0))
     gate = (h.hazard > 0) | cut_off
@@ -113,14 +177,22 @@ def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
 
     # One third per independent layer: satellite (per hex, may be unmapped), reach and exposure (per run).
     layers_known = (sat.notna().astype(float) + float("reach_dry_min" in h) + float("buildings_in_flood" in h)) / 3.0
-    n_reports = _col(h, "n_reports", 0).fillna(0)
-    photo = np.tanh(n_reports / 2.0) * _col(h, "location_confidence", 0).fillna(0)
+    devices = _col(h, "n_devices", None).astype(float).fillna(_col(h, "n_reports", 0).astype(float)).fillna(0)
+    photo = np.tanh(devices / 2.0) * _col(h, "location_confidence", 0).fillna(0)
     h["confidence"] = (0.6 * layers_known + 0.4 * photo).clip(0, 1)
-    if "severity_max" in h:
-        h["photo_satellite_agreement"] = np.where(severity.notna() & sat.notna(), 1.0 - (severity - sat).abs(), np.nan)
+    if "depth_claim" in h:
+        h["photo_satellite_agreement"] = np.where(claim.notna() & sat.notna(), 1.0 - (claim - sat).abs(), np.nan)
     for c in ("exposure", "hazard", "access", "priority", "confidence"):
         h[c] = h[c].round(3)
     return h.sort_values("priority", ascending=False).reset_index(drop=True)
+
+
+def satellite_water_near(cells: pd.Series, water: pd.Series, k: int = 1) -> pd.Series:
+    """True where the satellite maps water in the hexagon or within ``k`` rings of it."""
+    import h3
+
+    wet = set(cells[water.fillna(0).to_numpy() > 0])
+    return cells.map(lambda c: any(n in wet for n in h3.grid_disk(c, k)))
 
 
 def hex_geometry(cells: pd.Series):
@@ -138,10 +210,14 @@ def combine(layers: list[pd.DataFrame], reports: pd.DataFrame | None = None) -> 
     for extra in layers[1:]:
         extra = extra.drop(columns=[c for c in extra.columns if c in base.columns and c != "h3"])
         base = base.merge(extra, on="h3", how="left")
+    if "satellite_water_fraction" in base:
+        base["satellite_water_near"] = satellite_water_near(base.h3, base.satellite_water_fraction)
     if reports is not None and len(reports) and len(base):
         rep = aggregate(reports, h3.get_resolution(base.h3.iloc[0]))
         base = base.merge(rep, on="h3", how="left")
-        base["n_reports"] = base.n_reports.fillna(0).astype(int)
+        for c in ("n_reports", "n_unverified"):
+            if c in base:
+                base[c] = base[c].fillna(0).astype(int)
     return base
 
 
@@ -153,6 +229,25 @@ def run(paths: Paths, layer_csvs: list[Path], reports_csv: Path | None = None, o
     ranked = score(combine([pd.read_csv(p) for p in layer_csvs], reports))
     csv = paths.results / f"{out_stem}.csv"
     ranked.to_csv(csv, index=False)
+    if "needs_verification" in ranked:
+        # The coordinator's check list: claims nothing independent backs yet, most serious first.
+        verify = ranked[ranked.needs_verification].sort_values("verify_score", ascending=False)
+        cols = [
+            c
+            for c in (
+                "h3",
+                "verify_score",
+                "depth_claim",
+                "people_in_water",
+                "people_elevated",
+                "n_reports",
+                "n_unverified",
+                "n_devices",
+                "satellite_water_fraction",
+            )
+            if c in verify
+        ]
+        verify[cols].to_csv(paths.results / f"{out_stem}_verify.csv", index=False)
     try:
         import geopandas as gpd
 
@@ -165,6 +260,7 @@ def run(paths: Paths, layer_csvs: list[Path], reports_csv: Path | None = None, o
         "hexes": len(ranked),
         "hexes_with_priority": len(live),
         "hexes_with_reports": int((ranked.get("n_reports", pd.Series(0)) > 0).sum()),
+        "hexes_needing_verification": int(ranked.get("needs_verification", pd.Series(False)).sum()),
         "top10": live.head(10)[["h3", "priority", "confidence", "buildings_affected"]].to_dict("records"),
     }
     manifest.finish(**summary).write(paths.results / f"{out_stem}_run.json")
