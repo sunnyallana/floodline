@@ -195,7 +195,61 @@ variant); 86 % of variants keep at least 8 of the top 10 hexagons, and the ones 
 dominant, which pulls fully flooded open land to the top (`sensitivity_*.csv`, `sensitivity_run.json`,
 `share_keeping_8_of_top10`).
 
-## 8. Report trust and simulated attacks
+## 8. Six floods, four continents: the multi-event benchmark
+
+`benchmark_summary.json`, `benchmark_towns.csv`, `benchmark_roads.csv`, `benchmark/<event>/` · `floodline
+benchmark <EMSR> <grading dir> --osm-pbf <extract>` per event, then `floodline benchmark summary --bootstrap 1000`.
+Every town in six EMS grading activations with at least 20 damaged or destroyed buildings, run under one
+protocol. The flood extent is the product's own polygons, buildings are the larger of OSM and Microsoft
+footprints per hexagon, population is GHSL 2020, and the OSM extracts are pinned in `data/README.md`.
+11 towns, 10,886 hexagons and 3,806 damaged or destroyed buildings.
+
+| Event | Towns | Severe buildings |
+|---|---|---|
+| EMSR517 western Germany, Jul 2021 (flash) | Erftstadt, Eschweiler, Wassenberg, Bad Neuenahr-Ahrweiler | 1,143 |
+| EMSR631 Sanghar, Pakistan, Sep 2022 (riverine) | Sanghar | 2,008 |
+| EMSR504 New South Wales, Australia, Mar 2021 (riverine) | Kempsey | 78 |
+| EMSR559 Madagascar, Jan 2022 | Moramanga | 69 |
+| EMSR634 Marche, Italy, Sep 2022 (flash) | Cantiano, Ostra, Senigallia | 474 |
+| EMSR649 Sicily, Feb 2023 (flash) | Pachino | 34 |
+
+Metric: share of a town's damaged or destroyed buildings inside its top 10 % of hexagons, averaged over towns
+(pooled) or over the towns of one event. Random scores 0.10. The intervals come from a spatial block bootstrap
+(H3 resolution-6 blocks resampled within towns, 1,000 draws).
+
+| Score | Pooled [95 % CI] | DE | PK | AU | MG | IT-Marche | IT-Sicily | Mean of events | Worst event |
+|---|---|---|---|---|---|---|---|---|---|
+| **fused priority (default)** | **0.76** [0.55, 0.78] | 0.74 | 0.37 | 0.41 | 0.85 | 0.95 | 0.97 | **0.71** | **0.37** |
+| fused, without access | 0.78 [0.58, 0.80] | 0.76 | 0.44 | 0.40 | 0.87 | 0.95 | 0.97 | 0.73 | 0.40 |
+| risk: exposure x (0.5 + 0.5 hazard) | 0.77 [0.61, 0.80] | 0.84 | 0.44 | 0.81 | 0.10 | 0.93 | 0.94 | 0.68 | 0.10 |
+| buildings in the flood | 0.77 [0.63, 0.80] | 0.85 | 0.41 | 0.83 | 0.07 | 0.93 | 0.94 | 0.67 | 0.07 |
+| people in the flood (GHSL) | 0.70 [0.55, 0.76] | 0.82 | 0.22 | 0.58 | 0.33 | 0.87 | 0.65 | 0.58 | 0.22 |
+| exposure alone | 0.67 [0.57, 0.73] | 0.83 | 0.09 | 0.73 | 0.10 | 0.73 | 0.94 | 0.57 | 0.09 |
+| water extent alone | 0.56 [0.41, 0.64] | 0.39 | 0.02 | 0.00 | 0.88 | 0.90 | 0.97 | 0.53 | 0.00 |
+| access alone | 0.33 [0.15, 0.36] | 0.23 | 0.00 | 0.35 | 0.03 | 0.62 | 0.47 | 0.28 | 0.00 |
+
+Paired differences (default minus the other, same bootstrap draws): water +0.20 [0.02, 0.29], buildings −0.00
+[−0.17, 0.03], people +0.07 [−0.11, 0.14], without access −0.02 [−0.07, 0.01].
+
+**Leave one event out.** The scoring rule (additive weights on a 0.05 simplex, or the risk form with an access
+weight; buildings or people as exposure) is fitted on five events and scored on the sixth. Mean held-out capture:
+default 0.715, buildings only 0.672, fitted rule 0.591, people only 0.578. The fitted rule fails on Moramanga
+(0.10) and Sanghar (0.23). Every fit chose an access weight of 0.
+
+Reading:
+- Pooled, the default is level with the best single layers; the intervals overlap.
+- What separates the scores is the worst event. Every single layer collapses on at least one flood: water extent
+  where the whole plain is wet (NSW, Sanghar), building counts in Moramanga, where the footprints under the
+  water are not where the damage was graded. The fused priority's worst event (0.37) is the best worst case, and
+  it has the best held-out mean.
+- Fitting weights on these data overfits. The default weights are a prior, not a fit, and they transfer better.
+- Access does not help find damage; its interval includes zero. It stays in the score because reachability is the
+  other half of a coordinator's question, and closed roads and cut-off areas are drawn as their own layer. Damage
+  grading cannot measure that half.
+- Ostra's fire stations and hospitals all lie outside the downloaded road network. Each enters at its nearest
+  road node, the gap costed at 30 km/h (`reach.add_virtual_source`).
+
+## 9. Report trust and simulated attacks
 
 `trust_eval.json` · 64-bit difference hash against 11,563 CVFD and European Flood 2013 images.
 
@@ -224,7 +278,7 @@ colluding pairs reached the top ten (top-10 overlap 0.30), and 50 lone reports i
 confirms depth but never people. What remains is the third row: inside mapped water, a fabricated depth claim
 counts, which displaced on average one of the top ten.
 
-## 9. Larkana, Sindh, 2022, and an independent radar check
+## 10. Larkana, Sindh, 2022, and an independent radar check
 
 `satellite_larkana.csv`, `reach_larkana*`, `exposure_larkana*`, `hexes_larkana*` · EMSR629 AOI01 (Larkana), flood
 mapped from SPOT-6/7 imagery of 30 August 2022, H3 res 9. OSM from the Geofabrik Pakistan extract of 19 October
@@ -263,7 +317,7 @@ Radar agrees with the analysts' map where water is open and finds less of it ove
 under crops and water between buildings return more signal than open water. Sentinel-1 was not in orbit in
 2013, so the Prague and Dresden layers have no radar check.
 
-## 10. Supervised baselines carried over from v1
+## 11. Supervised baselines carried over from v1
 
 `../legacy/v1-results/` · seven backbones, three seeds, binary flooded / not-flooded
 

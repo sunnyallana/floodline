@@ -8,8 +8,10 @@ report with a stated confidence, and fuse the result with **satellite flood exte
 
 **Project page:** https://floodline.sunnyshabanali.dev (results, figures, links). **Map:** https://floodline.sunnyshabanali.dev/map/ shows Prague and Dresden in June 2013 and Larkana, Sindh, in
 August 2022. It combines satellite flood extent, roads closed by water, exposed buildings and geotagged photos,
-with a priority per hexagon. The ranking is checked against Copernicus EMS damage grading for the July 2021
-floods in Germany, and the satellite layer against Sentinel-1 radar (`results/README.md`, sections 7-9).
+with a priority per hexagon. The ranking is checked against Copernicus EMS building-damage grading for six
+floods on four continents (11 towns, 3,806 damaged or destroyed buildings). The fused priority's top 10 % of
+hexagons hold 0.76 of the damage, against 0.10 at random, and no single input layer has as good a worst case
+across floods. The satellite layer is checked against Sentinel-1 radar (`results/README.md`, sections 7-10).
 
 **Field app:** https://floodline.sunnyshabanali.dev/field/ is an offline-first web app for responders. It
 captures a photo with location, time and quick tags, keeps it on the phone until there is signal, and sends it to

@@ -20,7 +20,7 @@ pgfplots draws in Fig. 3. The PNG figures are screenshots of the live web map (r
   `\pending` and fill each from its result file; do not submit with any left.
 - Each number in the text is followed by a `%` comment naming the file it came from. Two numbers come from `docs/cities.json` (written by `floodline serve`), not `results/`: the 203 Prague photos
   and the Larkana top-five building counts. Larkana buildings in flood: `results/exposure_larkana_run.json` says
-- Larkana buildings in flood: resolved. 10,175 are in mapped hexagons (the figure the paper uses); the exposure run's 10,180 includes 5 buildings in 4 hexagons just outside the mapped area (results/README.md section 9).
+- Larkana buildings in flood: resolved. 10,175 are in mapped hexagons (the figure the paper uses); the exposure run's 10,180 includes 5 buildings in 4 hexagons just outside the mapped area (results/README.md section 10).
 - Authorship: the draft lists Sunny Shaban Ali as sole author. The CV lists the final-year paper with
   co-authors ("first author et al."), so decide whether the supervisor (Musawar Ali) or others should be added.
 - The depth benchmark labels are described as AI-assisted with human review pending. Update the text if the
