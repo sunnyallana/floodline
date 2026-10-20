@@ -1,0 +1,21 @@
+{
+"type": "FeatureCollection",
+"name": "reach_aoi10_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Löschzug Effeld", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.100067019436146, 51.12398715 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Heinsberg", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.107885282751944, 51.06896335 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Hückelhoven, Löscheinheit Ratheim", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.187084136463312, 51.07387565 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Birgelen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.151407845470285, 51.11329205 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Unterbruch", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.128845681392431, 51.07360065 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Wassenberg-Mitte", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.154570525240318, 51.1021247 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Myhl", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.192830081318181, 51.09901935 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Orsbeck", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.149532280275534, 51.08678225 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Dremmen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.143655827649022, 51.0391989 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Myhl", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.18982535514385, 51.0976326 ] } },
+{ "type": "Feature", "properties": { "name": "Städtisches Krankenhaus Heinsberg", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 6.095010657565545, 51.0650706 ] } },
+{ "type": "Feature", "properties": { "name": "FF Heinsberg LE Karken-Kempen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.089089833043194, 51.0940372 ] } },
+{ "type": "Feature", "properties": { "name": "FF LG-Oberbruch", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.146294782352909, 51.0617421 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Wassenberg Löschgruppe Ophoven", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.101443283849147, 51.10738205 ] } }
+]
+}

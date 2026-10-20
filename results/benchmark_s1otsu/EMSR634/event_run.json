@@ -1,0 +1,124 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR634",
+  "osm": [
+   "data\\external\\osm\\centro-261018.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR634",
+  "flood_source": "sentinel1_otsu",
+  "towns": {
+   "aoi01": {
+    "town": "Cantiano",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220913T170631_20220913T170656_044989_055FF8_rtc",
+     "acquired": "2022-09-13T17:06:43.867866Z",
+     "pre_scene": null,
+     "threshold_db": -8.85,
+     "water_share_of_area": 0.418,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 183,
+    "ranked_hexes": 2219,
+    "severe_in_mapped_hexes": 183
+   },
+   "aoi02": {
+    "town": "Sassoferrato",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220920T165813_20220920T165838_045091_05635E_rtc",
+     "acquired": "2022-09-20T16:58:25.936855Z",
+     "pre_scene": null,
+     "threshold_db": -8.43,
+     "water_share_of_area": 0.522,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Arcevia",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220919T051135_20220919T051200_045069_0562AC_rtc",
+     "acquired": "2022-09-19T05:11:47.804508Z",
+     "pre_scene": null,
+     "threshold_db": -8.37,
+     "water_share_of_area": 0.535,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 0
+   },
+   "aoi04": {
+    "town": "Barbara",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220919T051135_20220919T051200_045069_0562AC_rtc",
+     "acquired": "2022-09-19T05:11:47.804508Z",
+     "pre_scene": null,
+     "threshold_db": -8.27,
+     "water_share_of_area": 0.569,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 3
+   },
+   "aoi05": {
+    "town": "Ostra",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220919T051135_20220919T051200_045069_0562AC_rtc",
+     "acquired": "2022-09-19T05:11:47.804508Z",
+     "pre_scene": null,
+     "threshold_db": -8.12,
+     "water_share_of_area": 0.51,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 191,
+    "ranked_hexes": 398,
+    "severe_in_mapped_hexes": 191
+   },
+   "aoi06": {
+    "town": "Senigallia",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220919T051135_20220919T051200_045069_0562AC_rtc",
+     "acquired": "2022-09-19T05:11:47.804508Z",
+     "pre_scene": null,
+     "threshold_db": -8.17,
+     "water_share_of_area": 0.576,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 103,
+    "ranked_hexes": 267,
+    "severe_in_mapped_hexes": 100
+   },
+   "aoi07": {
+    "town": "Trecastelli",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220919T051135_20220919T051200_045069_0562AC_rtc",
+     "acquired": "2022-09-19T05:11:47.804508Z",
+     "pre_scene": null,
+     "threshold_db": -9.14,
+     "water_share_of_area": 0.493,
+     "ems_image_date": "2022-09-18"
+    },
+    "severe_buildings": 16
+   }
+  },
+  "road_rows": 98
+ },
+ "started_at": "2026-10-20T17:07:19+00:00",
+ "finished_at": "2026-10-20T17:07:19+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

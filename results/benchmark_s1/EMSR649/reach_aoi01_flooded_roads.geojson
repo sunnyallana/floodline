@@ -1,0 +1,15 @@
+{
+"type": "FeatureCollection",
+"name": "reach_aoi01_flooded_roads",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "highway": "residential", "name": "Viale Aloha", "segment_m": 141.0, "under_water_m": 20.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 15.007357662821867, 36.707002195809615 ], [ 15.007336375749956, 36.706821899618234 ] ] } },
+{ "type": "Feature", "properties": { "highway": "unclassified", "name": "", "segment_m": 597.0, "under_water_m": 41.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 15.1032687588781, 36.843049056230079 ], [ 15.1036424, 36.8429743 ], [ 15.103717484073622, 36.842967713679279 ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "Viale La Cabana", "segment_m": 303.0, "under_water_m": 80.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 15.004731549207795, 36.705559948950345 ], [ 15.004740966385985, 36.705629696492998 ] ], [ [ 15.004893670380326, 36.706461430060116 ], [ 15.0049294, 36.7066182 ], [ 15.004965054557205, 36.706729371903734 ] ], [ [ 15.004994768608064, 36.706822020888531 ], [ 15.0050404, 36.7069643 ], [ 15.0050805, 36.7070704 ], [ 15.005132079774725, 36.707182610053607 ] ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "", "segment_m": 233.0, "under_water_m": 9.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 15.068477728304771, 36.660285501772464 ], [ 15.0684703, 36.6602074 ] ] } },
+{ "type": "Feature", "properties": { "highway": "unclassified", "name": "", "segment_m": 276.0, "under_water_m": 54.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 15.051766799719458, 36.679043288956457 ], [ 15.051765718392611, 36.679044993340632 ] ], [ [ 15.051319350738543, 36.67969306149827 ], [ 15.051127212080193, 36.679946760769134 ] ], [ [ 15.051095603949301, 36.679988495854069 ], [ 15.050990618236904, 36.680127117636275 ] ], [ [ 15.050871855449682, 36.68028392977611 ], [ 15.050854023756171, 36.680307474341753 ] ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "", "segment_m": 313.0, "under_water_m": 15.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 15.043360782821676, 36.688604154460222 ], [ 15.043486337857464, 36.688510340018986 ] ] } },
+{ "type": "Feature", "properties": { "highway": "unclassified", "name": "", "segment_m": 495.0, "under_water_m": 12.0 }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 15.081946392917329, 36.840519327764838 ], [ 15.081887675787565, 36.840573168288635 ] ], [ [ 15.081722201741858, 36.840725149457541 ], [ 15.081696945223262, 36.840753592896831 ] ] ] } },
+{ "type": "Feature", "properties": { "highway": "residential", "name": "", "segment_m": 69.0, "under_water_m": 17.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 15.119247921817101, 36.727677823034071 ], [ 15.119052, 36.7276767 ] ] } }
+]
+}

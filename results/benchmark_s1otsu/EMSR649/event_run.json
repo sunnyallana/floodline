@@ -1,0 +1,81 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR649",
+  "osm": [
+   "data\\external\\osm\\isole-261018.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR649",
+  "flood_source": "sentinel1_otsu",
+  "towns": {
+   "aoi01": {
+    "town": "Pachino",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20230211T165630_20230211T165655_047191_05A987_rtc",
+     "acquired": "2023-02-11T16:56:42.811942Z",
+     "pre_scene": null,
+     "threshold_db": -11.95,
+     "water_share_of_area": 0.287,
+     "ems_image_date": "2023-02-12"
+    },
+    "severe_buildings": 34,
+    "ranked_hexes": 2517,
+    "severe_in_mapped_hexes": 34
+   },
+   "aoi02": {
+    "town": "Siracusa",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20230211T165630_20230211T165655_047191_05A987_rtc",
+     "acquired": "2023-02-11T16:56:42.811942Z",
+     "pre_scene": null,
+     "threshold_db": -13.32,
+     "water_share_of_area": 0.02,
+     "ems_image_date": "2023-02-11"
+    },
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Catania",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20230211T165630_20230211T165655_047191_05A987_rtc",
+     "acquired": "2023-02-11T16:56:42.811942Z",
+     "pre_scene": null,
+     "threshold_db": -3.78,
+     "water_share_of_area": 0.64,
+     "ems_image_date": "2023-02-11"
+    },
+    "severe_buildings": 0
+   },
+   "aoi04": {
+    "town": "Acireale",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20230211T165630_20230211T165655_047191_05A987_rtc",
+     "acquired": "2023-02-11T16:56:42.811942Z",
+     "pre_scene": null,
+     "threshold_db": -4.5,
+     "water_share_of_area": 0.649,
+     "ems_image_date": "2023-02-11"
+    },
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 56
+ },
+ "started_at": "2026-10-20T17:19:50+00:00",
+ "finished_at": "2026-10-20T17:19:50+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

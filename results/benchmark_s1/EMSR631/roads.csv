@@ -1,0 +1,15 @@
+target,threshold_m,segments,tp,fp,fn,precision,recall,f1,event,aoi,town
+severe,0.0,786,1,1,136,0.5,0.007,0.014,EMSR631,aoi01,Sanghar
+severe,5.0,786,1,1,136,0.5,0.007,0.014,EMSR631,aoi01,Sanghar
+severe,10.0,786,1,1,136,0.5,0.007,0.014,EMSR631,aoi01,Sanghar
+severe,15.0,786,1,1,136,0.5,0.007,0.014,EMSR631,aoi01,Sanghar
+severe,25.0,786,1,1,136,0.5,0.007,0.014,EMSR631,aoi01,Sanghar
+severe,50.0,786,0,0,137,,0.0,,EMSR631,aoi01,Sanghar
+severe,100.0,786,0,0,137,,0.0,,EMSR631,aoi01,Sanghar
+affected,0.0,786,2,0,284,1.0,0.007,0.014,EMSR631,aoi01,Sanghar
+affected,5.0,786,2,0,284,1.0,0.007,0.014,EMSR631,aoi01,Sanghar
+affected,10.0,786,2,0,284,1.0,0.007,0.014,EMSR631,aoi01,Sanghar
+affected,15.0,786,2,0,284,1.0,0.007,0.014,EMSR631,aoi01,Sanghar
+affected,25.0,786,2,0,284,1.0,0.007,0.014,EMSR631,aoi01,Sanghar
+affected,50.0,786,0,0,286,,0.0,,EMSR631,aoi01,Sanghar
+affected,100.0,786,0,0,286,,0.0,,EMSR631,aoi01,Sanghar

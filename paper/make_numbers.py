@@ -167,12 +167,29 @@ def ablation_done(name: str) -> dict[str, Any]:
     return d
 
 
-for name, short in (("sentinel1_change", "Change"), ("sentinel1_otsu", "Otsu"), ("osm_only", "OSMOnly")):
+for name, short in (("sentinel1_change", "Change"), ("sentinel1_otsu", "Otsu"), ("osm_buildings_only", "OSMOnly")):
     for variant, vshort in (("EHA", "EHA"), ("buildings_in_flood", "Buildings"), ("water", "Water")):
         m(f"abl{short}{vshort}", BENCH, lambda name=name, variant=variant: fx(dig(ablation_done(name), "ablated", variant)),
           pending=f"{name}: {variant}")
         m(f"abl{short}{vshort}Ref", BENCH, lambda name=name, variant=variant: fx(dig(ablation_done(name), "default", variant)),
           pending=f"{name}: reference {variant}")
+
+def share_pct(v: float) -> str:
+    return f"{100 * v:.1f}\%" if v < 0.1 else f"{fx(100 * v, 0)}\%"
+
+
+# how much of each town the radar calls water, against the analysts' map (median over towns)
+for name, short in (("sentinel1_change", "Change"), ("sentinel1_otsu", "Otsu")):
+    m(f"waterMed{short}", BENCH, lambda name=name: share_pct(dig(ablation_done(name), "water_share_median", "ablated")),
+      pending=f"{name}: water share")
+m("waterMedEMS", BENCH, lambda: share_pct(dig(ablation_done("sentinel1_change"), "water_share_median", "default")),
+  pending="EMS water share")
+# where OSM-only buildings cost the most: per-event capture of the default score
+for e, short in (("EMSR504", "NSW"), ("EMSR631", "Sanghar")):
+    for side, sshort in (("default", "Ref"), ("ablated", "")):
+        m(f"osmOnly{short}{sshort}", BENCH,
+          lambda e=e, side=side: fx(dig(ablation_done("osm_buildings_only"), "per_event_EHA", side, "events", e)),
+          pending=f"OSM-only {e}")
 
 # physical findings behind the change-detection failures: scene dates and water shares (final, not in progress)
 S1 = "results/benchmark_s1/{e}/event_run.json"

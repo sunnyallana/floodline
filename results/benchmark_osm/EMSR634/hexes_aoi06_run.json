@@ -1,0 +1,90 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR634\\satellite_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR634\\reach_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR634\\exposure_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR634\\population_aoi06.csv"
+  ],
+  "reports": null
+ },
+ "metrics": {
+  "hexes": 267,
+  "hexes_with_priority": 210,
+  "hexes_with_reports": 0,
+  "hexes_needing_verification": 0,
+  "top10": [
+   {
+    "h3": "891ea32b057ffff",
+    "priority": 0.989,
+    "confidence": 0.6,
+    "buildings_affected": 123
+   },
+   {
+    "h3": "891ea32b627ffff",
+    "priority": 0.954,
+    "confidence": 0.6,
+    "buildings_affected": 79
+   },
+   {
+    "h3": "891ea32b0dbffff",
+    "priority": 0.945,
+    "confidence": 0.6,
+    "buildings_affected": 72
+   },
+   {
+    "h3": "891ea32b293ffff",
+    "priority": 0.939,
+    "confidence": 0.6,
+    "buildings_affected": 84
+   },
+   {
+    "h3": "891ea32b2d3ffff",
+    "priority": 0.939,
+    "confidence": 0.6,
+    "buildings_affected": 40
+   },
+   {
+    "h3": "891ea32b297ffff",
+    "priority": 0.935,
+    "confidence": 0.6,
+    "buildings_affected": 53
+   },
+   {
+    "h3": "891ea32b0d3ffff",
+    "priority": 0.922,
+    "confidence": 0.6,
+    "buildings_affected": 173
+   },
+   {
+    "h3": "891ea32b637ffff",
+    "priority": 0.908,
+    "confidence": 0.6,
+    "buildings_affected": 120
+   },
+   {
+    "h3": "891ea32b0c3ffff",
+    "priority": 0.896,
+    "confidence": 0.6,
+    "buildings_affected": 106
+   },
+   {
+    "h3": "891ea32b05bffff",
+    "priority": 0.894,
+    "confidence": 0.6,
+    "buildings_affected": 74
+   }
+  ]
+ },
+ "started_at": "2026-10-20T17:26:10+00:00",
+ "finished_at": "2026-10-20T17:26:10+00:00",
+ "seconds": 0.1,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

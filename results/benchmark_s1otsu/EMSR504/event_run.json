@@ -1,0 +1,120 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR504",
+  "osm": [
+   "data\\external\\osm\\australia-261019.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR504",
+  "flood_source": "sentinel1_otsu",
+  "towns": {
+   "aoi01": {
+    "town": "Kempsey",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1B_IW_GRDH_1SDV_20210325T190554_20210325T190623_026175_031FB3_rtc",
+     "acquired": "2021-03-25T19:06:09.457613Z",
+     "pre_scene": null,
+     "threshold_db": -14.42,
+     "water_share_of_area": 0.169,
+     "ems_image_date": "2021-03-23"
+    },
+    "severe_buildings": 78,
+    "ranked_hexes": 808,
+    "severe_in_mapped_hexes": 78
+   },
+   "aoi02": {
+    "town": "Greaterportmacquarie",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210319T190655_20210319T190720_037071_045D16_rtc",
+     "acquired": "2021-03-19T19:07:07.597139Z",
+     "pre_scene": null,
+     "threshold_db": -11.66,
+     "water_share_of_area": 0.225,
+     "ems_image_date": "2021-03-23"
+    },
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Taree",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1B_IW_GRDH_1SDV_20210325T190623_20210325T190648_026175_031FB3_rtc",
+     "acquired": "2021-03-25T19:06:36.467762Z",
+     "pre_scene": null,
+     "threshold_db": -13.97,
+     "water_share_of_area": 0.028,
+     "ems_image_date": "2021-03-23"
+    },
+    "severe_buildings": 15
+   },
+   "aoi04": {
+    "town": "Bulahdelah",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1B_IW_GRDH_1SDV_20210325T190623_20210325T190648_026175_031FB3_rtc",
+     "acquired": "2021-03-25T19:06:36.467762Z",
+     "pre_scene": null,
+     "threshold_db": -10.72,
+     "water_share_of_area": 0.221,
+     "ems_image_date": "2021-03-23"
+    },
+    "severe_buildings": 0
+   },
+   "aoi08": {
+    "town": "Tamworth",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210324T191504_20210324T191529_037144_045F93_rtc",
+     "acquired": "2021-03-24T19:15:17.285638Z",
+     "pre_scene": null,
+     "threshold_db": -8.93,
+     "water_share_of_area": 0.641,
+     "ems_image_date": "2021-03-25"
+    },
+    "severe_buildings": 0
+   },
+   "aoi09": {
+    "town": "Grafton",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210324T191439_20210324T191504_037144_045F93_rtc",
+     "acquired": "2021-03-24T19:14:52.286002Z",
+     "pre_scene": null,
+     "threshold_db": -13.65,
+     "water_share_of_area": 0.106,
+     "ems_image_date": "2021-03-24"
+    },
+    "severe_buildings": 0
+   },
+   "aoi12": {
+    "town": "Wisemans Ferry",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210324T191529_20210324T191554_037144_045F93_rtc",
+     "acquired": "2021-03-24T19:15:42.286025Z",
+     "pre_scene": null,
+     "threshold_db": -12.68,
+     "water_share_of_area": 0.072,
+     "ems_image_date": "2021-03-26"
+    },
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 98
+ },
+ "started_at": "2026-10-20T16:47:59+00:00",
+ "finished_at": "2026-10-20T16:48:00+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

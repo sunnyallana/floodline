@@ -1,0 +1,36 @@
+{
+ "stage": "reach",
+ "params": {
+  "cells": 367,
+  "ems_source": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\derived\\s1\\EMSR517\\EMSR517_AOI10_GRA_PRODUCT_r1_RTP01_v1_vector_S1otsu",
+  "network_type": "drive",
+  "buffer_m": 1500.0,
+  "min_overlap_m": 5.0,
+  "osm": "extract:koeln-regbez-261018.osm.pbf,rheinland-pfalz-261018.osm.pbf",
+  "staging": "osm:fire_station,hospital"
+ },
+ "metrics": {
+  "nodes": 1977,
+  "edges": 4765,
+  "flooded_edges": 875,
+  "closed_roads": 465,
+  "road_under_water_km": 43.29,
+  "staging_points": 12,
+  "staging_outside_network": false,
+  "hexes": 367,
+  "hexes_with_roads": 145,
+  "hexes_cut_off": 108,
+  "median_dry_min": 1.9,
+  "hexes_delayed_over_5_min": 5
+ },
+ "started_at": "2026-10-20T16:37:46+00:00",
+ "finished_at": "2026-10-20T16:38:07+00:00",
+ "seconds": 20.9,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -1,0 +1,179 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR517",
+  "osm": [
+   "data\\external\\osm\\koeln-regbez-261018.osm.pbf",
+   "data\\external\\osm\\rheinland-pfalz-261018.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR517",
+  "flood_source": "sentinel1_otsu",
+  "towns": {
+   "aoi07": {
+    "town": "Erftstadt",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -7.1,
+     "water_share_of_area": 0.589,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 35,
+    "ranked_hexes": 544,
+    "severe_in_mapped_hexes": 32
+   },
+   "aoi08": {
+    "town": "Euskirchen-Rheinbach-Steinbachtalsperre",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -7.46,
+     "water_share_of_area": 0.599,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 9
+   },
+   "aoi09": {
+    "town": "Eschweiler",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -7.75,
+     "water_share_of_area": 0.492,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 29,
+    "ranked_hexes": 1323,
+    "severe_in_mapped_hexes": 29
+   },
+   "aoi10": {
+    "town": "Wassenberg",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -8.15,
+     "water_share_of_area": 0.479,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 59,
+    "ranked_hexes": 367,
+    "severe_in_mapped_hexes": 59
+   },
+   "aoi11": {
+    "town": "Leverkusen",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -4.38,
+     "water_share_of_area": 0.642,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 5
+   },
+   "aoi14": {
+    "town": "Dusseldorf",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -6.36,
+     "water_share_of_area": 0.477,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 5
+   },
+   "aoi15": {
+    "town": "Bad Neuenahr-Ahrweiler",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -7.02,
+     "water_share_of_area": 0.542,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 1023,
+    "ranked_hexes": 638,
+    "severe_in_mapped_hexes": 1023
+   },
+   "aoi16": {
+    "town": "Gerolstein",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210715T055052_20210715T055117_038784_049389_rtc",
+     "acquired": "2021-07-15T05:51:04.897499Z",
+     "pre_scene": null,
+     "threshold_db": -7.83,
+     "water_share_of_area": 0.392,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 11
+   },
+   "aoi17": {
+    "town": "IRREL",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172429_20210718T172454_038835_049522_rtc",
+     "acquired": "2021-07-18T17:24:41.767049Z",
+     "pre_scene": null,
+     "threshold_db": -8.83,
+     "water_share_of_area": 0.471,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 1
+   },
+   "aoi18": {
+    "town": "Schleiden",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -7.75,
+     "water_share_of_area": 0.521,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 0
+   },
+   "aoi20": {
+    "town": "Garzweiler",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20210718T172454_20210718T172519_038835_049522_rtc",
+     "acquired": "2021-07-18T17:25:06.767329Z",
+     "pre_scene": null,
+     "threshold_db": -10.35,
+     "water_share_of_area": 0.385,
+     "ems_image_date": "2021-07-18"
+    },
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 140
+ },
+ "started_at": "2026-10-20T16:45:01+00:00",
+ "finished_at": "2026-10-20T16:45:01+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

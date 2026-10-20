@@ -1,0 +1,42 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR631",
+  "osm": [
+   "data\\external\\osm\\pakistan-261019.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR631",
+  "flood_source": "sentinel1_otsu",
+  "towns": {
+   "aoi01": {
+    "town": "Sanghar",
+    "radar": {
+     "method": "otsu",
+     "scene": "S1A_IW_GRDH_1SDV_20220911T012616_20220911T012641_044950_055EA1_rtc",
+     "acquired": "2022-09-11T01:26:29.355725Z",
+     "pre_scene": null,
+     "threshold_db": -10.6,
+     "water_share_of_area": 0.274,
+     "ems_image_date": "2022-09-11"
+    },
+    "severe_buildings": 2016,
+    "ranked_hexes": 237,
+    "severe_in_mapped_hexes": 2008
+   }
+  },
+  "road_rows": 14
+ },
+ "started_at": "2026-10-20T16:45:25+00:00",
+ "finished_at": "2026-10-20T16:45:25+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

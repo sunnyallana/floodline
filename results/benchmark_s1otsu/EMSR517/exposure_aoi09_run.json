@@ -1,0 +1,29 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1otsu\\EMSR517\\satellite_aoi09.csv",
+  "ems_source": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\derived\\s1\\EMSR517\\EMSR517_AOI09_GRA_PRODUCT_r1_RTP01_v1_vector_S1otsu",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1otsu\\EMSR517\\reach_aoi09.csv",
+  "osm": "extract:koeln-regbez-261018.osm.pbf,rheinland-pfalz-261018.osm.pbf",
+  "buildings_source": "max"
+ },
+ "metrics": {
+  "target_hexes": 1307,
+  "buildings_queried": {
+   "osm": 48725,
+   "microsoft": 19352
+  },
+  "buildings_in_flood": 7358,
+  "hexes_with_flooded_buildings": 654
+ },
+ "started_at": "2026-10-20T16:33:24+00:00",
+ "finished_at": "2026-10-20T16:37:31+00:00",
+ "seconds": 246.9,
+ "git_sha": "a009662",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

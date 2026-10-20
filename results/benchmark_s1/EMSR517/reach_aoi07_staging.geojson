@@ -1,0 +1,22 @@
+{
+"type": "FeatureCollection",
+"name": "reach_aoi07_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Dirmerzheim", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7689332, 50.8262365 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Bliesheim", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.8210178, 50.7816651 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Gymnich", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7463228, 50.839964 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Herrig", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7252074, 50.8021863 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Ahrem", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7631929, 50.7871043 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Friesheim", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7767413, 50.7560149 ] } },
+{ "type": "Feature", "properties": { "name": "Feuerwehr Erftstadt - LG Liblar", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.8165188254239, 50.801863 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Lechenich", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.776926800805283, 50.7930193 ] } },
+{ "type": "Feature", "properties": { "name": "Feuerwache Weilerswist Löschgruppe Weilerswist", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.845733618092401, 50.75249845 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Kierdorf", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.783030151591554, 50.83963225 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt-Blessem", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.7948893, 50.81289075 ] } },
+{ "type": "Feature", "properties": { "name": "Marien-Hospital", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 6.809438393572339, 50.80733595 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Erftstadt - Köttingen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.803090163596997, 50.82856735 ] } },
+{ "type": "Feature", "properties": { "name": "Feuerwehr Kerpen - Löschzug Brüggen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.772036100054112, 50.8505688 ] } },
+{ "type": "Feature", "properties": { "name": "Oberberg Somnia Fachklinik Köln Herrig", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 6.725115401636724, 50.79947755 ] } }
+]
+}

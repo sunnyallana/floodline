@@ -1,0 +1,15 @@
+target,threshold_m,segments,tp,fp,fn,precision,recall,f1,event,aoi,town
+severe,0.0,786,39,160,98,0.196,0.285,0.232,EMSR631,aoi01,Sanghar
+severe,5.0,786,35,145,102,0.194,0.255,0.221,EMSR631,aoi01,Sanghar
+severe,10.0,786,33,128,104,0.205,0.241,0.221,EMSR631,aoi01,Sanghar
+severe,15.0,786,31,120,106,0.205,0.226,0.215,EMSR631,aoi01,Sanghar
+severe,25.0,786,24,98,113,0.197,0.175,0.185,EMSR631,aoi01,Sanghar
+severe,50.0,786,19,70,118,0.213,0.139,0.168,EMSR631,aoi01,Sanghar
+severe,100.0,786,15,40,122,0.273,0.109,0.156,EMSR631,aoi01,Sanghar
+affected,0.0,786,110,89,176,0.553,0.385,0.454,EMSR631,aoi01,Sanghar
+affected,5.0,786,102,78,184,0.567,0.357,0.438,EMSR631,aoi01,Sanghar
+affected,10.0,786,93,68,193,0.578,0.325,0.416,EMSR631,aoi01,Sanghar
+affected,15.0,786,87,64,199,0.576,0.304,0.398,EMSR631,aoi01,Sanghar
+affected,25.0,786,71,51,215,0.582,0.248,0.348,EMSR631,aoi01,Sanghar
+affected,50.0,786,52,37,234,0.584,0.182,0.277,EMSR631,aoi01,Sanghar
+affected,100.0,786,32,23,254,0.582,0.112,0.188,EMSR631,aoi01,Sanghar

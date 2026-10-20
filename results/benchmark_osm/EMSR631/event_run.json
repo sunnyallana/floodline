@@ -1,0 +1,33 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR631",
+  "osm": [
+   "data\\external\\osm\\pakistan-261019.osm.pbf"
+  ],
+  "buildings": "osm"
+ },
+ "metrics": {
+  "event": "EMSR631",
+  "flood_source": "ems",
+  "towns": {
+   "aoi01": {
+    "town": "Sanghar",
+    "severe_buildings": 2016,
+    "ranked_hexes": 237,
+    "severe_in_mapped_hexes": 2008
+   }
+  },
+  "road_rows": 14
+ },
+ "started_at": "2026-10-20T17:24:38+00:00",
+ "finished_at": "2026-10-20T17:24:38+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -1,0 +1,36 @@
+{
+ "stage": "reach",
+ "params": {
+  "cells": 398,
+  "ems_source": "data\\external\\ems\\EMSR634_GRA\\EMSR634_AOI05_GRA_PRODUCT_r1_RTP01_v2_vector",
+  "network_type": "drive",
+  "buffer_m": 1500.0,
+  "min_overlap_m": 5.0,
+  "osm": "extract:centro-261018.osm.pbf",
+  "staging": "osm:fire_station,hospital"
+ },
+ "metrics": {
+  "nodes": 898,
+  "edges": 2008,
+  "flooded_edges": 193,
+  "closed_roads": 100,
+  "road_under_water_km": 14.65,
+  "staging_points": 6,
+  "staging_outside_network": true,
+  "hexes": 398,
+  "hexes_with_roads": 144,
+  "hexes_cut_off": 36,
+  "median_dry_min": 20.0,
+  "hexes_delayed_over_5_min": 0
+ },
+ "started_at": "2026-10-20T17:25:25+00:00",
+ "finished_at": "2026-10-20T17:25:56+00:00",
+ "seconds": 31.1,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

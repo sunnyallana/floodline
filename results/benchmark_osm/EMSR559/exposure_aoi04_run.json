@@ -1,0 +1,28 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR559\\satellite_aoi04.csv",
+  "ems_source": "data\\external\\ems\\EMSR559_GRA\\EMSR559_AOI04_GRA_PRODUCT_r1_RTP01_v1_vector",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_osm\\EMSR559\\reach_aoi04.csv",
+  "osm": "extract:madagascar-261019.osm.pbf",
+  "buildings_source": "osm"
+ },
+ "metrics": {
+  "target_hexes": 334,
+  "buildings_queried": {
+   "osm": 655
+  },
+  "buildings_in_flood": 2,
+  "hexes_with_flooded_buildings": 2
+ },
+ "started_at": "2026-10-20T17:25:06+00:00",
+ "finished_at": "2026-10-20T17:25:07+00:00",
+ "seconds": 1.1,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

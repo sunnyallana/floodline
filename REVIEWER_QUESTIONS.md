@@ -29,8 +29,9 @@ The fitted rule averages 0.59 held out; the fixed default averages 0.72. Fitted 
 It doesn't, and the page says so. With access, capture is 0.016 lower than without, and the 95 % interval
 (−0.071 to +0.005) includes zero. Access is there because "can a truck get there?" is the other half of the
 coordinator's question, and damage grading cannot measure that half. Closed roads and cut-off areas are also drawn
-as their own layer. The road-closure rule itself is validated against the analysts' road grading: precision
-0.94, recall 0.85 at the 5 m overlap used (`results/benchmark_roads.csv`).
+as their own layer. The road-closure rule itself is validated against the analysts' road grading. Pooled
+over the six floods (3,442 road segments graded as affected), the 5 m overlap used gives precision 0.77 and recall 0.77, the
+best F1 of any threshold tried (`results/benchmark_roads.csv`). On the German towns alone it is 0.94 and 0.85.
 
 ### How do you stop bogus reports from pulling responders to the wrong place?
 
@@ -56,21 +57,24 @@ Simulated attackers with a valid team code and photos that pass every check:
 
 ### Does it need analysts' maps, which arrive a day or more late?
 
-The whole benchmark is rerun with Sentinel-1 radar in place of the EMS map, in two ways: change detection
-against a pre-event scene, and a single threshold. Results are in `data_ablations` in the summary.
+Yes, on this evidence. The whole benchmark was rerun with Sentinel-1 radar in place of the EMS map. Top-10 %
+capture falls from 0.76 to 0.21 with change detection against a pre-event scene, and to 0.27 with a single
+threshold. Random is 0.10. The two methods fail in opposite directions:
+- Change detection calls a median 0.4 % of each town water, against 8 % in the EMS map. That is consistent with
+  flash floods that had drained by the overpass (Erftstadt), and with a pre-event scene that was already flooded
+  (Sanghar's monsoon flood).
+- The single threshold calls 47 %, because built-up areas and wet ground read as water to a 10 m radar.
 
-Two physical failures of change detection are reported, not hidden:
-- it misses water that was already there before the pre-event scene, as in Sanghar's months-long monsoon flood;
-- in Erftstadt it finds almost no water on the same day EMS mapped 10.7 km², which is consistent with a flash
-  flood that had largely drained by the radar overpass.
-
-In Larkana the radar map agrees with EMS at IoU 0.74 (`results/sentinel1_larkana_run.json`).
+On Larkana's open floodplain the radar map does agree with EMS (IoU 0.74). So radar is usable for rural riverine
+floods, but not yet for ranking within towns. `data_ablations` in the summary has the per-town water shares,
+and `results/sentinel1_larkana_run.json` the Larkana check.
 
 ### OpenStreetMap is incomplete in the places that flood most.
 
 In Larkana, OSM had 108 buildings where Microsoft's footprints have 78,848. The pipeline takes the larger of the
-two per hexagon by default. The benchmark is also rerun with OSM buildings only (`data_ablations`), so the cost of
-relying on OSM is measured rather than assumed.
+two per hexagon by default. With OSM buildings alone, pooled capture barely moves (0.76 to 0.74), because the
+European towns are well mapped. The loss lands where OSM is thin: New South Wales falls from 0.41 to 0.19 and
+Sanghar from 0.37 to 0.23 (`data_ablations.osm_buildings_only.per_event_EHA`).
 
 ### Does the photo model work?
 

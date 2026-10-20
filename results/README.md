@@ -231,6 +231,36 @@ Metric: share of a town's damaged or destroyed buildings inside its top 10 % of 
 Paired differences (default minus the other, same bootstrap draws): water +0.20 [0.02, 0.29], buildings −0.00
 [−0.17, 0.03], people +0.07 [−0.11, 0.14], without access −0.02 [−0.07, 0.01].
 
+**Roads.** The closure rule against the analysts' road grading, pooled over all six events (target: possibly
+damaged, damaged or destroyed; `benchmark_roads.csv`):
+
+| Overlap needed to close a road | Precision | Recall | F1 |
+|---|---|---|---|
+| any (0 m) | 0.68 | 0.80 | 0.74 |
+| 5 m (used) | 0.77 | 0.77 | 0.77 |
+| 15 m | 0.78 | 0.70 | 0.74 |
+| 50 m | 0.79 | 0.48 | 0.60 |
+
+5 m, chosen on Germany alone (section 7), is still the best F1 out of sample.
+
+**Worse inputs** (`data_ablations`; the same 11 towns rerun into `benchmark_s1/`, `benchmark_s1otsu/` and
+`benchmark_osm/`):
+
+| Rerun | Fused priority, top-10 % capture | Median share of a town called water |
+|---|---|---|
+| default: EMS map, larger of OSM and Microsoft buildings | 0.76 | 8.0 % (EMS) |
+| Sentinel-1 change detection instead of the EMS map | 0.21 | 0.4 % |
+| Sentinel-1 single threshold (Otsu) instead of the EMS map | 0.27 | 47 % |
+| OpenStreetMap buildings only | 0.74 | 8.0 % |
+
+Radar alone does not yet support ranking within towns, and its two forms fail in opposite directions. Change
+detection finds almost no water: Sanghar's pre-event scene (30 August 2022) was already flooded, and the low shares in the
+flash-flood towns are consistent with water that had drained by the overpass. A single threshold calls nearly
+half of each town water, because built-up areas and wet ground return like water at 10 m. On Larkana's open
+floodplain the radar map does match EMS (section 10, IoU 0.74). OSM-only buildings barely move the pooled number,
+because the European towns are well mapped, but New South Wales falls from 0.41 to 0.19 and Sanghar from 0.37 to
+0.23. That is where the Microsoft footprints earn their place.
+
 **Leave one event out.** The scoring rule (additive weights on a 0.05 simplex, or the risk form with an access
 weight; buildings or people as exposure) is fitted on five events and scored on the sixth. Mean held-out capture:
 default 0.715, buildings only 0.672, fitted rule 0.591, people only 0.578. The fitted rule fails on Moramanga

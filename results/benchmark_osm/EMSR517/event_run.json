@@ -1,0 +1,80 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR517",
+  "osm": [
+   "data\\external\\osm\\koeln-regbez-261018.osm.pbf",
+   "data\\external\\osm\\rheinland-pfalz-261018.osm.pbf"
+  ],
+  "buildings": "osm"
+ },
+ "metrics": {
+  "event": "EMSR517",
+  "flood_source": "ems",
+  "towns": {
+   "aoi07": {
+    "town": "Erftstadt",
+    "severe_buildings": 35,
+    "ranked_hexes": 544,
+    "severe_in_mapped_hexes": 32
+   },
+   "aoi08": {
+    "town": "Euskirchen-Rheinbach-Steinbachtalsperre",
+    "severe_buildings": 9
+   },
+   "aoi09": {
+    "town": "Eschweiler",
+    "severe_buildings": 29,
+    "ranked_hexes": 1323,
+    "severe_in_mapped_hexes": 29
+   },
+   "aoi10": {
+    "town": "Wassenberg",
+    "severe_buildings": 59,
+    "ranked_hexes": 367,
+    "severe_in_mapped_hexes": 59
+   },
+   "aoi11": {
+    "town": "Leverkusen",
+    "severe_buildings": 5
+   },
+   "aoi14": {
+    "town": "Dusseldorf",
+    "severe_buildings": 5
+   },
+   "aoi15": {
+    "town": "Bad Neuenahr-Ahrweiler",
+    "severe_buildings": 1023,
+    "ranked_hexes": 638,
+    "severe_in_mapped_hexes": 1023
+   },
+   "aoi16": {
+    "town": "Gerolstein",
+    "severe_buildings": 11
+   },
+   "aoi17": {
+    "town": "IRREL",
+    "severe_buildings": 1
+   },
+   "aoi18": {
+    "town": "Schleiden",
+    "severe_buildings": 0
+   },
+   "aoi20": {
+    "town": "Garzweiler",
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 140
+ },
+ "started_at": "2026-10-20T17:24:28+00:00",
+ "finished_at": "2026-10-20T17:24:28+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

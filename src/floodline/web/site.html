@@ -17,18 +17,21 @@ a{color:var(--accent)}
 .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
 header.hero{padding:72px 0 40px;border-bottom:1px solid var(--line)}
 .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
-h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,64px);line-height:1.05;margin:10px 0 18px;letter-spacing:-.01em}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,64px);line-height:1.05;margin:10px 0 18px;letter-spacing:-.022em}
 .lede{font-size:clamp(18px,2.2vw,22px);max-width:760px;color:var(--fg)}
 .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-weight:600;font-size:15px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{touch-action:manipulation;transition:transform 100ms ease-out}
+.btn:active{transform:scale(.97)}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none;opacity:.7}}
 @media (prefers-color-scheme:dark){.btn.primary{color:#081216}}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:40px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
 .stat b{display:block;font-family:var(--serif);font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
 .stat span{color:var(--muted);font-size:14px}
 section{padding:56px 0;border-bottom:1px solid var(--line)}
-h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,38px);margin:0 0 8px;line-height:1.15}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,38px);margin:0 0 8px;line-height:1.15;letter-spacing:-.012em}
 h3{font-size:18px;margin:28px 0 8px}
 p{max-width:760px}
 .muted{color:var(--muted)}
@@ -154,10 +157,11 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
       <div class="tablewrap"><table id="roads"></table></div>
     </div>
     <div class="card">
-      <h3>Satellite without analysts</h3>
-      <p class="small">The whole pipeline re-run on Sentinel-1 radar alone instead of the EMS map: what the system
-      can do in the first hours, before analysts have mapped anything.</p>
+      <h3>Worse inputs</h3>
+      <p class="small">The whole benchmark re-run with Sentinel-1 radar in place of the analysts' flood map (what the
+      first hours would look like), and with OpenStreetMap buildings only.</p>
       <div class="tablewrap"><table id="radar"></table></div>
+      <p class="small muted" id="radar-note"></p>
     </div>
   </div>
 </div></section>
@@ -288,6 +292,16 @@ fetch("site.json").then(r => r.json()).then(d => {
   if (d.sentinel1_larkana) radarRows.push(["Larkana 2022: radar vs EMS map (IoU)", "", f(d.sentinel1_larkana.iou), "1"]);
   if (radarRows.length) table($("radar"), ["Ablation", "With EMS + all buildings", "Ablated", "Towns"], radarRows);
   else $("radar").outerHTML = `<p class="pending">Radar ablation pending.</p>`;
+  const pc = v => (v < 0.1 ? `${(100 * v).toFixed(1)}%` : `${Math.round(100 * v)}%`), notes2 = [];
+  const ch = da.sentinel1_change, ot = da.sentinel1_otsu, om = da.osm_buildings_only;
+  if (ch && ot && ch.water_share_median && ot.water_share_median)
+    notes2.push(`Radar alone does not replace the analysts' map on these towns, and it fails in opposite directions. Change detection calls a median ${pc(ch.water_share_median.ablated)} of each town water, against ${pc(ch.water_share_median.default)} in the EMS map, consistent with flash floods that had drained by the overpass and a Sanghar pre-event scene that was already flooded. A single threshold calls ${pc(ot.water_share_median.ablated)}: built-up areas and wet ground read as water to a 10 m radar.${d.sentinel1_larkana ? ` On Larkana's open floodplain the two maps agree (IoU ${f(d.sentinel1_larkana.iou)}).` : ""}`);
+  if (om && om.per_event_EHA) {
+    const a = om.per_event_EHA.ablated.events, e0 = om.per_event_EHA.default.events;
+    const hit = Object.keys(a).filter(k => e0[k] - a[k] >= 0.1).map(k => `${short(k)} ${f(e0[k])} → ${f(a[k])}`);
+    if (hit.length) notes2.push(`Open building footprints matter where OpenStreetMap is thin: with OSM alone, ${hit.join(", ")}.`);
+  }
+  $("radar-note").textContent = notes2.join(" ");
 
   const at = d.attack || {}, row = (m, k) => m && m[k] ? [f(m[k].top10_overlap.mean), `${m[k].targets_flagged.mean}/${m[k].targets.mean}`] : ["–", "–"];
   table($("attack"), ["Attack (Prague)", "Top 10 unchanged, first rule", "Top 10 unchanged, now", "Fakes flagged, now"],

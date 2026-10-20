@@ -1,0 +1,27 @@
+{
+ "stage": "satellite",
+ "params": {
+  "ems_source": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\derived\\s1\\EMSR634\\EMSR634_AOI01_GRA_PRODUCT_r1_RTP01_v1_vector_S1otsu",
+  "resolution": 9
+ },
+ "metrics": {
+  "cells": 2219,
+  "flooded_cells": 2206,
+  "flood_layers": 1,
+  "aoi_layers": 1,
+  "permanent_water_layers": 1,
+  "flood_km2": 98.9,
+  "aoi_km2": 245.4,
+  "permanent_water_km2": 0.0
+ },
+ "started_at": "2026-10-20T16:55:17+00:00",
+ "finished_at": "2026-10-20T16:55:31+00:00",
+ "seconds": 14.1,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

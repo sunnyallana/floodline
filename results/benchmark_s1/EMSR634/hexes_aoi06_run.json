@@ -1,0 +1,90 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\satellite_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\reach_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\exposure_aoi06.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\population_aoi06.csv"
+  ],
+  "reports": null
+ },
+ "metrics": {
+  "hexes": 267,
+  "hexes_with_priority": 15,
+  "hexes_with_reports": 0,
+  "hexes_needing_verification": 0,
+  "top10": [
+   {
+    "h3": "891ea32b00fffff",
+    "priority": 0.097,
+    "confidence": 0.6,
+    "buildings_affected": 4
+   },
+   {
+    "h3": "891ea3769b3ffff",
+    "priority": 0.08,
+    "confidence": 0.6,
+    "buildings_affected": 3
+   },
+   {
+    "h3": "891ea32b447ffff",
+    "priority": 0.065,
+    "confidence": 0.6,
+    "buildings_affected": 2
+   },
+   {
+    "h3": "891ea32b4cbffff",
+    "priority": 0.043,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "891ea32b4dbffff",
+    "priority": 0.033,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "891ea339a5bffff",
+    "priority": 0.032,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "891ea32b46fffff",
+    "priority": 0.016,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891ea339a4bffff",
+    "priority": 0.009,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891ea32b067ffff",
+    "priority": 0.008,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891ea32b077ffff",
+    "priority": 0.007,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   }
+  ]
+ },
+ "started_at": "2026-10-20T16:20:13+00:00",
+ "finished_at": "2026-10-20T16:20:13+00:00",
+ "seconds": 0.1,
+ "git_sha": "9175955",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

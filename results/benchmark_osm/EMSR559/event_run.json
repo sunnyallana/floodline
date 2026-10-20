@@ -1,0 +1,37 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR559",
+  "osm": [
+   "data\\external\\osm\\madagascar-261019.osm.pbf"
+  ],
+  "buildings": "osm"
+ },
+ "metrics": {
+  "event": "EMSR559",
+  "flood_source": "ems",
+  "towns": {
+   "aoi02": {
+    "town": "Amparafaravola",
+    "severe_buildings": 0
+   },
+   "aoi04": {
+    "town": "Moramanga",
+    "severe_buildings": 69,
+    "ranked_hexes": 1568,
+    "severe_in_mapped_hexes": 69
+   }
+  },
+  "road_rows": 28
+ },
+ "started_at": "2026-10-20T17:25:08+00:00",
+ "finished_at": "2026-10-20T17:25:08+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

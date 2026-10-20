@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "reach_aoi05_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Ospedale Bartolini", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.0950519, 43.7517491 ] } },
+{ "type": "Feature", "properties": { "name": "Ospedale \"Principe di Piemonte\"", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.209457370707653, 43.7142079 ] } },
+{ "type": "Feature", "properties": { "name": "Vigili del Fuoco distaccamento di Senigallia", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.206222127522409, 43.70096505 ] } },
+{ "type": "Feature", "properties": { "name": "Casa di Cura Villa Serena", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.182454516554515, 43.5073142 ] } },
+{ "type": "Feature", "properties": { "name": "Ospedale di Comunità Maria Montessori", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 13.315510104186075, 43.59784045 ] } },
+{ "type": "Feature", "properties": { "name": "Vigili del Fuoco - Distaccamento Provinciale di Jesi", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 13.23829205, 43.5139824 ] } }
+]
+}

@@ -428,10 +428,26 @@ def summarise(paths: Paths, n: int = BOOTSTRAP) -> dict[str, Any]:
             continue
         towns_both = sorted(set(alt.town) & set(df.town))
         a, e = alt[alt.town.isin(towns_both)], df[df.town.isin(towns_both)]
+        sa, se = ablation_scores(a), ablation_scores(e)
+        water_a = a.groupby("town").satellite_water_fraction.mean()
+        water_e = e.groupby("town").satellite_water_fraction.mean()
         data_ablations[label] = {
             "towns": towns_both,
-            "default": {k: round(macro_capture(e.assign(_s=v), "_s"), 3) for k, v in ablation_scores(e).items()},
-            "ablated": {k: round(macro_capture(a.assign(_s=v), "_s"), 3) for k, v in ablation_scores(a).items()},
+            "default": {k: round(macro_capture(e.assign(_s=v), "_s"), 3) for k, v in se.items()},
+            "ablated": {k: round(macro_capture(a.assign(_s=v), "_s"), 3) for k, v in sa.items()},
+            # Where it breaks, and why: per-event capture of the default score, and how much of each town the
+            # flood layer calls water against the analysts' map.
+            "per_event_EHA": {
+                "default": per_event_ablation(e, {"EHA": se["EHA"]})["EHA"],
+                "ablated": per_event_ablation(a, {"EHA": sa["EHA"]})["EHA"],
+            },
+            "water_share": {
+                t: {"ablated": round(float(water_a[t]), 3), "default": round(float(water_e[t]), 3)} for t in towns_both
+            },
+            "water_share_median": {
+                "ablated": round(float(water_a.median()), 3),
+                "default": round(float(water_e.median()), 3),
+            },
         }
     RunManifest("benchmark_summary", params={"bootstrap": n, "block_resolution": BLOCK_RESOLUTION}).finish(
         **summary

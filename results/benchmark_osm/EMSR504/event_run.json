@@ -1,0 +1,57 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR504",
+  "osm": [
+   "data\\external\\osm\\australia-261019.osm.pbf"
+  ],
+  "buildings": "osm"
+ },
+ "metrics": {
+  "event": "EMSR504",
+  "flood_source": "ems",
+  "towns": {
+   "aoi01": {
+    "town": "Kempsey",
+    "severe_buildings": 78,
+    "ranked_hexes": 808,
+    "severe_in_mapped_hexes": 78
+   },
+   "aoi02": {
+    "town": "Greaterportmacquarie",
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Taree",
+    "severe_buildings": 15
+   },
+   "aoi04": {
+    "town": "Bulahdelah",
+    "severe_buildings": 0
+   },
+   "aoi08": {
+    "town": "Tamworth",
+    "severe_buildings": 0
+   },
+   "aoi09": {
+    "town": "Grafton",
+    "severe_buildings": 0
+   },
+   "aoi12": {
+    "town": "Wisemans Ferry",
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 98
+ },
+ "started_at": "2026-10-20T17:24:58+00:00",
+ "finished_at": "2026-10-20T17:24:58+00:00",
+ "seconds": 0.0,
+ "git_sha": "1f14979",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

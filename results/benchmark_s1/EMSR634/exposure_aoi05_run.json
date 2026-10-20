@@ -1,0 +1,29 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\satellite_aoi05.csv",
+  "ems_source": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\data\\derived\\s1\\EMSR634\\EMSR634_AOI05_GRA_PRODUCT_r1_RTP01_v2_vector_S1change",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR634\\reach_aoi05.csv",
+  "osm": "extract:centro-261018.osm.pbf",
+  "buildings_source": "max"
+ },
+ "metrics": {
+  "target_hexes": 1,
+  "buildings_queried": {
+   "osm": 13,
+   "microsoft": 6
+  },
+  "buildings_in_flood": 0,
+  "hexes_with_flooded_buildings": 0
+ },
+ "started_at": "2026-10-20T16:15:36+00:00",
+ "finished_at": "2026-10-20T16:17:43+00:00",
+ "seconds": 127.0,
+ "git_sha": "9175955",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

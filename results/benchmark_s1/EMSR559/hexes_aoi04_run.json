@@ -1,0 +1,90 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR559\\satellite_aoi04.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR559\\reach_aoi04.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR559\\exposure_aoi04.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark_s1\\EMSR559\\population_aoi04.csv"
+  ],
+  "reports": null
+ },
+ "metrics": {
+  "hexes": 1568,
+  "hexes_with_priority": 111,
+  "hexes_with_reports": 0,
+  "hexes_needing_verification": 0,
+  "top10": [
+   {
+    "h3": "89a231b1d47ffff",
+    "priority": 0.294,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "89a231a0687ffff",
+    "priority": 0.259,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b1d97ffff",
+    "priority": 0.195,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b0323ffff",
+    "priority": 0.182,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b03afffff",
+    "priority": 0.125,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b0333ffff",
+    "priority": 0.088,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b032fffff",
+    "priority": 0.085,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231a158fffff",
+    "priority": 0.078,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b0327ffff",
+    "priority": 0.074,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "89a231b18b3ffff",
+    "priority": 0.073,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   }
+  ]
+ },
+ "started_at": "2026-10-20T16:11:28+00:00",
+ "finished_at": "2026-10-20T16:11:28+00:00",
+ "seconds": 0.3,
+ "git_sha": "3a1af92",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

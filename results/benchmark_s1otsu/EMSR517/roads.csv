@@ -1,0 +1,141 @@
+target,threshold_m,segments,tp,fp,fn,precision,recall,f1,event,aoi,town
+severe,0.0,2622,15,1595,6,0.009,0.714,0.018,EMSR517,aoi07,Erftstadt
+severe,5.0,2622,15,1499,6,0.01,0.714,0.02,EMSR517,aoi07,Erftstadt
+severe,10.0,2622,14,1389,7,0.01,0.667,0.02,EMSR517,aoi07,Erftstadt
+severe,15.0,2622,12,1259,9,0.009,0.571,0.019,EMSR517,aoi07,Erftstadt
+severe,25.0,2622,8,1045,13,0.008,0.381,0.015,EMSR517,aoi07,Erftstadt
+severe,50.0,2622,6,650,15,0.009,0.286,0.018,EMSR517,aoi07,Erftstadt
+severe,100.0,2622,3,364,18,0.008,0.143,0.015,EMSR517,aoi07,Erftstadt
+affected,0.0,2622,287,1323,77,0.178,0.788,0.291,EMSR517,aoi07,Erftstadt
+affected,5.0,2622,269,1245,95,0.178,0.739,0.286,EMSR517,aoi07,Erftstadt
+affected,10.0,2622,254,1149,110,0.181,0.698,0.287,EMSR517,aoi07,Erftstadt
+affected,15.0,2622,230,1041,134,0.181,0.632,0.281,EMSR517,aoi07,Erftstadt
+affected,25.0,2622,191,862,173,0.181,0.525,0.27,EMSR517,aoi07,Erftstadt
+affected,50.0,2622,129,527,235,0.197,0.354,0.253,EMSR517,aoi07,Erftstadt
+affected,100.0,2622,91,276,273,0.248,0.25,0.249,EMSR517,aoi07,Erftstadt
+severe,0.0,56,0,36,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,5.0,56,0,34,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,10.0,56,0,30,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,15.0,56,0,24,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,25.0,56,0,19,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,50.0,56,0,7,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,100.0,56,0,2,3,0.0,0.0,,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,0.0,56,36,0,20,1.0,0.643,0.783,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,5.0,56,34,0,22,1.0,0.607,0.756,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,10.0,56,30,0,26,1.0,0.536,0.698,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,15.0,56,24,0,32,1.0,0.429,0.6,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,25.0,56,19,0,37,1.0,0.339,0.507,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,50.0,56,7,0,49,1.0,0.125,0.222,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+affected,100.0,56,2,0,54,1.0,0.036,0.069,EMSR517,aoi08,Euskirchen-Rheinbach-Steinbachtalsperre
+severe,0.0,7356,26,3754,47,0.007,0.356,0.013,EMSR517,aoi09,Eschweiler
+severe,5.0,7356,23,3555,50,0.006,0.315,0.013,EMSR517,aoi09,Eschweiler
+severe,10.0,7356,20,3304,53,0.006,0.274,0.012,EMSR517,aoi09,Eschweiler
+severe,15.0,7356,18,3063,55,0.006,0.247,0.011,EMSR517,aoi09,Eschweiler
+severe,25.0,7356,17,2605,56,0.006,0.233,0.013,EMSR517,aoi09,Eschweiler
+severe,50.0,7356,12,1794,61,0.007,0.164,0.013,EMSR517,aoi09,Eschweiler
+severe,100.0,7356,2,1054,71,0.002,0.027,0.004,EMSR517,aoi09,Eschweiler
+affected,0.0,7356,56,3724,141,0.015,0.284,0.028,EMSR517,aoi09,Eschweiler
+affected,5.0,7356,52,3526,145,0.015,0.264,0.028,EMSR517,aoi09,Eschweiler
+affected,10.0,7356,45,3279,152,0.014,0.228,0.026,EMSR517,aoi09,Eschweiler
+affected,15.0,7356,41,3040,156,0.013,0.208,0.025,EMSR517,aoi09,Eschweiler
+affected,25.0,7356,36,2586,161,0.014,0.183,0.026,EMSR517,aoi09,Eschweiler
+affected,50.0,7356,26,1780,171,0.014,0.132,0.026,EMSR517,aoi09,Eschweiler
+affected,100.0,7356,12,1044,185,0.011,0.061,0.019,EMSR517,aoi09,Eschweiler
+severe,0.0,1881,36,1221,3,0.029,0.923,0.056,EMSR517,aoi10,Wassenberg
+severe,5.0,1881,36,1160,3,0.03,0.923,0.058,EMSR517,aoi10,Wassenberg
+severe,10.0,1881,36,1086,3,0.032,0.923,0.062,EMSR517,aoi10,Wassenberg
+severe,15.0,1881,36,1022,3,0.034,0.923,0.066,EMSR517,aoi10,Wassenberg
+severe,25.0,1881,35,893,4,0.038,0.897,0.072,EMSR517,aoi10,Wassenberg
+severe,50.0,1881,34,658,5,0.049,0.872,0.093,EMSR517,aoi10,Wassenberg
+severe,100.0,1881,29,416,10,0.065,0.744,0.12,EMSR517,aoi10,Wassenberg
+affected,0.0,1881,158,1099,9,0.126,0.946,0.222,EMSR517,aoi10,Wassenberg
+affected,5.0,1881,156,1040,11,0.13,0.934,0.229,EMSR517,aoi10,Wassenberg
+affected,10.0,1881,153,969,14,0.136,0.916,0.237,EMSR517,aoi10,Wassenberg
+affected,15.0,1881,150,908,17,0.142,0.898,0.245,EMSR517,aoi10,Wassenberg
+affected,25.0,1881,147,781,20,0.158,0.88,0.268,EMSR517,aoi10,Wassenberg
+affected,50.0,1881,131,561,36,0.189,0.784,0.305,EMSR517,aoi10,Wassenberg
+affected,100.0,1881,102,343,65,0.229,0.611,0.333,EMSR517,aoi10,Wassenberg
+severe,0.0,4458,9,3426,9,0.003,0.5,0.005,EMSR517,aoi11,Leverkusen
+severe,5.0,4458,8,3292,10,0.002,0.444,0.005,EMSR517,aoi11,Leverkusen
+severe,10.0,4458,7,3113,11,0.002,0.389,0.004,EMSR517,aoi11,Leverkusen
+severe,15.0,4458,5,2918,13,0.002,0.278,0.003,EMSR517,aoi11,Leverkusen
+severe,25.0,4458,4,2536,14,0.002,0.222,0.003,EMSR517,aoi11,Leverkusen
+severe,50.0,4458,1,1781,17,0.001,0.056,0.001,EMSR517,aoi11,Leverkusen
+severe,100.0,4458,0,961,18,0.0,0.0,,EMSR517,aoi11,Leverkusen
+affected,0.0,4458,16,3419,9,0.005,0.64,0.009,EMSR517,aoi11,Leverkusen
+affected,5.0,4458,15,3285,10,0.005,0.6,0.009,EMSR517,aoi11,Leverkusen
+affected,10.0,4458,14,3106,11,0.004,0.56,0.009,EMSR517,aoi11,Leverkusen
+affected,15.0,4458,12,2911,13,0.004,0.48,0.008,EMSR517,aoi11,Leverkusen
+affected,25.0,4458,11,2529,14,0.004,0.44,0.009,EMSR517,aoi11,Leverkusen
+affected,50.0,4458,6,1776,19,0.003,0.24,0.007,EMSR517,aoi11,Leverkusen
+affected,100.0,4458,4,957,21,0.004,0.16,0.008,EMSR517,aoi11,Leverkusen
+severe,0.0,8722,35,4249,9,0.008,0.795,0.016,EMSR517,aoi14,Dusseldorf
+severe,5.0,8722,33,3999,11,0.008,0.75,0.016,EMSR517,aoi14,Dusseldorf
+severe,10.0,8722,32,3640,12,0.009,0.727,0.017,EMSR517,aoi14,Dusseldorf
+severe,15.0,8722,29,3309,15,0.009,0.659,0.017,EMSR517,aoi14,Dusseldorf
+severe,25.0,8722,25,2682,19,0.009,0.568,0.018,EMSR517,aoi14,Dusseldorf
+severe,50.0,8722,16,1724,28,0.009,0.364,0.018,EMSR517,aoi14,Dusseldorf
+severe,100.0,8722,9,885,35,0.01,0.205,0.019,EMSR517,aoi14,Dusseldorf
+affected,0.0,8722,36,4248,9,0.008,0.8,0.017,EMSR517,aoi14,Dusseldorf
+affected,5.0,8722,34,3998,11,0.008,0.756,0.017,EMSR517,aoi14,Dusseldorf
+affected,10.0,8722,33,3639,12,0.009,0.733,0.018,EMSR517,aoi14,Dusseldorf
+affected,15.0,8722,30,3308,15,0.009,0.667,0.018,EMSR517,aoi14,Dusseldorf
+affected,25.0,8722,25,2682,20,0.009,0.556,0.018,EMSR517,aoi14,Dusseldorf
+affected,50.0,8722,16,1724,29,0.009,0.356,0.018,EMSR517,aoi14,Dusseldorf
+affected,100.0,8722,9,885,36,0.01,0.2,0.019,EMSR517,aoi14,Dusseldorf
+severe,0.0,3369,318,2169,166,0.128,0.657,0.214,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,5.0,3369,294,2095,190,0.123,0.607,0.205,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,10.0,3369,271,1996,213,0.12,0.56,0.197,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,15.0,3369,250,1877,234,0.118,0.517,0.191,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,25.0,3369,207,1664,277,0.111,0.428,0.176,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,50.0,3369,139,1292,345,0.097,0.287,0.145,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,100.0,3369,74,876,410,0.078,0.153,0.103,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,0.0,3369,434,2053,328,0.175,0.57,0.267,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,5.0,3369,398,1991,364,0.167,0.522,0.253,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,10.0,3369,367,1900,395,0.162,0.482,0.242,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,15.0,3369,336,1791,426,0.158,0.441,0.233,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,25.0,3369,277,1594,485,0.148,0.364,0.21,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,50.0,3369,179,1252,583,0.125,0.235,0.163,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+affected,100.0,3369,97,853,665,0.102,0.127,0.113,EMSR517,aoi15,Bad Neuenahr-Ahrweiler
+severe,0.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,5.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,10.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,15.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,25.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,50.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,100.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,0.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,5.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,10.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,15.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,25.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,50.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+affected,100.0,0,0,0,0,,,,EMSR517,aoi16,Gerolstein
+severe,0.0,3244,3,2261,1,0.001,0.75,0.003,EMSR517,aoi17,IRREL
+severe,5.0,3244,2,2190,2,0.001,0.5,0.002,EMSR517,aoi17,IRREL
+severe,10.0,3244,2,2102,2,0.001,0.5,0.002,EMSR517,aoi17,IRREL
+severe,15.0,3244,2,2021,2,0.001,0.5,0.002,EMSR517,aoi17,IRREL
+severe,25.0,3244,2,1834,2,0.001,0.5,0.002,EMSR517,aoi17,IRREL
+severe,50.0,3244,2,1513,2,0.001,0.5,0.003,EMSR517,aoi17,IRREL
+severe,100.0,3244,1,1112,3,0.001,0.25,0.002,EMSR517,aoi17,IRREL
+affected,0.0,3244,27,2237,58,0.012,0.318,0.023,EMSR517,aoi17,IRREL
+affected,5.0,3244,23,2169,62,0.01,0.271,0.02,EMSR517,aoi17,IRREL
+affected,10.0,3244,20,2084,65,0.01,0.235,0.018,EMSR517,aoi17,IRREL
+affected,15.0,3244,20,2003,65,0.01,0.235,0.019,EMSR517,aoi17,IRREL
+affected,25.0,3244,14,1822,71,0.008,0.165,0.015,EMSR517,aoi17,IRREL
+affected,50.0,3244,7,1508,78,0.005,0.082,0.009,EMSR517,aoi17,IRREL
+affected,100.0,3244,3,1110,82,0.003,0.035,0.005,EMSR517,aoi17,IRREL
+severe,0.0,1051,1,404,0,0.002,1.0,0.005,EMSR517,aoi20,Garzweiler
+severe,5.0,1051,1,389,0,0.003,1.0,0.005,EMSR517,aoi20,Garzweiler
+severe,10.0,1051,1,376,0,0.003,1.0,0.005,EMSR517,aoi20,Garzweiler
+severe,15.0,1051,1,359,0,0.003,1.0,0.006,EMSR517,aoi20,Garzweiler
+severe,25.0,1051,1,317,0,0.003,1.0,0.006,EMSR517,aoi20,Garzweiler
+severe,50.0,1051,0,238,1,0.0,0.0,,EMSR517,aoi20,Garzweiler
+severe,100.0,1051,0,150,1,0.0,0.0,,EMSR517,aoi20,Garzweiler
+affected,0.0,1051,1,404,0,0.002,1.0,0.005,EMSR517,aoi20,Garzweiler
+affected,5.0,1051,1,389,0,0.003,1.0,0.005,EMSR517,aoi20,Garzweiler
+affected,10.0,1051,1,376,0,0.003,1.0,0.005,EMSR517,aoi20,Garzweiler
+affected,15.0,1051,1,359,0,0.003,1.0,0.006,EMSR517,aoi20,Garzweiler
+affected,25.0,1051,1,317,0,0.003,1.0,0.006,EMSR517,aoi20,Garzweiler
+affected,50.0,1051,0,238,1,0.0,0.0,,EMSR517,aoi20,Garzweiler
+affected,100.0,1051,0,150,1,0.0,0.0,,EMSR517,aoi20,Garzweiler
