@@ -228,7 +228,7 @@ mapped from SPOT-6/7 imagery of 30 August 2022, H3 res 9. OSM from the Geofabrik
 | Hexagons mapped / with priority > 0 | 8,926 / 7,619 |
 | Roads closed by water / length under water | 2,320 / 365 km |
 | Hexagons cut off by road | 678 |
-| Buildings inside the flood | 10,175 |
+| Buildings inside the flood, in mapped hexagons | 10,175 (the exposure run counts 10,180; 5 sit in 4 hexagons just outside the mapped area) |
 
 **Buildings.** OpenStreetMap holds 108 buildings in the 7,663 hexagons that matter here; Microsoft's Global ML
 Building Footprints (release 2026-02-03) hold 78,848. Exposure uses the larger of the two counts per hexagon

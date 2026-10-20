@@ -30,7 +30,7 @@ reach.sunnyallana@gmail.com}}
 \maketitle
 
 \begin{abstract}
-A district flood coordinator has to decide where boats and relief go first. Satellite rapid-mapping products show where water is, ground-level photos show what it is doing to people, and neither says which neighbourhoods a ground team can still reach. Floodline fuses Copernicus Emergency Management Service (EMS) flood extent, OpenStreetMap roads and buildings, and geotagged photos on an H3 hexagonal grid, and ranks hexagons by a gated priority with a separately reported confidence. Roads are routed twice from fire stations and hospitals, intact and with every segment that runs at least 5\,m through the flood removed; against EMS road damage grading this closure rule reaches precision 0.94 and recall 0.85. Against 1,143 buildings that EMS analysts graded damaged or destroyed after the July 2021 floods in western Germany, the top 10\% of hexagons by priority contain 75\% of them, against 63\% for satellite water extent alone and 10\% at random. On the June 2013 Vltava flood, the five highest-ranked hexagons in Prague are all cut off by road, while the 203 geotagged photos in the mapped area cluster on the city-centre embankments; measured in metres, the median Prague-area photo is 3.1\,km from mapped flood and 21\,m from the river channel. A photo of water is not evidence of a flooded hexagon, and a report alone cannot raise rescue priority: under simulated collusion the top ten is unchanged. We release the pipeline, a web map, an offline-first field app and a 300-image flood-depth benchmark.
+A district flood coordinator has to decide where boats and relief go first. Satellite rapid-mapping products show where water is, ground-level photos show what it is doing to people, and neither says which neighbourhoods a ground team can still reach. Floodline fuses Copernicus Emergency Management Service (EMS) flood extent, OpenStreetMap roads and buildings, and geotagged photos on an H3 hexagonal grid, and ranks hexagons by a gated priority with a separately reported confidence. Roads are routed twice from fire stations and hospitals, intact and with every segment that runs at least 5\,m through the flood removed; against EMS road damage grading this closure rule reaches precision 0.94 and recall 0.85. Against 1,143 buildings that EMS analysts graded damaged or destroyed after the July 2021 floods in western Germany, the top 10\% of hexagons by priority contain 75\% of them, against 63\% for satellite water extent alone and 10\% at random. On the June 2013 Vltava flood, the five highest-ranked hexagons in Prague are all cut off by road, while the 203 geotagged photos in the mapped area cluster on the city-centre embankments; measured in metres, the median Prague-area photo is 3.1\,km from mapped flood and 21\,m from the river channel. In Larkana, Sindh, 2022, a same-day Sentinel-1 scene agrees with the EMS map at IoU 0.74, and OpenStreetMap holds 108 buildings where machine-learned footprints hold 78,848. A photo of water is not evidence of a flooded hexagon, and a report alone cannot raise rescue priority: under simulated collusion the top ten is unchanged. We release the pipeline, a web map, an offline-first field app and a 300-image flood-depth benchmark.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -51,7 +51,7 @@ Our contributions are:
 \item A per-hexagon fusion of satellite flood extent, flood-aware road reachability and building exposure into a gated priority, validated against independent EMS damage grading (Sec.~\ref{sec:method},~\ref{sec:validation}).
 \item A measurement of photo--satellite agreement in metres, showing that hexagon-level agreement saturates and that photos of a high river are not evidence of flooded land (Sec.~\ref{sec:agreement}).
 \item A report trust model, tested by simulated attacks, under which reports can raise verification priority but cannot overrule a satellite map that says dry (Sec.~\ref{sec:trust}).
-\item Case studies of Prague and Dresden in June 2013, an offline-first field app and a released depth benchmark.
+\item Case studies of Prague and Dresden (2013) and Larkana (2022) with an independent Sentinel-1 check, an offline-first field app and a released depth benchmark.
 \end{enumerate}
 
 % ---------------------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ Scenario & Top-10 overlap & Flagged \\
 
 \textbf{Photos.} The European Flood 2013 set~\cite{barz2018flood}: 3,435 Wikimedia Commons records in our download, 883 with GPS. % results/external_run.json
 
-\textbf{Roads and buildings.} OpenStreetMap~\cite{haklay2008osm} via OSMnx~\cite{boeing2017osmnx}. Validation runs use Geofabrik extracts dated 18 October 2026; on Erftstadt the extract and the live Overpass API gave identical closed roads (130), staging points (12), road hexagons (213) and cut-off hexagons (26). % results/README.md section 7
+\textbf{Roads and buildings.} OpenStreetMap~\cite{haklay2008osm} via OSMnx~\cite{boeing2017osmnx}; for Larkana also Microsoft Global ML Building Footprints (release 2026-02-03)~\cite{msbuildings}. Validation runs use Geofabrik extracts dated 18 October 2026; on Erftstadt the extract and the live Overpass API gave identical closed roads (130), staging points (12), road hexagons (213) and cut-off hexagons (26). % results/README.md section 7
 
 \textbf{Depth benchmark.} 300 flooded test images from the Close-View Flood Dataset (CVFD), labelled dry, ankle (2--20\,cm), knee (20--50\,cm), waist (50--100\,cm), chest (100--160\,cm), above head, or unknown; 203 are unknown. % results/release_run.json
 The labels were assigned from contact sheets with an AI assistant and await review by a human annotator. Hashing showed that CVFD contains 2,371 of the 3,710 European Flood 2013 photos and that 20 of its 1,180 test images have a near-copy in training. % results/trust_eval.json, data/DATASET_CARD.md
@@ -328,8 +328,46 @@ Highest priority & 0.796 & 0.201 \\
 \label{fig:map}
 \end{figure*}
 
-\subsection{Further case studies and perception (interim)}
-Sindh 2022 (EMSR629): \pending{roads closed, hexagons cut off, buildings in flood, top hexagons}. Sentinel-1 water mask vs.\ EMS polygons: \pending{IoU per AOI}.
+\subsection{Larkana, Sindh, 2022}
+EMSR629 AOI01 maps Larkana from SPOT-6/7 imagery of 30 August 2022. The scale differs from Europe by two orders of magnitude (Table~\ref{tab:larkana}): 2,320 roads are closed and 678 hexagons are cut off. % results/README.md section 9, results/reach_larkana_run.json
+The five highest-ranked hexagons are all cut off, with 55 to 85 buildings affected each: four around Khokhar and one at Bhai Khan Waggan, Larkana district (Fig.~\ref{fig:larkana}). % docs/cities.json (larkana.top), results/README.md section 9
+
+\textbf{Building coverage is a data finding.} In the 7,663 hexagons that matter, OSM holds 108 buildings and Microsoft's ML footprints 78,848. % results/exposure_larkana_run.json
+With OSM alone, exposure in rural Sindh would be close to zero and the ranking would rest on water and roads. Exposure therefore uses the per-hexagon maximum of the two counts, which fills the gap without counting twice a house both sources map; the European studies keep OSM-only counts, where every validated number was computed.
+
+\textbf{Radar check.} One radiometrically terrain-corrected Sentinel-1A scene from the Planetary Computer~\cite{pc_s1rtc}, acquired 30 August 2022 at 01:26\,UTC, the same day as the SPOT image, was thresholded on VV at 20\,m with Otsu's method~\cite{otsu1979threshold}, with EMS permanent water removed from both masks (Table~\ref{tab:larkana}). % results/sentinel1_larkana_run.json
+Radar agrees with the analysts' map where water is open and finds less water overall, as expected: shallow water under crops and water between buildings return more signal than open water. Sentinel-1 was not in orbit in 2013, so the Prague and Dresden layers have no radar check.
+
+\begin{table}[t]
+\caption{Larkana, 2022: responder layer and Sentinel-1 agreement.}
+\label{tab:larkana}
+\centering\scriptsize
+% results/README.md section 9, results/reach_larkana_run.json, results/sentinel1_larkana_run.json
+\begin{tabular}{@{}lr@{}}
+\toprule
+Mapped area / flood & 964 / 502\,km$^2$ \\
+Hexagons mapped / priority $>0$ & 8926 / 7619 \\
+Roads closed / length under water & 2320 / 365\,km \\
+Hexagons cut off & 678 \\
+Buildings inside flood (OSM or ML, max) & 10175 \\
+\midrule
+Sentinel-1 VV threshold (Otsu) & $-12.9$\,dB \\
+IoU, radar vs.\ EMS & 0.74 \\
+Precision / recall of radar water & 0.94 / 0.78 \\
+Water share, radar / EMS & 0.48 / 0.59 \\
+Spearman, per-hexagon water (8,337 hexagons) & 0.94 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/map_larkana.png}
+\caption{Larkana, 30 August 2022: priority per hexagon; dark outlines are the 678 cut-off hexagons, red lines roads under water.}
+\label{fig:larkana}
+\end{figure}
+
+\subsection{Perception (interim)}
 Perception numbers are interim. Concept segmentation with SAM~3~\cite{carion2026sam3} on the first 180 flooded test images reaches a mean IoU of 0.959 for water, 0.868 for people and 0.755 for buildings against dataset masks that were themselves made with SAM~3 assistance, so the comparison is partly circular. % results/README.md section 1
 Waterline geometry, which reads depth from how much of a person, car or door remains visible and accepts only water touching the object's base at its metric depth~\cite{yang2024depthv2}, gets 29\% exactly right and 79\% within one class on 14 images, up from 13\% and 47\% for a first version. % results/waterline_run.json, results/README.md section 3
 A vision--language model~\cite{bai2025qwen3vl} run through llama.cpp~\cite{llamacpp} classified 3 of 6 smoke-test images in a two-pass design and correctly returned unknown for the other 3. % results/README.md section 4
@@ -342,6 +380,7 @@ Full-set results: \pending{SAM~3 on 538 images}, \pending{waterline on the full 
 \textbf{Damage is a proxy for need.} Priority is validated on one event and against building damage, which misses cut-off but undamaged neighbourhoods by construction. The weights were not tuned on it.
 \textbf{Maps are snapshots.} Each EMS product shows one acquisition; Dresden's 3 June map precedes the crest.
 \textbf{Current OSM, historical flood.} Roads and buildings come from today's OpenStreetMap; closures ordered by authorities, such as bridges, are not in the data.
+\textbf{Building coverage.} OSM is near-complete in the European towns and nearly empty in rural Sindh; exposure there depends on machine-learned footprints, whose quality varies by region.\\
 \textbf{Labels and perception.} The depth benchmark's labels are AI-assisted and await human review, and all perception numbers are interim.
 
 % ---------------------------------------------------------------------------------------------------------------
@@ -353,7 +392,7 @@ Floodline ranks flood hexagons for responders from what the satellite mapped, wh
 \url{https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark}.
 
 \section*{Acknowledgment}
-Flood extent and damage grading \copyright{} European Union, Copernicus EMS. Map data \copyright{} OpenStreetMap contributors (ODbL). Photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
+Flood extent and damage grading \copyright{} European Union, Copernicus EMS. Map data \copyright{} OpenStreetMap contributors (ODbL). Contains modified Copernicus Sentinel data (2022), via Microsoft Planetary Computer. Building footprints for Larkana from Microsoft Global ML Building Footprints. Photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
