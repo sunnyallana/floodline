@@ -9,7 +9,11 @@ ALLOWED = {"\n", "\t", "\r"}
 
 def test_no_control_characters_in_source():
     offenders = []
-    for path in [*ROOT.joinpath("src").rglob("*.py"), *ROOT.joinpath("tests").rglob("*.py")]:
+    for path in [
+        *ROOT.joinpath("src").rglob("*.py"),
+        *ROOT.joinpath("tests").rglob("*.py"),
+        *ROOT.joinpath("scripts").glob("*"),
+    ]:
         text = path.read_text(encoding="utf-8")
         bad = sorted({hex(ord(c)) for c in text if ord(c) < 32 and c not in ALLOWED})
         if bad:

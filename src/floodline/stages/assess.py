@@ -79,6 +79,39 @@ def summarise(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def score(paths: Paths, records: list[dict[str, Any]], expected: int | None = None) -> dict[str, Any]:
+    """The model's depth classes against the depth benchmark, beside the always-majority baseline on the same
+    images. Uses the human-reviewed labels once they exist, else the AI-assisted first pass, and says which."""
+    from floodline.stages.waterline import ORDER, score_against_labels
+
+    reviewed = paths.data / "depth_labels_reviewed.csv"
+    source = reviewed if reviewed.exists() else paths.depth_labels
+    if not source.exists():
+        return {"n": 0, "labels": None}
+    labels = pd.read_csv(source, dtype=str).fillna("")
+    pred = pd.DataFrame(
+        [{"image_id": r["image_id"], "depth_bin": r["depth"]["depth_class"]} for r in records if "depth" in r],
+        columns=["image_id", "depth_bin"],
+    )
+    graded = labels[labels.depth_bin.isin(ORDER)]
+    seen = graded[graded.image_id.isin({r["image_id"] for r in records})]
+    model = score_against_labels(pred, labels)
+    # The baseline answers on the same images with their commonest true class: an oracle prior, so a stricter test
+    # than the benchmark-wide mode (and the one the waterline result uses).
+    same = seen[seen.image_id.isin(pred[pred.depth_bin.isin(ORDER)].image_id)]
+    majority = same.depth_bin.mode().sort_values().iloc[0] if len(same) else None
+    baseline = score_against_labels(pd.DataFrame({"image_id": same.image_id, "depth_bin": majority}), labels)
+    return {
+        **model,
+        "labels": source.name,
+        "labelled_images_assessed": len(seen),
+        "coverage": round(model["n"] / len(seen), 4) if len(seen) else None,
+        "baseline": {"rule": f"always {majority}", **baseline},
+        "images_assessed": len(records),
+        "complete": expected is not None and len(records) >= expected,
+    }
+
+
 def run(
     paths: Paths,
     dataset: str = "cvfd",
@@ -89,11 +122,14 @@ def run(
     port: int = 8089,
     size: int = 672,
     out: Path | None = None,
+    score_only: bool = False,
 ) -> dict[str, Any]:
     threads = threads or default_threads()
     ds = datasets.load(paths, dataset, limit=limit)
     ev = ds.frame
     store = JsonlStore(out or paths.vlm_assessments)
+    if score_only:
+        return _write_score(paths, list(store), len(ev), dataset)
     done = store.done()
     describe_schema = PhotoAssessment.model_json_schema()
     reading_schema = DepthReading.model_json_schema()
@@ -156,7 +192,19 @@ def run(
     summary = summarise(records)
     manifest.finish(new_this_run=new, **summary).write(paths.results / f"vlm_run_{Path(model).stem}.json")
     log.info("assess done: %s", summary)
+    _write_score(paths, records, len(ev), dataset)
     return summary
+
+
+def _write_score(paths: Paths, records: list[dict[str, Any]], expected: int, dataset: str) -> dict[str, Any]:
+    if dataset != "cvfd":
+        return {}
+    result = score(paths, records, expected)
+    RunManifest("vlm_benchmark", params={"model": records[0].get("model") if records else None}).finish(**result).write(
+        paths.results / "vlm_benchmark.json"
+    )
+    log.info("vlm benchmark: %s", result)
+    return result
 
 
 def _sha(text: str) -> str:

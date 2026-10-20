@@ -165,6 +165,7 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--port", type=int, default=8089)
     a.add_argument("--size", type=int, default=672, help="upscale inputs to this many px before sending")
     a.add_argument("--out", help="JSONL path; defaults to results/vlm_assessments.jsonl")
+    a.add_argument("--score-only", action="store_true", help="score the records so far against the depth benchmark")
     return p
 
 
@@ -395,6 +396,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 port=args.port,
                 size=args.size,
                 out=Path(args.out) if args.out else None,
+                score_only=args.score_only,
             )
     except (FileNotFoundError, RuntimeError, TimeoutError) as e:
         log.error("%s", e)

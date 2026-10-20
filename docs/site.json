@@ -1333,7 +1333,24 @@
     "mean_abs_bins": 0.85
    }
   },
-  "vlm": null
+  "vlm": {
+   "n": 7,
+   "exact": 0.4286,
+   "within_one": 0.7143,
+   "mean_abs_bins": 1.143,
+   "labels": "depth_labels.csv",
+   "labelled_images_assessed": 8,
+   "coverage": 0.875,
+   "baseline": {
+    "rule": "always ankle",
+    "n": 7,
+    "exact": 0.4286,
+    "within_one": 0.7143,
+    "mean_abs_bins": 1.143
+   },
+   "images_assessed": 49,
+   "complete": false
+  }
  },
  "links": {
   "map": "map/",

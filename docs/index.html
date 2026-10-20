@@ -281,7 +281,7 @@ fetch("site.json").then(r => r.json()).then(d => {
   const da = b.data_ablations || {};
   const radarRows = [];
   for (const [k, lab] of [["sentinel1_change", "Sentinel-1, change detection"], ["sentinel1_otsu", "Sentinel-1, single threshold"], ["osm_buildings_only", "OSM buildings only"]]) {
-    if (da[k]) radarRows.push([lab, f(da[k].default.risk), f(da[k].ablated.risk), String(da[k].towns.length)]);
+    if (da[k]) radarRows.push([lab, f(da[k].default.EHA), f(da[k].ablated.EHA), String(da[k].towns.length)]);
   }
   if (d.sentinel1_larkana) radarRows.push(["Larkana 2022: radar vs EMS map (IoU)", "", f(d.sentinel1_larkana.iou), "1"]);
   if (radarRows.length) table($("radar"), ["Ablation", "With EMS + all buildings", "Ablated", "Towns"], radarRows);
@@ -298,7 +298,9 @@ fetch("site.json").then(r => r.json()).then(d => {
   table($("perception"), ["Step", "Result", "Against"], [
     ["SAM 3 water masks", s3 ? `IoU ${f(s3.water_iou.mean)} (median ${f(s3.water_iou.median)})` : "–", "CVFD masks (SAM 3-assisted, so partly circular)"],
     ["Waterline geometry depth", wl ? `${pct(wl.exact)} exact, ${pct(wl.within_one)} within one class (n ${wl.n})` : "–", "always-'ankle' baseline: 38% / 83%"],
-    ["Vision-language model depth", vlm ? `${pct(vlm.exact)} exact, ${pct(vlm.within_one)} within one class (n ${vlm.n})` : '<span class="pending">run in progress</span>', "same benchmark"],
+    ["Vision-language model depth", vlm && vlm.complete ? `${pct(vlm.exact)} exact, ${pct(vlm.within_one)} within one class (n ${vlm.n})`
+      : `<span class="pending">run in progress${vlm ? ` (${vlm.images_assessed} of 538 photos)` : ""}</span>`,
+      vlm && vlm.complete && vlm.baseline ? `${esc(vlm.baseline.rule)} on the same photos: ${pct(vlm.baseline.exact)} / ${pct(vlm.baseline.within_one)}` : "same benchmark"],
   ]);
 });
 </script>

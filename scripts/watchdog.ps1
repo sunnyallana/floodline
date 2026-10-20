@@ -7,7 +7,8 @@ disconnects, console signals, crashes, reboots). Run it every few minutes from t
      -Name vlm -Args 'assess' -DoneFile results\vlm_assessments.jsonl -DoneLines 538 -KillFirst llama-server"
 
 The stage must be resumable (floodline's long stages append to JSONL/CSV and skip finished items), because a
-restart simply runs the same command again. When -DoneFile has -DoneLines lines, the task deletes itself.
+restart simply runs the same command again. When -DoneFile has -DoneLines lines, the task runs each
+semicolon-separated floodline command in -AfterDone once (e.g. 'assess --score-only;site') and deletes itself.
 #>
 param(
     [Parameter(Mandatory)] [string] $Name,
@@ -15,7 +16,8 @@ param(
     [Parameter(Mandatory)] [string] $DoneFile,
     [Parameter(Mandatory)] [int] $DoneLines,
     [string] $KillFirst = "",
-    [string] $TaskName = ""
+    [string] $TaskName = "",
+    [string] $AfterDone = ""
 )
 $root = Split-Path -Parent $PSScriptRoot
 $logs = Join-Path $root "logs"
@@ -27,6 +29,12 @@ function Log($m) { Add-Content -Path $log -Value ("{0} {1}" -f (Get-Date -Format
 $done = Join-Path $root $DoneFile
 if ((Test-Path $done) -and ((Get-Content $done | Measure-Object -Line).Lines -ge $DoneLines)) {
     Log "complete ($DoneLines lines in $DoneFile)"
+    $exe = Join-Path $root ".venv\Scripts\floodline.exe"
+    foreach ($cmd in ($AfterDone -split ";" | Where-Object { $_.Trim() })) {
+        $q = Start-Process -FilePath $exe -ArgumentList $cmd.Trim() -WorkingDirectory $root -WindowStyle Hidden -PassThru -Wait `
+            -RedirectStandardOutput (Join-Path $logs "$Name-after.out.log") -RedirectStandardError (Join-Path $logs "$Name-after.err.log")
+        Log "after: floodline $($cmd.Trim()) exited $($q.ExitCode)"
+    }
     if ($TaskName) { schtasks /Delete /TN $TaskName /F | Out-Null; Log "task $TaskName removed" }
     exit 0
 }
