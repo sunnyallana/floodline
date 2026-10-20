@@ -141,6 +141,8 @@ def test_site_build(tmp_path):
     assert cities[0]["stats"]["photos"] == 1 and cities[0]["stats"]["hexes_cut_off"] == 1
     fc = json.loads((site / "data" / "x" / "hexes.geojson").read_text("utf-8"))
     assert len(fc["features"]) == 1 and fc["features"][0]["properties"]["cut_off"] is True
+    for layer in ("roads", "staging"):  # no data given: an empty layer, so the page never requests a missing file
+        assert json.loads((site / "data" / "x" / f"{layer}.geojson").read_text("utf-8"))["features"] == []
     write_site(site, {**entry, "title": "Y"})  # same key replaces, never duplicates
     assert len(json.loads((site / "cities.json").read_text("utf-8"))) == 1
 

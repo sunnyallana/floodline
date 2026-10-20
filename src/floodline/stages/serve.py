@@ -153,6 +153,9 @@ def build_city(
     _write([_feature(aoi.boundary.simplify(SIMPLIFY_DEG), {"kind": "mapped_area"})], data / "aoi.geojson")
 
     n_roads = n_staging = n_photos = 0
+    # The page requests every layer; one with no data is an empty collection, never a missing file (a 404).
+    for layer in ("roads", "staging", "photos"):
+        _write([], data / f"{layer}.geojson")
     if roads_geojson is not None and roads_geojson.exists():
         roads = gpd.read_file(roads_geojson)
         n_roads = len(roads)
