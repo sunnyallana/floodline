@@ -219,12 +219,12 @@ Metric: share of a town's damaged or destroyed buildings inside its top 10 % of 
 
 | Score | Pooled [95 % CI] | DE | PK | AU | MG | IT-Marche | IT-Sicily | Mean of events | Worst event |
 |---|---|---|---|---|---|---|---|---|---|
-| **fused priority (default)** | **0.76** [0.55, 0.78] | 0.74 | 0.37 | 0.41 | 0.85 | 0.95 | 0.97 | **0.71** | **0.37** |
+| **fused priority (default)** | **0.76** [0.55, 0.78] | 0.74 | 0.37 | 0.41 | 0.86 | 0.95 | 0.97 | **0.72** | **0.37** |
 | fused, without access | 0.78 [0.58, 0.80] | 0.76 | 0.44 | 0.40 | 0.87 | 0.95 | 0.97 | 0.73 | 0.40 |
 | risk: exposure x (0.5 + 0.5 hazard) | 0.77 [0.61, 0.80] | 0.84 | 0.44 | 0.81 | 0.10 | 0.93 | 0.94 | 0.68 | 0.10 |
 | buildings in the flood | 0.77 [0.63, 0.80] | 0.85 | 0.41 | 0.83 | 0.07 | 0.93 | 0.94 | 0.67 | 0.07 |
 | people in the flood (GHSL) | 0.70 [0.55, 0.76] | 0.82 | 0.22 | 0.58 | 0.33 | 0.87 | 0.65 | 0.58 | 0.22 |
-| exposure alone | 0.67 [0.57, 0.73] | 0.83 | 0.09 | 0.73 | 0.10 | 0.73 | 0.94 | 0.57 | 0.09 |
+| exposure alone | 0.67 [0.57, 0.73] | 0.84 | 0.09 | 0.73 | 0.10 | 0.74 | 0.94 | 0.57 | 0.09 |
 | water extent alone | 0.56 [0.41, 0.64] | 0.39 | 0.02 | 0.00 | 0.88 | 0.90 | 0.97 | 0.53 | 0.00 |
 | access alone | 0.33 [0.15, 0.36] | 0.23 | 0.00 | 0.35 | 0.03 | 0.62 | 0.47 | 0.28 | 0.00 |
 
@@ -238,7 +238,8 @@ default 0.715, buildings only 0.672, fitted rule 0.591, people only 0.578. The f
 
 Reading:
 - Pooled, the default is level with the best single layers; the intervals overlap.
-- What separates the scores is the worst event. Every single layer collapses on at least one flood: water extent
+- What separates the scores is the worst event. Every building, water, exposure or access layer falls to 0.10 or below on at least one flood
+  (population alone to 0.22): water extent
   where the whole plain is wet (NSW, Sanghar), building counts in Moramanga, where the footprints under the
   water are not where the damage was graded. The fused priority's worst event (0.37) is the best worst case, and
   it has the best held-out mean.

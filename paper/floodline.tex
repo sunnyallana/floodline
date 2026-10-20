@@ -1,6 +1,7 @@
 \documentclass[conference]{IEEEtran}
-% Floodline paper draft. Every number is followed by a comment naming the repository file it comes from.
-% Results still being produced are typeset with \pending{...} in red and must be filled before submission.
+% Floodline paper. Results are typeset only through the macros in numbers.tex and the tables in tables/, which
+% paper/make_numbers.py writes from the result files; a result that does not exist yet renders as a grey
+% "pending" marker. Do not type result numbers into this file.
 
 \usepackage[T1]{fontenc}
 \usepackage{cite}
@@ -9,17 +10,18 @@
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit}
-\usepackage{pgfplots}
-\pgfplotsset{compat=1.16}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage{array}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
 
-\newcommand{\pending}[1]{\textcolor{red}{\textbf{[pending: #1]}}}
+\newcommand{\pending}[1]{\textcolor{gray}{\textbf{[pending: #1]}}}
+\input{numbers}
+\newcommand{\ci}[2]{[#1,\,#2]}
 
 \begin{document}
 
-\title{Floodline: Ranking Where Flood Responders Are Needed by Fusing Satellite Flood Extent, Road Access and Building Exposure on H3 Hexagons}
+\title{Floodline: Ranking Where Flood Responders Are Needed, Tested on Six Floods on Four Continents}
 
 \author{\IEEEauthorblockN{Sunny Shaban Ali}
 \IEEEauthorblockA{Department of Computer Science\\
@@ -30,42 +32,41 @@ reach.sunnyallana@gmail.com}}
 \maketitle
 
 \begin{abstract}
-A district flood coordinator has to decide where boats and relief go first. Satellite rapid-mapping products show where water is, ground-level photos show what it is doing to people, and neither says which neighbourhoods a ground team can still reach. Floodline fuses Copernicus Emergency Management Service (EMS) flood extent, OpenStreetMap roads and buildings, and geotagged photos on an H3 hexagonal grid, and ranks hexagons by a gated priority with a separately reported confidence. Roads are routed twice from fire stations and hospitals, intact and with every segment that runs at least 5\,m through the flood removed; against EMS road damage grading this closure rule reaches precision 0.94 and recall 0.85. Against 1,143 buildings that EMS analysts graded damaged or destroyed after the July 2021 floods in western Germany, the top 10\% of hexagons by priority contain 75\% of them, against 63\% for satellite water extent alone and 10\% at random. On the June 2013 Vltava flood, the five highest-ranked hexagons in Prague are all cut off by road, while the 203 geotagged photos in the mapped area cluster on the city-centre embankments; measured in metres, the median Prague-area photo is 3.1\,km from mapped flood and 21\,m from the river channel. In Larkana, Sindh, 2022, a same-day Sentinel-1 scene agrees with the EMS map at IoU 0.74, and OpenStreetMap holds 108 buildings where machine-learned footprints hold 78,848. A photo of water is not evidence of a flooded hexagon, and a report alone cannot raise rescue priority: under simulated collusion the top ten is unchanged. We release the pipeline, a web map, an offline-first field app and a 300-image flood-depth benchmark.
+A district flood coordinator has to decide where boats and relief go first. Floodline ranks H3 hexagons by fusing three layers anyone can obtain within a day of a flood: the Copernicus Emergency Management Service (EMS) flood extent, the buildings inside it, and road access from fire stations and hospitals with flooded roads removed. We test the ranking against analysts' damage grades on every town with at least 20 damaged or destroyed buildings in six EMS activations: Germany 2021, Pakistan 2022, Australia 2021, Madagascar 2022 and two in Italy (\nTowns{} towns, \nHexes{} hexagons, \nSevere{} graded buildings). The top 10\% of hexagons by fused priority contain \capEHA{} of each town's damage on average (95\% spatial block-bootstrap interval \ci{\capEHALo}{\capEHAHi}; random 0.10). That is level with counting buildings in the flood and \dWater{} against flood extent alone. What separates the scores is the worst case: every building, water, exposure or access layer alone falls to 0.10 or below on at least one flood, while the fused priority's worst event is \worstEHA{}. Weights fitted on five floods and tested on the sixth do worse than the hand-set default (\loeoFitted{} against \loeoDefault{} held-out mean). Access does not change damage capture; it stays because reachability is the other half of a coordinator's question. A report trust model keeps simulated colluding devices out of the top ten. We release the pipeline, the benchmark, a web map, an offline field app and a flood-depth benchmark, and report three negative results.
 \end{abstract}
 
 \begin{IEEEkeywords}
-flood response, rapid mapping, Copernicus EMS, OpenStreetMap, network accessibility, H3, volunteered geographic information
+flood response, rapid mapping, Copernicus EMS, damage grading, network accessibility, H3, benchmark
 \end{IEEEkeywords}
 
-% ---------------------------------------------------------------------------------------------------------------
+% ===============================================================================================================
 \section{Introduction}
 
-Rapid-mapping services deliver flood extent polygons within hours to days of an activation~\cite{cems_rapid,donezar2020validation}. Photos from the ground arrive faster and carry information a satellite does not: how deep the water is against a person or a car, and whether anyone is on a roof~\cite{fohringer2015social,assumpcao2018citizen}. A coordinator still has to turn both into a decision about where to send a limited number of teams.
+Rapid-mapping services publish flood extent polygons within hours to days of an activation~\cite{cems_rapid,donezar2020validation}. A coordinator still has to turn a flood map into an order of work: which neighbourhoods first, and which of those a ground team can still reach. Ground photos help where they exist, but people surrounded by water rarely take them, so the hexagons that most need help tend to have the fewest~\cite{assumpcao2018citizen}.
 
-Floodline addresses that decision. Its unit of analysis is an H3 hexagon~\cite{h3}, small enough to send a boat to and coarse enough that no published layer reveals a household. Each hexagon receives a hazard term, an exposure term (buildings in the water, or in a hexagon the flood cuts off) and an access term (cut off from the road network, or forced into a detour). Priority is zero unless the hexagon is wet or cut off; confidence is reported separately.
+Floodline scores every hexagon inside the mapped area from three layers: hazard (the share of the hexagon under water), exposure (buildings in the water, or in a hexagon the flood cuts off) and access (cut off from the road network, or forced into a detour). Photos and field reports refine the score only when something independent corroborates them.
 
-The design starts from who takes flood photos. People surrounded by water rarely do, and networks degrade. Photos come from field responders documenting for handovers and from residents at the edge of the flooded zone. The worst-hit hexagons will therefore have the fewest photos, so satellite extent is the coverage backbone and photos are evidence where they exist.
+A ranking is only useful if it is right on floods it was not tuned on. We therefore evaluate against EMS damage grading, which analysts produce from post-event imagery without our layers, on six activations chosen by a fixed rule, and ask five questions:
+\begin{itemize}
+\item \textbf{RQ1} Does the fused priority find damage across floods and continents?
+\item \textbf{RQ2} Which components matter?
+\item \textbf{RQ3} Is it robust to a flood it has not seen?
+\item \textbf{RQ4} What changes with radar instead of analysts' maps, or OpenStreetMap-only buildings?
+\item \textbf{RQ5} Can reports from the field be trusted under attack?
+\end{itemize}
 
-Our contributions are:
-\begin{enumerate}
-\item A per-hexagon fusion of satellite flood extent, flood-aware road reachability and building exposure into a gated priority, validated against independent EMS damage grading (Sec.~\ref{sec:method},~\ref{sec:validation}).
-\item A measurement of photo--satellite agreement in metres, showing that hexagon-level agreement saturates and that photos of a high river are not evidence of flooded land (Sec.~\ref{sec:agreement}).
-\item A report trust model, tested by simulated attacks, under which reports can raise verification priority but cannot overrule a satellite map that says dry (Sec.~\ref{sec:trust}).
-\item Case studies of Prague and Dresden (2013) and Larkana (2022) with an independent Sentinel-1 check, an offline-first field app and a released depth benchmark.
-\end{enumerate}
+Our contributions are a multi-event benchmark protocol for responder rankings with spatial block-bootstrap intervals and leave-one-event-out validation (Sec.~\ref{sec:bench}); the finding that a hand-set fused score has the best held-out mean and a far better worst case than any single layer, while fitted weights overfit (Sec.~\ref{sec:rq3}); a flood-aware road closure rule validated against graded road damage; a report trust model tested by simulated collusion (Sec.~\ref{sec:trust}); and an open pipeline, map, field app and depth benchmark, with negative results stated.
 
-% ---------------------------------------------------------------------------------------------------------------
+% ===============================================================================================================
 \section{Related Work}
 
-\textbf{Satellite flood mapping.} The Copernicus EMS rapid-mapping component produces flood delineation and damage-grading products on activation~\cite{cems_rapid}; its validation service studies Sentinel-1 backscatter and coherence for flood monitoring~\cite{donezar2020validation}. Sen1Floods11 provides labelled Sentinel-1 chips for flood segmentation~\cite{bonafilia2020sen1floods11}, and foundation models such as Prithvi-EO-2.0 are fine-tuned for flood mapping~\cite{szwarcman2024prithvi}.
+\textbf{Satellite flood mapping.} The Copernicus EMS rapid-mapping component produces flood delineation and damage-grading products on activation~\cite{cems_rapid}; its validation service studies Sentinel-1 backscatter and coherence for flood monitoring~\cite{donezar2020validation}. Sen1Floods11 provides labelled Sentinel-1 chips for flood segmentation~\cite{bonafilia2020sen1floods11}, and foundation models such as Prithvi-EO-2.0 are fine-tuned for it~\cite{szwarcman2024prithvi}.
 
-\textbf{Social media and citizen observations.} Fohringer et al.\ derived inundation extent and depth from eyewitness photos of the 2013 Dresden flood~\cite{fohringer2015social}; Assump\c{c}\~ao et al.\ review citizen data across the flood modelling cycle~\cite{assumpcao2018citizen}. MediaEval 2017 combined social-media image retrieval with satellite flood segmentation~\cite{bischke2017mediaeval}. Barz et al.\ released the European Flood 2013 set of 3,710 Wikimedia Commons images with expert relevance labels~\cite{barz2018flood}; we use its geotagged subset. The 2013 event was exceptional because of extreme antecedent wetness~\cite{schroter2015june2013}.
+\textbf{Citizen observations and photos.} Fohringer et al.\ derived inundation extent and depth from eyewitness photos of the 2013 Dresden flood~\cite{fohringer2015social}; Assump\c{c}\~ao et al.\ review citizen data across the flood modelling cycle~\cite{assumpcao2018citizen}. MediaEval 2017 combined social-media image retrieval with satellite flood segmentation~\cite{bischke2017mediaeval}, and Barz et al.\ released the European Flood 2013 photo set with expert relevance labels~\cite{barz2018flood}. Depth has been estimated from the submerged fraction of objects of known size~\cite{chaudhary2019water} and with fine-tuned vision--language models~\cite{fuad2026floodllama}.
 
-\textbf{Depth from images.} Chaudhary et al.\ estimate water level from the submerged fraction of objects of known size~\cite{chaudhary2019water}; recent work fine-tunes vision--language models for depth from street-level images~\cite{fuad2026floodllama}. Floodline's perception stage is zero-shot, using concept segmentation~\cite{kirillov2023sam,carion2026sam3}, metric monocular depth~\cite{yang2024depthv2} and a vision--language model~\cite{bai2025qwen3vl}.
+\textbf{Accessibility under flooding.} Green et al.\ modelled emergency-responder access in Leicester under modelled flood scenarios~\cite{green2017accessibility}, and Pregnolato et al.\ fitted a depth--disruption function for vehicle speed~\cite{pregnolato2017depth}. We apply the idea to observed rapid-mapping polygons and OpenStreetMap~\cite{haklay2008osm} networks built with OSMnx~\cite{boeing2017osmnx}, and validate closures against graded road damage. We know of no prior evaluation of a responder ranking against damage grading across several events with held-out validation.
 
-\textbf{Accessibility under flooding.} Green et al.\ modelled emergency-responder access in Leicester under modelled flood scenarios~\cite{green2017accessibility}, and Pregnolato et al.\ fitted a depth--disruption function for vehicle speed~\cite{pregnolato2017depth}. We apply the idea to observed rapid-mapping polygons and OpenStreetMap~\cite{haklay2008osm} networks built with OSMnx~\cite{boeing2017osmnx}, and validate the closures against graded road damage.
-
-% ---------------------------------------------------------------------------------------------------------------
+% ===============================================================================================================
 \section{System}\label{sec:method}
 
 \begin{figure}[t]
@@ -75,51 +76,32 @@ Our contributions are:
   geo/.style={box, fill=cyan!10, draw=cyan!60!black},
   arr/.style={-{Latex[length=1.5mm]}}]
 \node[geo] (ems) {EMS flood, AOI,\\river polygons};
-\node[geo, below=of ems] (osm) {OSM roads,\\buildings, stations};
-\node[box, below=of osm] (photo) {Geotagged photos\\(field app, archives)};
-\node[geo, right=of ems] (sat) {Water fraction\\per hexagon};
-\node[geo, right=of osm] (reach) {Reach: intact vs.\\flooded network};
+\node[geo, below=of ems] (osm) {OSM roads, stations;\\OSM + ML buildings};
+\node[box, below=of osm] (photo) {Field reports,\\geotagged photos};
+\node[geo, right=of ems] (sat) {Hazard: water\\fraction per hexagon};
+\node[geo, right=of osm] (reach) {Access: intact vs.\\flooded network};
 \node[box, right=of photo] (perc) {Trust checks,\\perception};
-\node[geo, right=12mm of reach, text width=15mm, minimum height=22mm] (fuse) {H3 fusion\\priority\\+ confidence\\+ verify list};
-\node[geo, right=of fuse, text width=11mm] (map) {Web map,\\GeoParquet};
-\draw[arr] (ems) -- (sat);
-\draw[arr] (osm) -- (reach);
-\draw[arr] (ems.south east) -- (reach.north west);
-\draw[arr] (photo) -- (perc);
-\draw[arr] (sat) -- (fuse);
-\draw[arr] (reach) -- (fuse);
-\draw[arr] (perc) -- (fuse);
+\node[geo, right=7mm of reach, text width=14mm, minimum height=22mm] (fuse) {H3 fusion:\\priority,\\confidence,\\verify list};
+\node[geo, right=of fuse, text width=13mm] (map) {Web map,\\GeoParquet};
+\draw[arr] (ems) -- (sat); \draw[arr] (osm) -- (reach); \draw[arr] (ems.south east) -- (reach.north west);
+\draw[arr] (photo) -- (perc); \draw[arr] (sat) -- (fuse); \draw[arr] (reach) -- (fuse); \draw[arr] (perc) -- (fuse);
 \draw[arr] (fuse) -- (map);
 \end{tikzpicture}
-\caption{Floodline data flow. Shaded boxes are geospatial.}
+\caption{Floodline data flow. Shaded boxes are geospatial layers available within a day of an activation.}
 \label{fig:system}
 \end{figure}
 
-Fig.~\ref{fig:system} shows the data flow. Every stage writes a run manifest with the code version, parameters and timing next to its output.
+Fig.~\ref{fig:system} shows the data flow. Every stage writes a run manifest with the code version, parameters and timing next to its output, and every number in this paper is read from those files by a script.
 
-\subsection{Satellite layer}
-For each EMS package we read the flood extent (\texttt{observedEventA}, or \texttt{Crisis\_event\_A} in 2013), the area of interest (AOI) and permanent water. The AOI decides which hexagons get a value: inside it and outside the flood is a real zero; outside every AOI is unknown, never dry. Water fraction is the hexagon's intersection with the flood polygons, found through an STR-tree. Permanent water goes to its own column, because a photo of a high river and a photo of a flooded street are different evidence. Cities use H3 resolution 9 (about 0.1\,km$^2$), provinces resolution 8.
+\textbf{Hazard.} For each EMS package we read the flood extent, the area of interest (AOI) and permanent water. Inside the AOI and outside the flood is a real zero; outside every AOI is unknown, never dry. Hazard $H$ is the hexagon's share inside the flood polygons; permanent water is kept apart, because a photo of a high river is not a photo of a flooded street (Sec.~\ref{sec:cases}). Towns use H3 resolution 9 (about 0.1\,km$^2$)~\cite{h3}.
 
-\subsection{Flood-aware reachability}
-We take the OSM drive network for the AOI buffered by 1.5\,km, impute speeds by road class, and snap fire stations and hospitals outside the flood to it as sources. Multi-source Dijkstra~\cite{dijkstra1959note} gives travel time on the intact network; we remove every edge with at least 5\,m of its length inside the flood polygons and route again. A hexagon is \emph{cut off} if it contains a road node, is reachable intact and unreachable flooded; otherwise the detour is the difference in travel time. The 5\,m threshold was chosen against EMS road damage (Table~\ref{tab:roads}): requiring no overlap closes roads that only touch the polygon edge, and 15\,m already misses closures.
+\textbf{Access.} We take the OSM drive network for the AOI buffered by 1.5\,km, impute speeds by road class, and use fire stations and hospitals outside the flood as sources; if none lies near, the search widens to 15\,km. A station that does not snap to the downloaded network enters through a virtual source joined to its nearest road node, the gap costed at 30\,km/h. Multi-source Dijkstra~\cite{dijkstra1959note} gives travel time on the intact network; we remove every road with at least 5\,m inside the flood polygons and route again. A hexagon is \emph{cut off} if it has a road, is reachable intact and unreachable flooded; otherwise the detour $\Delta t$ is the difference. Access is $A=\max(c,\min(1,\Delta t/30\,\mathrm{min}))$ with $c=1$ for cut off.
 
-\subsection{Exposure}
-For hexagons that are wet or cut off we count OSM building footprints intersecting the flood ($B_\mathrm{flood}$) and all footprints ($B_\mathrm{all}$). Building counts stand in for population, which is not available at hexagon scale for a historical event.
+\textbf{Exposure.} We count building footprints intersecting the flood ($B_\mathrm{f}$) and in total ($B$), taking per hexagon the larger of the OpenStreetMap and Microsoft Global ML Building Footprints~\cite{msbuildings} counts, which fills coverage gaps without double counting. Then $E=1-\exp(-(B_\mathrm{f}+c\,(B-B_\mathrm{f})+5P)/20)$, where $P$ counts corroborated people in water or stranded. A population variant uses GHSL 2020~\cite{ghsl2023pop}.
 
-\subsection{Priority and confidence}
-Let $s$ be the satellite water fraction and $\hat d$ the depth severity of a report claim that is \emph{corroborated} (Sec.~\ref{sec:trust}); $H=\max(s,\hat d)$. Let $c\in\{0,1\}$ mark a cut-off hexagon and $P$ the corroborated count of people in water or stranded. Then
-\begin{align}
-E &= 1-\exp\!\big(-(B_\mathrm{flood} + c\,(B_\mathrm{all}-B_\mathrm{flood}) + 5P)/20\big),\\
-A &= \max\!\big(c,\ \min(1, \Delta t/30\,\mathrm{min})\big),\\
-\text{priority} &= \mathbf{1}[H>0 \lor c]\,\big(0.45E + 0.30H + 0.25A\big),
-\end{align}
-with $\Delta t$ the detour. Confidence is $0.6\,L/3 + 0.4\tanh(n/2)\,\bar{\ell}$, where $L$ counts the independent layers present, $n$ the photos in the hexagon and $\bar{\ell}$ their mean location confidence. Uncorroborated claims set a verification flag and score instead of changing priority.
+\textbf{Priority.} $\text{priority}=\mathbf{1}[H>0\lor c]\,(0.45E+0.30H+0.25A)$: zero unless the hexagon is wet or cut off. The weights are a prior set before any evaluation. Confidence is reported separately, from the number of independent layers and corroborating photos, so a high priority with low confidence is a hexagon to verify first.
 
-\subsection{Photo--satellite agreement}
-For each geotagged photo inside an AOI we measure the distance in metres, in a local UTM projection, to the nearest flood polygon and to permanent water, per photo and per unique location, because batches of photos often share one copied geotag.
-
-\subsection{Field capture and ingest}
-The Floodline Field web app (Fig.~\ref{fig:app}) captures a photo with time, location and quick tags, stores reports in IndexedDB, and uploads when there is signal. Location comes from EXIF GPS first; otherwise from the phone's fix only if the photo was taken within 10 minutes of it; otherwise the report has no location and never appears on the map. A service worker caches the application shell, so the app opens offline. An ingest stage pulls reports with a server-side key into private storage.
+\textbf{Field capture.} The Floodline Field web app captures a photo with time, location and quick tags (people, depth band, note), queues reports offline in IndexedDB, and uploads when there is signal. Location comes from EXIF GPS first, otherwise from the phone's fix only if the photo is under 10 minutes old, otherwise none. Reports enter the score only through the trust rules of Sec.~\ref{sec:trust} (Fig.~\ref{fig:app}).
 
 \begin{figure}[t]
 \centering
@@ -130,10 +112,85 @@ The Floodline Field web app (Fig.~\ref{fig:app}) captures a photo with time, loc
 \label{fig:app}
 \end{figure}
 
-% ---------------------------------------------------------------------------------------------------------------
-\section{Report Trust and Threat Model}\label{sec:trust}
+% ===============================================================================================================
+\section{Benchmark and Protocol}\label{sec:bench}
 
-A report-driven ranking invites manipulation. Our rule: \emph{one report can send someone to look; it cannot send a boat, and neither can several that agree where the satellite has looked and seen no water.} A depth claim counts only when backed by satellite water in the hexagon or a neighbour, by the model's assessment of the photo, or, only where the satellite has not mapped the hexagon at all, by two devices agreeing within one class. A people claim needs the model's count or two devices, and satellite water confirms water, never people. Table~\ref{tab:threats} lists the main threats.
+\textbf{Selection.} We take every EMS activation with damage-grading products and, within it, every town with at least 20 buildings graded damaged or destroyed (Table~\ref{tab:events}). The rule fixes the sample before any score is computed. OSM comes from Geofabrik extracts pinned by date.
+
+\begin{table*}[t]
+\caption{The benchmark: every town with at least 20 damaged or destroyed buildings in six EMS grading activations.}
+\label{tab:events}
+\centering\footnotesize
+\input{tables/events}
+\end{table*}
+
+\textbf{Metric.} For each town, the share of its damaged or destroyed buildings inside its top 10\% of hexagons by a score; the reported number is the mean over towns (random scores 0.10). ``Possibly damaged'' is excluded as a target because it follows the flood extent almost mechanically and would reward any extent-based score.
+
+\textbf{Uncertainty.} Hexagons are spatially correlated, so we use a spatial block bootstrap~\cite{kunsch1989jackknife}: H3 resolution-\blockRes{} blocks resampled within towns, \nDraws{} draws. Differences are paired on the same draws.
+
+\textbf{Variants.} Single layers: water extent ($H$), buildings in the flood ($B_\mathrm{f}$), people in the flood (GHSL), exposure ($E$) and access ($A$) alone. Fused: the default $EHA$; $EH$, $EA$, $HA$ keeping the default weights' proportions; and the risk form $E\,(0.5+0.5H)$.
+
+\textbf{Held-out validation.} Leave one event out: the scoring rule (additive weights on a 0.05 simplex, or the risk form with an access weight; buildings or people as exposure) is fitted on five events and scored on the sixth.
+
+% ===============================================================================================================
+\section{Results}\label{sec:results}
+
+\subsection{RQ1: Does the fused priority find damage?}
+Fig.~\ref{fig:pooled} shows mean top-10\% capture over the \nTowns{} towns. The default fused priority captures \capEHA{} \ci{\capEHALo}{\capEHAHi}. Paired differences, default minus the other score: flood extent alone \dWater{} \ci{\dWaterLo}{\dWaterHi}, an interval that excludes zero; buildings in the flood \dBuildings{} \ci{\dBuildingsLo}{\dBuildingsHi}; people in the flood \dPeople{} \ci{\dPeopleLo}{\dPeopleHi}. Pooled, the fused priority is clearly better than the flood map alone and level with the best single exposure layer.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_pooled.pdf}
+\caption{Mean top-10\% capture of damaged or destroyed buildings over \nTowns{} towns, with 95\% spatial block-bootstrap intervals.}
+\label{fig:pooled}
+\end{figure}
+
+\subsection{RQ2: Which components matter?}
+Default minus the no-access variant is \dEH{} \ci{\dEHLo}{\dEHHi}: access is neutral for damage capture, and the interval includes zero. Access alone captures \capA{}, so it carries little damage signal by itself. We keep it in the score for a reason damage grading cannot measure: a coordinator also needs to know which damaged places a ground team can reach, and closed roads and cut-off hexagons are drawn as their own layer. Default minus the variant without hazard ($EA$) is \dEA{} \ci{\dEALo}{\dEAHi}, and minus the variant without exposure ($HA$) \dHA{} \ci{\dHALo}{\dHAHi}: exposure is the term the score cannot lose. Default minus the same score with GHSL population as exposure is \dPeopleEHA{} \ci{\dPeopleEHALo}{\dPeopleEHAHi}.
+
+\textbf{Road closures.} Against EMS road grading in the same towns, the closure rule's precision rises and recall falls with the overlap required (Fig.~\ref{fig:roads}). At 5\,m, precision is \roadAffPFive{} and recall \roadAffRFive{} against roads graded with any damage (F1 \roadAffFFive{}, against \roadAffFZero{} at 0\,m and \roadAffFFifteen{} at 15\,m). Against damaged or destroyed roads only, recall at 5\,m is \roadSevRFive{} and precision \roadSevPFive{}: most roads under water were impassable without visible damage, which a closure rule should capture.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_roads.pdf}
+\caption{Closure rule against EMS road grading for overlap thresholds of 0--100\,m; ``severe'' is damaged or destroyed.}
+\label{fig:roads}
+\end{figure}
+
+\subsection{RQ3: Is it robust?}\label{sec:rq3}
+Fig.~\ref{fig:events} breaks capture down by event. Every building, water, exposure or access layer collapses on at least one flood: buildings in the flood to \worstBuildings{} in \worstBuildingsEvent{}, where the footprints under the water are not where the damage was graded; water extent to \worstWater{} in \worstWaterEvent{}, where the whole plain is wet; exposure alone to \worstE{} and access alone to \worstA{} in \worstAEvent{}. The risk form inherits the buildings layer's failure (\worstRisk{} in \worstRiskEvent{}). Population alone bottoms at \worstPeople{} (\worstPeopleEvent{}). The fused scores do not collapse: the default's worst event is \worstEHA{} (\worstEHAEvent{}) and the no-access variant's \worstEH{}.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_events.pdf}
+\caption{Top-10\% capture of damaged or destroyed buildings per event (mean over its towns), with the mean and the worst event per score.}
+\label{fig:events}
+\end{figure*}
+
+Table~\ref{tab:loeo} fits the scoring rule on five events and scores the sixth. The fitted rule has the lowest held-out mean of the fused and building scores (\loeoFitted{}), against \loeoDefault{} for the default and \loeoBuildings{} for buildings alone. It fails on Moramanga (\loeoFittedMoramanga{}) and Sanghar (\loeoFittedSanghar{}), and every fit (\loeoAccessZero{}) set the access weight to zero, as RQ2 predicts for a damage target. The default weights are a prior, not a fit, and they transfer better. The headline claim is therefore robustness, not peak accuracy: on any one flood a single layer can beat the fused score, but no single layer is safe to rely on in advance. On the Prague 2013 map, \sensVariants{} weight and threshold variants keep the ordering stable (Spearman $\ge$\sensPragueSpearmanMin{}) and \sensPragueKeepEight{} keep at least 8 of the top 10 hexagons.
+
+\begin{table}[t]
+\caption{Leave one event out: rule fitted on the other five events (weights on $E,H,A$), scored on the held-out one.}
+\label{tab:loeo}
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\input{tables/loeo}
+\end{table}
+
+\subsection{RQ4: Data ablations}
+\textbf{Radar instead of analysts' maps.} We replace the EMS flood polygons with water from Sentinel-1 radiometrically terrain-corrected scenes~\cite{pc_s1rtc}, either by change detection against a pre-event scene or by Otsu thresholding~\cite{otsu1979threshold} of the event scene alone. Fused capture: change detection \ablChangeEHA{} (reference \ablChangeEHARef{}), Otsu \ablOtsuEHA{} (reference \ablOtsuEHARef{}). Two physical limits of change detection are already visible in the scene metadata. In Sanghar the pre-event scene is from \radarSangharPre{}, when the monsoon flood was already present, so the change finds water on \radarSangharShare{} of the area against \emsSangharShare{} in the EMS map. In Erftstadt the radar scene of \radarErftstadtScene{} finds water on \radarErftstadtShare{} against \emsErftstadtShare{}, consistent with a flash flood that had drained before the overpass. In Larkana, where an Otsu threshold (\sOneThreshold{}\,dB) on a same-day scene was compared directly with the EMS map, the agreement is IoU \sOneIoU{} (precision \sOneP{}, recall \sOneR{}; per-hexagon Spearman \sOneSpearman{} over \sOneHexes{} hexagons), with radar finding less water (\sOneShareRadar{} against \sOneShareEMS{}): shallow water under crops and between buildings returns more signal than open water.
+
+\textbf{OpenStreetMap-only buildings.} Fused capture with OSM footprints alone: \ablOSMOnlyEHA{} (reference \ablOSMOnlyEHARef{}). The motivation is visible in Larkana, Sindh, 2022: in the \larkHexes{} hexagons that matter, OSM holds \larkOSM{} buildings and the ML footprints \larkMS{}. With OSM alone, exposure in rural Sindh would be close to zero and the ranking would rest on water and roads. With both sources, \larkClosed{} roads are closed (\larkUnderWater{}\,km under water), \larkCut{} hexagons are cut off and \larkBuildingsFlood{} buildings lie in the flood (Fig.~\ref{fig:larkana}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/map_larkana.png}
+\caption{Larkana, Sindh, 30 August 2022: priority per hexagon; dark outlines are cut-off hexagons, red lines roads under water. Buildings from OSM and ML footprints.}
+\label{fig:larkana}
+\end{figure}
+
+\subsection{RQ5: Report trust under attack}\label{sec:trust}
+Our rule: \emph{one report can send someone to look; it cannot send a boat, and neither can several that agree where the satellite has looked and seen no water.} A depth claim counts only when backed by satellite water in the hexagon or a neighbour, by the model's assessment of the photo, or, only where the satellite has not mapped the hexagon at all, by two devices agreeing within one class. A people claim needs the model's count or two devices; satellite water confirms water, never people. Table~\ref{tab:threats} lists the main threats.
 
 \begin{table}[t]
 \caption{Threats and mitigations (full table in \texttt{THREAT\_MODEL.md}).}
@@ -143,9 +200,9 @@ A report-driven ranking invites manipulation. Our rule: \emph{one report can sen
 \toprule
 Threat & Mitigation \\
 \midrule
-Stranger with the public key & Insert-only row-level security; active team code required; team codes unreadable; 30 reports per device per 10\,min \\
-Reused or web photo & 64-bit difference hash against 11,563 CVFD and European Flood 2013 images: $\le$2 bits rejected, 3--6 bits reviewed \\
-Old photo & Capture time over 30 days old or in the future refused; over 72\,h reviewed \\
+Stranger with the public key & Insert-only row-level security; active team code required; team codes unreadable; per-device rate limit \\
+Reused or web photo & 64-bit difference hash against \trustRefs{} CVFD and European Flood 2013 images; $\le$\trustRejectBits{} bits rejected, 3--6 bits reviewed \\
+Old photo & Capture time over 30 days old or in the future refused \\
 One device inflating a hexagon & Each device counts once per hexagon; people are the maximum, not the sum \\
 Gallery photo, spoofed GPS & EXIF first; device fix only if under 10\,min old; confidence from reported accuracy \\
 Colluding devices & Device agreement never overrules a satellite map that says dry \\
@@ -153,263 +210,80 @@ Colluding devices & Device agreement never overrules a satellite map that says d
 \end{tabular}
 \end{table}
 
-\textbf{Duplicate detection.} The hash catches 99.8\% of 500 forwarded copies (half size, JPEG quality 45) but only 21.8\% of 10\% centre crops; at most 0.7\% of unrelated photos (27 of 3,710) fall in the review band, which is why only $\le$2 bits is rejected outright. % results/trust_eval.json, results/README.md section 8
-A cropped copy can pass, but still cannot move priority on its own.
-
-\textbf{Simulated attacks.} We injected synthetic reports into the Prague ranking, 20 draws per scenario, assuming an attacker with a valid team code and photos that pass every check (Table~\ref{tab:attack}). The first version of the rule let two agreeing devices corroborate each other anywhere; that simulation put 7 of 10 colluding pairs into the top ten, and a lone report's people count raised exposure inside mapped water. We changed the rule so that device agreement no longer overrules a mapped-dry satellite and satellite water confirms depth but never people. % results/README.md section 8
-The remaining weakness is the third row: inside water the satellite did map, a fabricated depth claim counts, and displaced on average one of the top ten. A leaked team code admits an outsider until it is retired, and where the satellite has not mapped at all two colluding devices still corroborate each other.
+The hash catches \trustForwarded{} of \trustSample{} forwarded copies but only \trustCropped{} of 10\% centre crops; \trustBandShare{} of unrelated photos (\trustBandN{} of \trustEufloodN{}) fall in the review band, which is why only near-identical hashes are rejected outright. We injected synthetic reports into the Prague ranking, \atkDraws{} draws per scenario, assuming an attacker with a valid team code and photos that pass every check (Table~\ref{tab:attack}). Replaying the first version of the rule, which let two agreeing devices corroborate each other anywhere and let satellite water confirm people, put \permColludeInTop{} of 10 colluding pairs into the top ten (top-10 overlap \permColludeOverlap{}) and on average \permWetInTop{} lone reports inside mapped water there (overlap \permWetOverlap{}), none flagged. The current rule closes both. Its remaining weakness is the third row: inside water the satellite did map, a fabricated depth claim counts and moves the top ten a little. A leaked team code admits an outsider until it is retired.
 
 \begin{table}[t]
-\caption{Simulated attacks on the Prague ranking (20 draws each).}
+\caption{Simulated attacks on the Prague ranking: top-10 overlap with the clean ranking and fake hexagons flagged for verification.}
 \label{tab:attack}
 \centering\scriptsize
-% results/attack_prague.json
-\begin{tabular}{@{}p{40mm}rr@{}}
+\begin{tabular}{@{}p{38mm}rrrr@{}}
 \toprule
-Scenario & Top-10 overlap & Flagged \\
+ & \multicolumn{2}{c}{Current rule} & \multicolumn{2}{c}{First rule} \\
+Scenario & Overlap & Flagged & Overlap & Flagged \\
 \midrule
-50 lone reports, chest-deep, 5 people, mapped-dry & 1.00 & 50/50 \\
-10 colluding device pairs, mapped-dry & 1.00 & 10/10 \\
-50 lone reports inside mapped water & 0.91 & 50/50 \\
+Lone reports, chest-deep, mapped-dry & \atkLoneOverlap{} & \atkLoneFlagged{} & \permLoneOverlap{} & \permLoneFlagged{} \\
+Colluding device pairs, mapped-dry & \atkColludeOverlap{} & \atkColludeFlagged{} & \permColludeOverlap{} & \permColludeFlagged{} \\
+Lone reports inside mapped water & \atkWetOverlap{} & \atkWetFlagged{} & \permWetOverlap{} & \permWetFlagged{} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% ---------------------------------------------------------------------------------------------------------------
-\section{Data}
-
-\textbf{Flood extent.} Five EMS activations~\cite{cems_rapid}: EMSR044, EMSR045 and EMSR046 (Elbe, Vltava and Danube, June 2013), EMSR517 (western Germany, July 2021, including damage grading) and EMSR629 (Sindh, 2022). The Prague and Dresden detail maps are dated 3 June 2013. % data/external/ems/EMSR04{4,5}/*_20130603_*
-
-\textbf{Photos.} The European Flood 2013 set~\cite{barz2018flood}: 3,435 Wikimedia Commons records in our download, 883 with GPS. % results/external_run.json
-
-\textbf{Roads and buildings.} OpenStreetMap~\cite{haklay2008osm} via OSMnx~\cite{boeing2017osmnx}; for Larkana also Microsoft Global ML Building Footprints (release 2026-02-03)~\cite{msbuildings}. Validation runs use Geofabrik extracts dated 18 October 2026; on Erftstadt the extract and the live Overpass API gave identical closed roads (130), staging points (12), road hexagons (213) and cut-off hexagons (26). % results/README.md section 7
-
-\textbf{Depth benchmark.} 300 flooded test images from the Close-View Flood Dataset (CVFD), labelled dry, ankle (2--20\,cm), knee (20--50\,cm), waist (50--100\,cm), chest (100--160\,cm), above head, or unknown; 203 are unknown. % results/release_run.json
-The labels were assigned from contact sheets with an AI assistant and await review by a human annotator. Hashing showed that CVFD contains 2,371 of the 3,710 European Flood 2013 photos and that 20 of its 1,180 test images have a near-copy in training. % results/trust_eval.json, data/DATASET_CARD.md
-Neither affects the pipeline here, which is zero-shot and trains on nothing; it does affect anyone training on CVFD, and the dataset card says so.
-
-% ---------------------------------------------------------------------------------------------------------------
-\section{Results}\label{sec:results}
-
-\subsection{Satellite layers}
-Table~\ref{tab:sat} summarises the five activations. In Sindh, 3,614 of 3,802 mapped hexagons hold water; the German 2021 activation maps 33.8\,km$^2$ of flood inside 5,208.6\,km$^2$ of AOI. % results/satellite_run_EMSR{517,629}.json
-
-\begin{table}[t]
-\caption{Satellite layers, H3 resolution 8.}
-\label{tab:sat}
-\centering\scriptsize
-% results/satellite_run_EMSR{044,045,046,517,629}.json
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Activation & AOI km$^2$ & Flood km$^2$ & Hexagons & Wet \\
-\midrule
-EMSR044 Elbe 2013 & 420.9 & 20.7 & 620 & 200 \\
-EMSR045 Vltava 2013 & 1167.1 & 35.6 & 1674 & 243 \\
-EMSR046 Danube 2013 & 214.6 & 8.5 & 290 & 95 \\
-EMSR517 Germany 2021 & 5208.6 & 33.8 & 7946 & 759 \\
-EMSR629 Sindh 2022 & 2890.7 & 1588.3 & 3802 & 3614 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Validation against damage grading}\label{sec:validation}
-EMSR517 grading products give analysts' damage grades for building points and road segments from post-event imagery. They use neither OpenStreetMap, our routing nor our priority; the one shared input is the product's flood polygons, which we use as flood extent. % results/README.md section 7
-
-\textbf{Road closures.} Over 11 towns, against roads graded possibly damaged, damaged or destroyed, the closure rule's precision rises and recall falls with the required overlap (Table~\ref{tab:roads}); 5\,m gives the best F1. Against damaged or destroyed only, recall at 5\,m is 0.92 and precision 0.41: most roads under water were impassable without visible damage, which a closure rule should capture.
-
-\begin{table}[t]
-\caption{Closure rule vs.\ EMS road damage, 11 towns, EMSR517.}
-\label{tab:roads}
-\centering\scriptsize
-% results/validation_roads.csv, results/README.md section 7
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Overlap needed to close & Precision & Recall & F1 \\
-\midrule
-any (0\,m) & 0.82 & 0.88 & 0.85 \\
-\textbf{5\,m (used)} & \textbf{0.94} & \textbf{0.85} & \textbf{0.89} \\
-15\,m & 0.95 & 0.76 & 0.84 \\
-50\,m & 0.95 & 0.50 & 0.65 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Ranking.} In the four towns with at least 20 damaged or destroyed buildings (Erftstadt, Eschweiler, Wassenberg, Bad Neuenahr-Ahrweiler; 1,143 buildings pooled) we measure the share of those buildings inside the top-ranked hexagons (Table~\ref{tab:rank}). % results/validation_ranking.json (pooled.severe)
-Per town, priority's top-10\% capture is 0.78, 0.69, 0.93 and 0.56. % results/validation_ranking.json (towns.*.severe.priority.top10)
-Priority is far better than water extent alone at the top of the list and keeps finding damage deeper down, where the buildings-only score stops: most flooded hexagons have no OSM building inside the flood polygon, so that score ties at zero. Buildings-only edges priority at the very top because priority also ranks hexagons that are cut off but not damaged, by design; damage is a proxy for need, not the same thing. Only damaged plus destroyed is the target, because ``possibly damaged'' follows flood extent almost mechanically and would reward any extent-based score.
-
-\begin{table}[t]
-\caption{Share of 1,143 damaged or destroyed buildings inside the top-ranked hexagons, four towns pooled.}
-\label{tab:rank}
-\centering\scriptsize
-% results/validation_ranking.json (pooled.severe)
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Ranking & Top 5\% & Top 10\% & Top 20\% & Spearman \\
-\midrule
-random & 0.05 & 0.10 & 0.20 & -- \\
-water fraction alone & 0.21 & 0.63 & 0.92 & 0.25 \\
-buildings in flood alone & 0.72 & 0.78 & 0.78 & 0.47 \\
-priority & 0.66 & 0.75 & 0.91 & 0.27 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Sensitivity.} Across 131 parameter variants, including each weight scaled from $\times$0.5 to $\times$1.5, the Prague ordering is stable (Spearman $\ge$0.98 for every variant) and 86\% of variants keep at least 8 of the top 10 hexagons; those that do not all make hazard dominant, which pulls fully flooded open land to the top. Damage capture moves by up to 15 points per town, but the best setting differs by town (Erftstadt prefers exposure-heavy, Ahrweiler hazard-heavy), and the defaults sit at the median of each town's range. We did not retune: tuning on the validation data would be circular. % results/sensitivity_run.json, results/README.md section 7
-
-\subsection{Photos versus satellite}\label{sec:agreement}
-Of the 883 geotagged photos, 442 fall inside a mapped AOI; 50.2\% have satellite water in their own hexagon and 56.6\% within one ring, and when permanent water is counted as well the share is 100\% for every subgroup, so the hexagon test cannot separate a photo of a high river from one of a flooded street. % results/agreement_euflood_run.json
-Distances resolve this (Table~\ref{tab:dist}, Fig.~\ref{fig:cdf}). In the Dresden-area activation the median unique location is 142\,m from mapped flood and 35\,m from the river: people photographed a flooded floodplain from its dry edge. In the Prague area the median is 3.1\,km from mapped flood and 21\,m from the river channel: the Vltava rose inside its embankments and barriers in the centre, and the map correctly shows no overflow there. % results/README.md section 5
-
-\begin{table}[t]
-\caption{Distance from geotagged photos to mapped flood and river channel, per unique location.}
-\label{tab:dist}
-\centering\scriptsize
-% results/agreement_euflood_run.json, distances.*.per_unique_location
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Activation & $n$ & \multicolumn{2}{c}{Median distance to} & $\le$150\,m of \\
- & & flood & river & flood or river \\
-\midrule
-EMSR044 (Dresden area) & 171 & 142\,m & 35\,m & 92.4\% \\
-EMSR045 (Prague area) & 252 & 3102\,m & 21\,m & 87.7\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+\subsection{Case study: what photos show}\label{sec:cases}
+Of \eufLocated{} geotagged photos of the 2013 Central European floods~\cite{barz2018flood}, \agInAoi{} fall inside an EMS-mapped area; \agOwnHex{} have satellite water in their own hexagon and \agRing{} within one ring, and with permanent water counted the share is \agRingPerm{}, so a hexagon test cannot tell a high river from a flooded street. Distances can (Fig.~\ref{fig:dist}): in the Dresden area the median unique geotag is \agDresdenFlood{}\,m from mapped flood and \agDresdenRiver{}\,m from the river; in the Prague area it is \agPragueFlood{}\,m from mapped flood and \agPragueRiver{}\,m from the river, because the Vltava rose inside its embankments in the centre. On the Prague map of 3 June 2013, \pragueClosed{} roads are closed and \pragueCut{} hexagons cut off; the five highest-ranked hexagons are all cut off, in the southern districts at the Berounka confluence, while the \praguePhotos{} photos inside the mapped area cluster on the central embankments (Fig.~\ref{fig:map}). Photographers were not where the need was.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}
-\begin{semilogxaxis}[width=\columnwidth, height=36mm, xmin=1, xmax=10000, ymin=0, ymax=1,
-  xlabel={Distance (m), per unique location}, ylabel={Cumulative share}, legend pos=south east,
-  legend style={font=\scriptsize}, tick label style={font=\scriptsize}, label style={font=\scriptsize}]
-\addplot[thick, blue] table[x=d, y=p] {figures/cdf_EMSR044_flood.dat};
-\addplot[thick, blue, dashed] table[x=d, y=p] {figures/cdf_EMSR044_river.dat};
-\addplot[thick, red] table[x=d, y=p] {figures/cdf_EMSR045_flood.dat};
-\addplot[thick, red, dashed] table[x=d, y=p] {figures/cdf_EMSR045_river.dat};
-\legend{Dresden area: to flood, Dresden area: to river, Prague area: to flood, Prague area: to river}
-\end{semilogxaxis}
-\end{tikzpicture}
-\caption{Distances from geotagged photos to mapped flood (solid) and river channel (dashed); \texttt{paper/figures/make\_figures.py}.}
-\label{fig:cdf}
+\includegraphics[width=\columnwidth]{figures/fig_distances.pdf}
+\caption{Distances from geotagged 2013 photos to mapped flood (solid) and river channel (dashed), per unique geotag.}
+\label{fig:dist}
 \end{figure}
 
-\subsection{Prague and Dresden, June 2013}
-In Prague, 39 roads are closed by water, 10 hexagons are cut off and 116 OSM buildings lie inside the flood (Table~\ref{tab:cities}). % results/reach_prague_run.json, results/exposure_prague_run.json
-All five highest-ranked hexagons are cut off; they lie in Zbraslav, Lipence, Lahovice and Velk\'a Chuchle, and the top one has 45 buildings affected. % results/hexes_prague_run.json, results/README.md section 6
-The 203 geotagged photos inside the Prague AOI cluster in the centre, kilometres north (Fig.~\ref{fig:map}): photographers were not where the need was. % docs/cities.json (prague.stats.photos)
-The Dresden map is dated 3 June, three days before the Elbe crested; it shows riverside meadows under water, 10 buildings in the flood and no hexagon cut off, and its highest priority is 0.20, the correct reading of that map rather than of the peak. % results/hexes_dresden_run.json
-
-\begin{table}[t]
-\caption{Responder layer, H3 resolution 9, EMS maps of 3 June 2013.}
-\label{tab:cities}
-\centering\scriptsize
-% results/satellite_run_{prague,dresden}.json, reach_*_run.json, exposure_*_run.json, hexes_*_run.json
-\begin{tabular}{@{}lrr@{}}
-\toprule
- & Prague & Dresden \\
-\midrule
-Mapped area / flood (km$^2$) & 260.9 / 5.6 & 77.3 / 1.5 \\
-Hexagons mapped / priority $>0$ & 2612 / 219 & 796 / 71 \\
-Drive-network nodes / staging points & 16935 / 80 & 4950 / 21 \\
-Roads closed / length under water & 39 / 4.22\,km & 4 / 0.27\,km \\
-Hexagons cut off & 10 & 0 \\
-Buildings inside flood & 116 & 10 \\
-Highest priority & 0.796 & 0.201 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.495\textwidth]{figures/map_prague.png}\hfill
-\includegraphics[width=0.495\textwidth]{figures/map_prague_zoom.png}
-\caption{Prague, June 2013, in the Floodline web map. Left: hexagon colour is priority, a dark outline marks a cut-off hexagon, red lines are roads under water, purple points are geotagged photos, open circles are fire stations and green circles hospitals; the photos cluster on the central embankments, the priority lies in the south. Right: the highest-ranked hexagon, in Zbraslav, with the flooded roads that cut it off.}
+\includegraphics[width=\columnwidth]{figures/map_prague.png}
+\caption{Prague, June 2013, in the web map: priority per hexagon, cut-off hexagons outlined, roads under water in red, photos in purple.}
 \label{fig:map}
-\end{figure*}
-
-\subsection{Larkana, Sindh, 2022}
-EMSR629 AOI01 maps Larkana from SPOT-6/7 imagery of 30 August 2022. The scale differs from Europe by two orders of magnitude (Table~\ref{tab:larkana}): 2,320 roads are closed and 678 hexagons are cut off. % results/README.md section 9, results/reach_larkana_run.json
-The five highest-ranked hexagons are all cut off, with 55 to 85 buildings affected each: four around Khokhar and one at Bhai Khan Waggan, Larkana district (Fig.~\ref{fig:larkana}). % docs/cities.json (larkana.top), results/README.md section 9
-
-\textbf{Building coverage is a data finding.} In the 7,663 hexagons that matter, OSM holds 108 buildings and Microsoft's ML footprints 78,848. % results/exposure_larkana_run.json
-With OSM alone, exposure in rural Sindh would be close to zero and the ranking would rest on water and roads. Exposure therefore uses the per-hexagon maximum of the two counts, which fills the gap without counting twice a house both sources map; the European studies keep OSM-only counts, where every validated number was computed.
-
-\textbf{Radar check.} One radiometrically terrain-corrected Sentinel-1A scene from the Planetary Computer~\cite{pc_s1rtc}, acquired 30 August 2022 at 01:26\,UTC, the same day as the SPOT image, was thresholded on VV at 20\,m with Otsu's method~\cite{otsu1979threshold}, with EMS permanent water removed from both masks (Table~\ref{tab:larkana}). % results/sentinel1_larkana_run.json
-Radar agrees with the analysts' map where water is open and finds less water overall, as expected: shallow water under crops and water between buildings return more signal than open water. Sentinel-1 was not in orbit in 2013, so the Prague and Dresden layers have no radar check.
-
-\begin{table}[t]
-\caption{Larkana, 2022: responder layer and Sentinel-1 agreement.}
-\label{tab:larkana}
-\centering\scriptsize
-% results/README.md section 9, results/reach_larkana_run.json, results/sentinel1_larkana_run.json
-\begin{tabular}{@{}lr@{}}
-\toprule
-Mapped area / flood & 964 / 502\,km$^2$ \\
-Hexagons mapped / priority $>0$ & 8926 / 7619 \\
-Roads closed / length under water & 2320 / 365\,km \\
-Hexagons cut off & 678 \\
-Buildings inside flood (OSM or ML, max) & 10175 \\
-\midrule
-Sentinel-1 VV threshold (Otsu) & $-12.9$\,dB \\
-IoU, radar vs.\ EMS & 0.74 \\
-Precision / recall of radar water & 0.94 / 0.78 \\
-Water share, radar / EMS & 0.48 / 0.59 \\
-Spearman, per-hexagon water (8,337 hexagons) & 0.94 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/map_larkana.png}
-\caption{Larkana, 30 August 2022: priority per hexagon; dark outlines are the 678 cut-off hexagons, red lines roads under water.}
-\label{fig:larkana}
 \end{figure}
 
-\subsection{Perception}
-\textbf{Segmentation.} SAM~3~\cite{carion2026sam3} with concept prompts on all 538 flooded evaluation images (686 scored calls) reaches a mean IoU of 0.959 for water (median 0.989, boundary F1 0.960, $n$=482), 0.882 for people (0.945, $n$=138) and 0.775 for buildings (0.948, $n$=229) against the dataset masks. % results/sam3_run.json, results/README.md section 1
-Those masks were made with SAM~3 assistance and manual review, so this partly measures SAM~3 against itself; the gap between mean and median is the set of images a reviewer corrected.
-
-\textbf{Waterline geometry} reads depth from how much of a person, car or door remains visible above the water, and accepts only water touching the object's base at its metric depth~\cite{yang2024depthv2}. A first version that read the submerged fraction from the mask failed by construction, since a mask stops at the waterline. The current version gives an estimate for 135 of 538 images, 40 of them in the benchmark, and is no better there than always answering the commonest class (Table~\ref{tab:waterline}). % results/waterline_run.json, results/README.md section 3
-Its errors are systematic: it recognises dry scenes (10 of 11), calls ankle-deep water knee-deep (7 of 15) and never predicts above head. On 40 AI-labelled images this is a weak result in both directions, but it shows that geometry alone should not decide depth. That is why model-assessed depth enters the ranking only through the corroboration rules of Sec.~\ref{sec:trust}, and why the vision--language path~\cite{bai2025qwen3vl,llamacpp} is evaluated on the same benchmark: \pending{two-pass Qwen3-VL-8B depth accuracy on the benchmark}.
+\subsection{Negative results}
+\textbf{Depth from geometry.} Waterline geometry reads depth from how much of a person, car or door remains visible and accepts only water touching the object's base at its metric depth~\cite{yang2024depthv2}, on SAM~3 instance masks~\cite{carion2026sam3}. It gives an estimate for \wlWithEstimate{} of \wlImages{} images, \wlN{} of them in the depth benchmark, and there it is no better than always answering the commonest class (Table~\ref{tab:waterline}). Its errors are systematic: it recognises dry scenes (\wlDryRight{}) and calls ankle-deep water knee-deep (\wlAnkleKnee{}); the sample holds \wlAboveHeadN{} above-head images. This is why model-assessed depth enters the ranking only as corroboration. The vision--language path~\cite{bai2025qwen3vl,llamacpp} on the same benchmark: exact \vlmExact{}, within one \vlmWithin{}, majority baseline \vlmBaseExact{}. Segmentation itself is not the bottleneck: SAM~3 reaches a mean IoU of \samWaterMean{} for water (median \samWaterMedian{}, $n$=\samWaterN{}), \samPersonMean{} for people and \samBuildingMean{} for buildings on \samImages{} images, against masks that were themselves SAM~3-assisted, so partly circular.
 
 \begin{table}[t]
-\caption{Waterline depth class on the benchmark.}
+\caption{Waterline depth class on the depth benchmark.}
 \label{tab:waterline}
 \centering\scriptsize
-% results/README.md section 3, results/waterline_run.json
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-Method & Exact & Within one & Mean error (bins) & $n$ \\
+Method & Exact & Within one & Mean error, bins & $n$ \\
 \midrule
-v0: submerged fraction & 0.13 & 0.47 & 1.8 & 15 \\
-v1: visible fraction, all 538 images & 0.40 & 0.78 & 0.85 & 40 \\
-always ``ankle'' (commonest class) & 0.38 & 0.83 & -- & 40 \\
+Waterline geometry & \wlExact{} & \wlWithin{} & \wlMAE{} & \wlN{} \\
+Always ``ankle'' (majority) & \wlBaseExact{} & \wlBaseWithin{} & -- & \wlN{} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% ---------------------------------------------------------------------------------------------------------------
-\section{Discussion and Limitations}
+\textbf{Fitted rules.} As RQ3 shows, choosing weights on five floods does not transfer to the sixth; we report the hand-set prior instead.
 
-\textbf{Coverage bias.} The hexagons that most need help have the fewest photos; the ranking therefore rests on satellite extent, access and exposure, and photos refine it only when corroborated.
-\textbf{Damage is a proxy for need.} Priority is validated on one event and against building damage, which misses cut-off but undamaged neighbourhoods by construction. The weights were not tuned on it.
-\textbf{Maps are snapshots.} Each EMS product shows one acquisition; Dresden's 3 June map precedes the crest.
-\textbf{Current OSM, historical flood.} Roads and buildings come from today's OpenStreetMap; closures ordered by authorities, such as bridges, are not in the data.
-\textbf{Building coverage.} OSM is near-complete in the European towns and nearly empty in rural Sindh; exposure there depends on machine-learned footprints, whose quality varies by region.\\
-\textbf{Labels and perception.} The depth benchmark's labels are AI-assisted and await human review, and waterline geometry does not beat the majority class on them.
+\textbf{Leakage in a public dataset.} Hashing for the trust model showed that the Close-View Flood Dataset (CVFD) contains \leakEuflood{} of the \trustEufloodN{} European Flood 2013 photos and that \leakTest{} of its \leakTestN{} test images have a near-copy in training. This does not affect Floodline, whose perception is zero-shot and trains on nothing, but it inflates any classifier trained and tested on CVFD; the dataset card now says so.
 
-% ---------------------------------------------------------------------------------------------------------------
+% ===============================================================================================================
+\section{What a Coordinator Gets, and Reproducibility}
+
+The map shows three layers: the ranked hexagons, the roads closed by water with the hexagons they cut off, and a verification list of report claims that nothing independent backs yet. The ranking answers ``where is damage likely''; the access layer answers ``can a ground team get there'' and is drawn even where it does not move the ranking, which is why RQ2's neutral result does not remove it. Confidence travels with each hexagon, so a high priority resting on one layer reads differently from one that three layers agree on.
+
+Every stage writes a run manifest (code version, parameters, timing) next to its output, and this paper's numbers, tables and data figures are generated from those files by two scripts in the repository; a result that does not exist yet is printed as pending rather than estimated. OSM comes from dated extracts, the benchmark selection is a rule rather than a choice, and the field app's database rules are tested against Postgres in continuous integration.
+
+% ===============================================================================================================
+\section{Threats to Validity}
+
+\textbf{Sample.} EMS grades towns where analysts were asked to look; they are not a random sample of flooded places, and \nTowns{} towns from six events give wide intervals. \textbf{Today's map.} Roads and buildings come from current OSM and ML footprints, not the map at the time of each flood, and closures ordered by authorities are not in the data. \textbf{Damage is a proxy for need.} Graded building damage misses cut-off but undamaged neighbourhoods by construction, which is exactly what access adds; RQ2 can show that access does not hurt damage capture, not that it helps responders. \textbf{One shared input.} The flood polygons used as hazard come from the same EMS products as the grading. \textbf{Depth labels.} The depth benchmark (\depthImages{} images, \depthUnknown{} unknown) was labelled from contact sheets with an AI assistant; a blind human review is pending. \textbf{No deployment.} The field app and trust model have been tested by simulation, not by responders in a live flood.
+
+% ===============================================================================================================
 \section{Conclusion}
-
-Floodline ranks flood hexagons for responders from what the satellite mapped, what the road network still reaches and what is exposed. Its closure rule matches graded road damage at precision 0.94 and recall 0.85, its ranking puts three quarters of graded building damage into the top tenth of hexagons, and reports can direct verification without being able to overrule the satellite. Code, map, field app and depth benchmark are open:
-\url{https://github.com/sunnyallana/floodline},
-\url{https://floodline.sunnyshabanali.dev},
-\url{https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark}.
+Across six floods on four continents, a hand-set fusion of flood extent, buildings and road access puts \capEHA{} of graded damage into the top tenth of hexagons on average and, unlike any single layer, does not collapse on any one flood. Fitting its weights makes it worse on floods it has not seen. Code, benchmark, map, field app and depth benchmark are open: \url{https://github.com/sunnyallana/floodline}, \url{https://floodline.sunnyshabanali.dev}, \url{https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark}.
 
 \section*{Acknowledgment}
-Flood extent and grading \copyright{} European Union, Copernicus EMS; modified Copernicus Sentinel data (2022) via Microsoft Planetary Computer; map data \copyright{} OpenStreetMap contributors (ODbL); Microsoft Global ML Building Footprints; photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
+Flood extent and grading \copyright{} European Union, Copernicus EMS; modified Copernicus Sentinel data via Microsoft Planetary Computer; map data \copyright{} OpenStreetMap contributors (ODbL); Microsoft Global ML Building Footprints; GHSL \copyright{} European Union; photos from Wikimedia Commons via the European Flood 2013 dataset, each under its own licence.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

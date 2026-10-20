@@ -13,8 +13,9 @@ Floodline's inputs or outputs. `results/benchmark_summary.json`, `results/README
 ### Isn't that just "count buildings in the water"?
 
 Pooled, building counts score the same (0.77). The difference is on the worst flood. Building counts fall to
-0.07 in Moramanga, Madagascar, and water extent alone falls to 0.00 in New South Wales. Every single input layer
-fails on at least one flood. The fused priority's worst flood is 0.37. A coordinator does not know in advance
+0.07 in Moramanga, Madagascar, and water extent alone falls to 0.00 in New South Wales. Every building, water,
+exposure or access layer falls to 0.10 or below on at least one flood, and population alone to 0.22. The fused
+priority's worst flood is 0.37. A coordinator does not know in advance
 which kind of flood this is, so robustness is the property that matters. `ablation_per_event` in the summary.
 
 ### Why not learn the weights from the data?
@@ -60,7 +61,8 @@ against a pre-event scene, and a single threshold. Results are in `data_ablation
 
 Two physical failures of change detection are reported, not hidden:
 - it misses water that was already there before the pre-event scene, as in Sanghar's months-long monsoon flood;
-- it misses floods that had drained before the satellite passed, as in Erftstadt.
+- in Erftstadt it finds almost no water on the same day EMS mapped 10.7 km², which is consistent with a flash
+  flood that had largely drained by the radar overpass.
 
 In Larkana the radar map agrees with EMS at IoU 0.74 (`results/sentinel1_larkana_run.json`).
 

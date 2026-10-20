@@ -88,6 +88,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
     <a class="btn" id="paper-link" href="#">Read the paper</a>
     <a class="btn" id="code-link" href="#">Code</a>
     <a class="btn" href="field/">Field app</a>
+    <a class="btn" id="questions-link" href="#">Reviewer questions</a>
   </div>
   <div class="stats" id="stats"></div>
 </div></header>
@@ -133,7 +134,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
   towns, with 95&nbsp;% intervals from a spatial block bootstrap. Random ranking scores 0.10. Pooled, the leading scores sit inside each other's intervals; what separates them is how they do on their worst flood, below.</p>
   <div class="bars" id="ablation" role="img" aria-label="Damage capture by score variant"></div>
   <p class="muted small" id="ablation-note"></p>
-  <h3>Every single layer fails somewhere</h3>
+  <h3>No single layer holds up on every flood</h3>
   <p class="small muted">The same measure within each flood. A layer that looks good pooled can collapse on one kind
   of flood: water extent in the riverine floods, where the whole plain is wet; building counts in Moramanga.
   <span id="robust-claim"></span></p>
@@ -195,7 +196,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
 
 <script>
 const $ = id => document.getElementById(id);
-const f = (v, d = 2) => v === null || v === undefined || Number.isNaN(+v) ? "–" : (Math.abs(+v) < 0.5 * 10 ** -d ? 0 : +v).toFixed(d);
+const f = (v, d = 2) => v === null || v === undefined || Number.isNaN(+v) ? "–" : (Math.abs(+v) < 0.5 * 10 ** -d ? 0 : Math.sign(+v) * Math.round(Math.abs(+v) * 10 ** d + 1e-9) / 10 ** d).toFixed(d);  // half-up, as in the paper
 const pct = v => v === null || v === undefined ? "–" : `${Math.round(100 * v)}%`;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const LABELS = {
@@ -222,6 +223,7 @@ function table(el, head, rows) {
 
 fetch("site.json").then(r => r.json()).then(d => {
   $("paper-link").href = d.links.paper; $("code-link").href = d.links.code;
+  if (d.links.questions) $("questions-link").href = d.links.questions;
   const b = d.benchmark || {};
   $("stats").innerHTML = [
     [d.events.length, "floods on four continents"], [b.towns ?? "–", "graded towns ranked"],

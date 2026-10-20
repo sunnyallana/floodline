@@ -80,6 +80,7 @@ def gather(paths: Paths) -> dict[str, Any]:
             "field": "field/",
             "review": "review/",
             "code": "https://github.com/sunnyallana/floodline",
+            "questions": "https://github.com/sunnyallana/floodline/blob/main/REVIEWER_QUESTIONS.md",
             "paper": "https://github.com/sunnyallana/floodline/blob/main/paper/floodline.pdf",
             "dataset": "https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark",
         },

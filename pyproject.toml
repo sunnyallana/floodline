@@ -42,6 +42,10 @@ geo = [
     "osmnx>=2.0",
     "osmium>=4.3,<5",  # local Geofabrik extracts instead of Overpass (floodline.osm.OsmSource)
 ]
+# Paper figures (paper/figures/make_figures.py)
+paper = [
+    "matplotlib>=3.9",
+]
 dev = [
     "pytest>=8",
     "pytest-cov>=5",

@@ -1,33 +1,47 @@
-# Floodline paper (draft)
+# Floodline paper
 
-IEEE conference format (`IEEEtran`, two columns), 6 pages. One result is still pending (red marker): the two-pass Qwen3-VL depth accuracy on the benchmark. The page budget is full: adding its number should replace text, not add it.
+IEEE conference format (`IEEEtran`, two columns), 7 pages including references. Structured around five research
+questions on the six-event EMS damage-grading benchmark (`results/benchmark_summary.json`).
 
-## Build
+## Every number comes from a result file
 
-From this directory, with MiKTeX or TeX Live (`latexmk` needs Perl; the plain sequence works without it):
+`floodline.tex` contains no result numbers. They come from:
+
+- `numbers.tex`: one `\newcommand` per number, written by `make_numbers.py`; each line ends with a comment
+  naming the file it was read from;
+- `tables/events.tex`, `tables/loeo.tex`: complete tables, written by the same script;
+- `figures/fig_*.pdf`: data figures, drawn by `figures/make_figures.py` from the same files.
+
+A missing file, a missing key or a run that is not finished (`complete` is not true; data ablations with fewer
+towns than the benchmark) becomes `\pending{...}`, typeset as a grey "[pending: ...]" marker. Nothing is
+estimated.
+
+## Regenerate (from the repo root)
 
 ```bash
-../.venv/Scripts/python ../paper/figures/make_figures.py   # from the repo root: refreshes the CDF data files
+.venv/Scripts/python paper/make_numbers.py          # numbers.tex and tables/*.tex; prints what is still pending
+.venv/Scripts/python paper/figures/make_figures.py  # figures/fig_*.pdf (needs matplotlib: pip install matplotlib)
+cd paper
 pdflatex floodline && bibtex floodline && pdflatex floodline && pdflatex floodline
 ```
 
-`figures/make_figures.py` reads `results/agreement_euflood_distances.csv` and writes `figures/cdf_*.dat`, which
-pgfplots draws in Fig. 3. The PNG figures are screenshots of the live web map (re-shot after the 5 m closure rule) and the field app.
+`latexmk` needs Perl under MiKTeX; the plain sequence above works without it. The PNG figures are screenshots of
+the live map (`map_prague.png`, `map_larkana.png`) and the field app (`app_*.png`).
+
+## Still pending
+
+Used in the text: `\ablChangeEHA`, `\ablChangeEHARef` (Sentinel-1 change detection), `\ablOtsuEHA`,
+`\ablOtsuEHARef` (Otsu), `\ablOSMOnlyEHA`, `\ablOSMOnlyEHARef` (OSM-only buildings), `\vlmExact`, `\vlmWithin`,
+`\vlmBaseExact` (two-pass VLM on the depth benchmark). Rerun `make_numbers.py` when those runs finish; the text
+around them was written for the expected direction of the finding and should be re-read once the numbers land.
 
 ## Before submission
 
-- Every red `[pending: ...]` marker is a result the pipeline has not produced yet. Search the source for
-  `\pending` and fill each from its result file; do not submit with any left.
-- Each number in the text is followed by a `%` comment naming the file it came from. Two numbers come from `docs/cities.json` (written by `floodline serve`), not `results/`: the 203 Prague photos
-  and the Larkana top-five building counts. Larkana buildings in flood: `results/exposure_larkana_run.json` says
-- Larkana buildings in flood: resolved. 10,175 are in mapped hexagons (the figure the paper uses); the exposure run's 10,180 includes 5 buildings in 4 hexagons just outside the mapped area (results/README.md section 10).
-- Authorship: the draft lists Sunny Shaban Ali as sole author. The CV lists the final-year paper with
-  co-authors ("first author et al."), so decide whether the supervisor (Musawar Ali) or others should be added.
-- The depth benchmark labels are described as AI-assisted with human review pending. Update the text if the
-  review happens.
-- Target venue page limits and anonymisation rules are not applied yet.
+- Authorship: sole author in the draft; decide whether the supervisor or others should be added.
+- The depth benchmark labels are AI-assisted with a blind human review pending; update Threats to Validity when
+  the review lands.
+- Venue page limits and anonymisation are not applied.
 
 ## References
 
-All 25 entries in `references.bib` were checked against the publisher, arXiv or the project page. Long author
-lists are truncated with "and others" where only the first authors were confirmed.
+27 entries in `references.bib`, each checked against the publisher, arXiv or the project page.
