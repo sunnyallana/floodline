@@ -1,0 +1,106 @@
+{
+ "stage": "attack",
+ "params": {
+  "hexes": "results\\hexes_prague.csv",
+  "draws": 20,
+  "lone": 50,
+  "pairs": 10,
+  "permissive": true
+ },
+ "metrics": {
+  "dry_hexes": 2150,
+  "wet_hexes": 223,
+  "draws": 20,
+  "lone": {
+   "top10_overlap": {
+    "mean": 1.0,
+    "max": 1.0,
+    "min": 1.0
+   },
+   "targets_in_top": {
+    "mean": 0.0,
+    "max": 0.0,
+    "min": 0.0
+   },
+   "targets_raised": {
+    "mean": 0.0,
+    "max": 0.0,
+    "min": 0.0
+   },
+   "targets_flagged": {
+    "mean": 50.0,
+    "max": 50.0,
+    "min": 50.0
+   },
+   "targets": {
+    "mean": 50.0,
+    "max": 50.0,
+    "min": 50.0
+   }
+  },
+  "colluding": {
+   "top10_overlap": {
+    "mean": 0.3,
+    "max": 0.3,
+    "min": 0.3
+   },
+   "targets_in_top": {
+    "mean": 7.0,
+    "max": 7.0,
+    "min": 7.0
+   },
+   "targets_raised": {
+    "mean": 10.0,
+    "max": 10.0,
+    "min": 10.0
+   },
+   "targets_flagged": {
+    "mean": 0.0,
+    "max": 0.0,
+    "min": 0.0
+   },
+   "targets": {
+    "mean": 10.0,
+    "max": 10.0,
+    "min": 10.0
+   }
+  },
+  "wet_exaggeration": {
+   "top10_overlap": {
+    "mean": 0.39,
+    "max": 0.6,
+    "min": 0.2
+   },
+   "targets_in_top": {
+    "mean": 8.35,
+    "max": 10.0,
+    "min": 7.0
+   },
+   "targets_raised": {
+    "mean": 50.0,
+    "max": 50.0,
+    "min": 50.0
+   },
+   "targets_flagged": {
+    "mean": 0.0,
+    "max": 0.0,
+    "min": 0.0
+   },
+   "targets": {
+    "mean": 50.0,
+    "max": 50.0,
+    "min": 50.0
+   }
+  }
+ },
+ "started_at": "2026-10-20T12:04:45+00:00",
+ "finished_at": "2026-10-20T12:04:45+00:00",
+ "seconds": 0.0,
+ "git_sha": "aa07761",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

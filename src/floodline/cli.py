@@ -66,12 +66,14 @@ def build_parser() -> argparse.ArgumentParser:
     rc.add_argument("--ems", required=True, help="EMS directory whose flood extent closes roads")
     rc.add_argument("--staging", nargs="*", default=[], help="lat,lon pairs; default: OSM fire stations, hospitals")
     rc.add_argument("--out", default="reach", help="output stem under results/")
+    rc.add_argument("--osm-pbf", nargs="*", default=[], help="Geofabrik .osm.pbf extracts instead of Overpass")
 
     ex = sub.add_parser("exposure", help="OSM buildings in the flood and in cut-off hexes")
     ex.add_argument("layer_csv", help="satellite layer CSV")
     ex.add_argument("--ems", required=True)
     ex.add_argument("--reach", help="reach CSV, to count buildings in cut-off hexes")
     ex.add_argument("--out", default="exposure.csv")
+    ex.add_argument("--osm-pbf", nargs="*", default=[], help="Geofabrik .osm.pbf extracts instead of Overpass")
 
     sv = sub.add_parser("serve", help="add one city to the static web map (docs/ by default)")
     sv.add_argument("hexes_csv", help="ranked hexes from `floodline fuse`")
@@ -100,6 +102,7 @@ def build_parser() -> argparse.ArgumentParser:
     at = sub.add_parser("attack", help="inject simulated bogus reports into a fused city and measure the damage")
     at.add_argument("hexes_csv")
     at.add_argument("--draws", type=int, default=20)
+    at.add_argument("--permissive", action="store_true", help="ablation: replay the first, weaker corroboration rule")
 
     tr = sub.add_parser("trust", help="re-check ingested field reports; --build-index hashes the reference sets")
     tr.add_argument("--build-index", action="store_true", help="hash CVFD and European Flood 2013 images first")
@@ -198,11 +201,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import reach
 
             cells = pd.read_csv(Path(args.cells_csv)).h3.dropna().astype(str).tolist()
-            staging = [tuple(float(x) for x in s.split(",")) for s in args.staging]
-            reach.run(paths, cells, Path(args.ems), staging or None, out_stem=args.out)
+            staging: list[tuple[float, float]] = []
+            for s in args.staging:
+                lat, lon = (float(x) for x in s.split(","))
+                staging.append((lat, lon))
+            from floodline.osm import OsmSource
+
+            source = OsmSource(args.osm_pbf, paths.data / "external" / "osm" / "extracts")
+            reach.run(paths, cells, Path(args.ems), staging or None, out_stem=args.out, source=source)
         elif args.command == "exposure":
             from pathlib import Path
 
+            from floodline.osm import OsmSource
             from floodline.stages import exposure
 
             exposure.run(
@@ -211,6 +221,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 Path(args.ems),
                 Path(args.reach) if args.reach else None,
                 out_name=args.out,
+                source=OsmSource(args.osm_pbf, paths.data / "external" / "osm" / "extracts"),
             )
         elif args.command == "serve":
             from pathlib import Path
@@ -264,7 +275,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             from floodline.stages import attack
 
-            attack.run(paths, Path(args.hexes_csv), draws=args.draws)
+            attack.run(paths, Path(args.hexes_csv), draws=args.draws, permissive=args.permissive)
         elif args.command == "trust":
             from floodline.stages import trust
 

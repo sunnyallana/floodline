@@ -55,7 +55,9 @@ def run(
         if new % 50 == 0:
             log.info("%d new depth maps", new)
     total = len(list(paths.depth_maps.glob("*.npz")))
-    manifest.finish(images_new=new, images_total=total, s_per_image=round(manifest.seconds / new, 3) if new else None)
+    manifest.finish(
+        images_new=new, images_total=total, s_per_image=round((manifest.seconds or 0.0) / new, 3) if new else None
+    )
     manifest.write(paths.results / "depth_run.json")
     log.info("%d new maps, %d total -> %s", new, total, paths.depth_maps)
     return new

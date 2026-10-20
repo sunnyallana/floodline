@@ -46,7 +46,7 @@ def index_cvfd(root: Path) -> pd.DataFrame:
 
 def summarise(df: pd.DataFrame) -> pd.DataFrame:
     """Image and mask counts per split and label; written next to the index as a human-readable check."""
-    agg = {"images": ("image_id", "size")}
+    agg: dict[str, tuple[str, object]] = {"images": ("image_id", "size")}
     for cls in MASK_CLASSES:
         agg[f"with_{cls}_mask"] = (f"mask_{cls}", lambda s: int(s.notna().sum()))
     return df.groupby(["split", "label"]).agg(**agg).reset_index()

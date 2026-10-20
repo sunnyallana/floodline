@@ -56,6 +56,9 @@ class Weights:
     exposure_scale: float = EXPOSURE_SCALE
     person_weight: float = PERSON_WEIGHT
     delay_saturation_min: float = DELAY_SATURATION_MIN
+    # Ablation only: the first corroboration rule, under which device agreement overruled a mapped-dry
+    # satellite and satellite water also confirmed people. attack.py measures what the stricter rule buys.
+    permissive_corroboration: bool = False
 
 
 def to_cells(df: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Series:
@@ -173,10 +176,12 @@ def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
     people_assessed = _col(h, "people_assessed").astype(float)
     sat_near = _col(h, "satellite_water_near", False).fillna(False).astype(bool)
     mapped_dry = sat.notna() & ~sat_near  # the satellite looked and saw no water here or next door
+    if w.permissive_corroboration:
+        mapped_dry = pd.Series(False, index=h.index)
     devices_agree = (_col(h, "depth_agreeing_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
     people_agree = (_col(h, "people_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
     depth_ok = sat_near | assessed.notna() | devices_agree
-    people_ok = people_assessed.notna() | people_agree
+    people_ok = people_assessed.notna() | people_agree | (sat_near & w.permissive_corroboration)
     has_depth, has_people = claim.notna(), claimed_people > 0
     h["corroborated"] = (has_depth & depth_ok) | (has_people & people_ok)
     h["needs_verification"] = (

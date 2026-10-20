@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from floodline.schema import DepthClass
+
 # Typical heights in centimetres. Ranges are deliberately wide; the bin boundaries absorb the uncertainty.
 REFERENCE_HEIGHTS_CM: dict[str, tuple[float, float]] = {
     "person": (150, 180),  # standing adult, head to ground
@@ -35,7 +37,7 @@ LEVEL_FRACTION: dict[str, float | None] = {
     "above": None,  # water above the whole object: depth is at least the object's height
 }
 
-DEPTH_BINS_CM = [
+DEPTH_BINS_CM: list[tuple[DepthClass, float, float]] = [
     ("dry", 0, 2),
     ("ankle", 2, 20),
     ("knee", 20, 50),
@@ -86,7 +88,7 @@ def estimate_from_object(object_class: str, frac: float) -> DepthEstimate | None
     return DepthEstimate(object_class, frac, lo * frac, hi * frac)
 
 
-def bin_depth(depth_cm: float) -> str:
+def bin_depth(depth_cm: float) -> DepthClass:
     for name, lo, hi in DEPTH_BINS_CM:
         if lo <= depth_cm < hi:
             return name

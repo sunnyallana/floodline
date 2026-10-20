@@ -184,7 +184,8 @@ that are cut off but not damaged, by design: damage is a proxy for need, not the
 hazard-heavy). The defaults sit at the median of each town's range, so there is no evidence for retuning, and
 tuning on this data would be circular. On Prague the full ordering is stable (Spearman >= 0.98 for every
 variant); 86 % of variants keep at least 8 of the top 10 hexagons, and the ones that do not all make hazard
-dominant, which pulls fully flooded open land to the top (`sensitivity_*.csv`, `sensitivity_run.json`).
+dominant, which pulls fully flooded open land to the top (`sensitivity_*.csv`, `sensitivity_run.json`,
+`share_keeping_8_of_top10`).
 
 ## 8. Report trust and simulated attacks
 
@@ -208,9 +209,10 @@ have a valid team code and photos that pass every trust check:
 | 10 pairs of colluding devices in mapped-dry hexagons | 1.00 | 10 of 10 |
 | 50 lone reports inside satellite-mapped water | 0.91 | 50 of 50 |
 
-The first version of the rule let two agreeing devices corroborate each other anywhere; this simulation showed
-7 of 10 colluding pairs reaching the top ten, and a lone report's people count raising exposure inside mapped
-water. Both are closed: device agreement no longer overrules a satellite map that says dry, and satellite water
+The first version of the rule let two agreeing devices corroborate each other anywhere, and let satellite water
+confirm people. Replayed as an ablation (`floodline attack --permissive`, `attack_prague_permissive.json`): 7 of 10
+colluding pairs reached the top ten (top-10 overlap 0.30), and 50 lone reports inside mapped water put on average
+8.35 of their hexagons there (overlap 0.39), none of them flagged. Both are closed: device agreement no longer overrules a satellite map that says dry, and satellite water
 confirms depth but never people. What remains is the third row: inside mapped water, a fabricated depth claim
 counts, which displaced on average one of the top ten.
 

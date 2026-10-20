@@ -25,7 +25,7 @@ import pandas as pd
 from floodline.config import Paths
 from floodline.log import get_logger
 from floodline.runs import RunManifest
-from floodline.stages.fuse import combine, score
+from floodline.stages.fuse import Weights, combine, score
 
 log = get_logger(__name__)
 
@@ -61,12 +61,20 @@ def fake_reports(cells: list[str], devices_per_cell: int, seed: int) -> pd.DataF
     return pd.DataFrame(rows)
 
 
-def _ranked(base: pd.DataFrame, reports: pd.DataFrame | None) -> pd.DataFrame:
-    return score(combine([base], reports)).set_index("h3")
+def _ranked(base: pd.DataFrame, reports: pd.DataFrame | None, weights: Weights | None = None) -> pd.DataFrame:
+    return score(combine([base], reports), weights).set_index("h3")
 
 
-def scenario(base: pd.DataFrame, clean: pd.DataFrame, cells: list[str], devices: int, seed: int, k: int = 10) -> dict:
-    attacked = _ranked(base, fake_reports(cells, devices, seed))
+def scenario(
+    base: pd.DataFrame,
+    clean: pd.DataFrame,
+    cells: list[str],
+    devices: int,
+    seed: int,
+    k: int = 10,
+    weights: Weights | None = None,
+) -> dict:
+    attacked = _ranked(base, fake_reports(cells, devices, seed), weights)
     top_clean = set(clean.priority.sort_values(ascending=False).head(k).index)
     top_attacked = set(attacked.priority.sort_values(ascending=False).head(k).index)
     targets = attacked.loc[cells]
@@ -79,7 +87,17 @@ def scenario(base: pd.DataFrame, clean: pd.DataFrame, cells: list[str], devices:
     }
 
 
-def run(paths: Paths, hexes_csv: Path, draws: int = 20, lone: int = 50, pairs: int = 10, seed: int = 0) -> dict:
+def run(
+    paths: Paths,
+    hexes_csv: Path,
+    draws: int = 20,
+    lone: int = 50,
+    pairs: int = 10,
+    seed: int = 0,
+    permissive: bool = False,
+) -> dict:
+    """``permissive`` replays the first corroboration rule as an ablation (written to ``attack_<city>_permissive``)."""
+    weights = Weights(permissive_corroboration=permissive)
     hexes = pd.read_csv(hexes_csv)
     base = layers_only(hexes)
     clean = _ranked(base, None)
@@ -91,13 +109,19 @@ def run(paths: Paths, hexes_csv: Path, draws: int = 20, lone: int = 50, pairs: i
     results: dict[str, list[dict]] = {"lone": [], "colluding": [], "wet_exaggeration": []}
     for draw in range(draws):
         results["lone"].append(
-            scenario(base, clean, list(rng.choice(dry, size=min(lone, len(dry)), replace=False)), 1, draw)
+            scenario(
+                base, clean, list(rng.choice(dry, size=min(lone, len(dry)), replace=False)), 1, draw, weights=weights
+            )
         )
         results["colluding"].append(
-            scenario(base, clean, list(rng.choice(dry, size=min(pairs, len(dry)), replace=False)), 2, draw)
+            scenario(
+                base, clean, list(rng.choice(dry, size=min(pairs, len(dry)), replace=False)), 2, draw, weights=weights
+            )
         )
         results["wet_exaggeration"].append(
-            scenario(base, clean, list(rng.choice(wet, size=min(lone, len(wet)), replace=False)), 1, draw)
+            scenario(
+                base, clean, list(rng.choice(wet, size=min(lone, len(wet)), replace=False)), 1, draw, weights=weights
+            )
         )
     summary: dict[str, Any] = {"dry_hexes": len(dry), "wet_hexes": len(wet), "draws": draws}
     for name, rows in results.items():
@@ -105,9 +129,9 @@ def run(paths: Paths, hexes_csv: Path, draws: int = 20, lone: int = 50, pairs: i
         summary[name] = {
             c: {"mean": round(float(df[c].mean()), 3), "max": float(df[c].max()), "min": float(df[c].min())} for c in df
         }
-    out = paths.results / f"attack_{hexes_csv.stem.removeprefix('hexes_')}.json"
-    RunManifest("attack", params={"hexes": str(hexes_csv), "draws": draws, "lone": lone, "pairs": pairs}).finish(
-        **summary
-    ).write(out)
+    suffix = "_permissive" if permissive else ""
+    out = paths.results / f"attack_{hexes_csv.stem.removeprefix('hexes_')}{suffix}.json"
+    params = {"hexes": str(hexes_csv), "draws": draws, "lone": lone, "pairs": pairs, "permissive": permissive}
+    RunManifest("attack", params=params).finish(**summary).write(out)
     log.info("attack: %s", summary)
     return summary

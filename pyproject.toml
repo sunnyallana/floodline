@@ -40,11 +40,13 @@ geo = [
     "pystac-client>=0.8",
     "networkx>=3.2",
     "osmnx>=2.0",
+    "osmium>=4.3,<5",  # local Geofabrik extracts instead of Overpass (floodline.osm.OsmSource)
 ]
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
     "ruff>=0.6",
+    "mypy>=1.18",
 ]
 
 [project.urls]
@@ -73,6 +75,22 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # en dashes in prose strings are intent
 "tests/*" = ["S101"]
 "src/floodline/reading_rules.py" = ["E501"]  # regex tables read better on one line
 "src/floodline/stages/serve.py" = ["E501"]  # embedded HTML/JS template
+
+[tool.mypy]
+python_version = "3.12"  # numpy's stubs use 3.12 syntax; tests still run on 3.11 and 3.12
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+files = ["src/floodline"]
+
+[tool.coverage.run]
+source = ["floodline"]
+
+[tool.coverage.report]
+# Model stages (SAM 3, Depth Anything, llama.cpp) need weights and run on the workstation, not in CI; the rest
+# is held to this bar.
+fail_under = 60
+show_missing = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

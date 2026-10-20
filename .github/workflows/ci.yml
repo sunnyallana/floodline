@@ -18,12 +18,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Install (base + dev + geo; model extras are not needed for unit tests)
-        run: pip install -e ".[dev,geo]"
+        # 3.12 installs the locked versions (reproducible); 3.11 resolves fresh, so upstream breakage shows up.
+        run: |
+          if [ "${{ matrix.python-version }}" = "3.12" ]; then
+            pip install -r requirements/lock-geo-dev.txt && pip install --no-deps -e .
+          else
+            pip install -e ".[dev,geo]"
+          fi
       - name: Lint
         run: ruff check .
       - name: Format check
         run: ruff format --check .
-      - name: Tests
+      - name: Type check
+        run: mypy
+      - name: Tests (coverage must stay above the bar in pyproject.toml)
         run: pytest --cov=floodline --cov-report=term-missing
       - name: CLI smoke
         run: floodline --help
@@ -49,3 +57,12 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npx playwright test
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the CPU pipeline image from the lock file
+        run: docker build -t floodline:ci .
+      - name: Smoke test
+        run: docker run --rm floodline:ci --help

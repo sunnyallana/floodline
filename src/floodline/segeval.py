@@ -10,7 +10,7 @@ def load_mask(path, size: tuple[int, int] | None = None) -> np.ndarray:
     """Load a mask as a boolean array. Any non-zero pixel counts as foreground."""
     im = Image.open(path).convert("L")
     if size is not None and im.size != size:
-        im = im.resize(size, Image.NEAREST)
+        im = im.resize(size, Image.Resampling.NEAREST)
     return np.asarray(im) > 0
 
 

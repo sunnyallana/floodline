@@ -189,7 +189,8 @@ function hexDetail(p){
     ['Buildings in flood', fmt(p.buildings_in_flood)], ['Buildings affected', fmt(p.buildings_affected)],
     ['Drive time, normal', p.reach_dry_min==null?'no road':fmt(p.reach_dry_min,1)+' min'],
     ['Drive time, flooded', p.cut_off?'<b>cut off</b>':(p.reach_flood_min==null?'no road':fmt(p.reach_flood_min,1)+' min')],
-    ['Photos here', fmt(p.n_reports)]
+    ['Photos here', fmt(p.n_reports)],
+    ['Reports to verify', p.needs_verification ? '<b>yes</b>' : 'none']
   ];
   document.getElementById('detail').innerHTML = '<table>'+rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')+'</table>';
 }

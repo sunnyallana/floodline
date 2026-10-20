@@ -65,7 +65,7 @@ def build_table(root: Path) -> pd.DataFrame:
                 "lon": lon,
                 "location_tier": "gps" if located else "none",
                 "location_confidence": TIER_CONFIDENCE["gps" if located else "none"],
-                "h3": h3_index(lat, lon) if located else None,
+                "h3": h3_index(float(lat), float(lon)) if located and lat is not None and lon is not None else None,
                 "captured_at": r.get("capture_time"),
                 "license": r.get("license"),
                 "artist": r.get("artist"),

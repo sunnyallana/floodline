@@ -31,7 +31,8 @@
    "spearman_live": {
     "min": 0.984,
     "median": 0.998
-   }
+   },
+   "share_keeping_8_of_top10": 0.863
   },
   "hexes_dresden": {
    "top5_overlap": {
@@ -49,7 +50,8 @@
    "spearman_live": {
     "min": 0.983,
     "median": 0.998
-   }
+   },
+   "share_keeping_8_of_top10": 1.0
   },
   "damage_aoi07": {
    "default_top10": 0.781,
@@ -80,10 +82,10 @@
    }
   }
  },
- "started_at": "2026-10-20T11:39:35+00:00",
- "finished_at": "2026-10-20T11:39:42+00:00",
+ "started_at": "2026-10-20T12:04:50+00:00",
+ "finished_at": "2026-10-20T12:04:56+00:00",
  "seconds": 6.5,
- "git_sha": "d9f6d9e",
+ "git_sha": "aa07761",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

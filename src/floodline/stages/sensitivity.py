@@ -94,7 +94,10 @@ def run(paths: Paths, hexes_csvs: list[Path], validation_dir: Path | None = None
         hexes = pd.read_csv(path)
         table = stability(hexes)
         table.to_csv(paths.results / f"sensitivity_{path.stem}.csv", index=False)
-        summary[path.stem] = _summary(table)
+        summary[path.stem] = {
+            **_summary(table),
+            "share_keeping_8_of_top10": round(float((table.top10_overlap >= 0.8).mean()), 3),
+        }
     if validation_dir is not None:
         for ranking in sorted(validation_dir.glob("ranking_*.csv")):
             key = ranking.stem.removeprefix("ranking_")

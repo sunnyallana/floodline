@@ -47,7 +47,7 @@ def run(paths: Paths, n: int = 300, per_sheet: int = 12, seed: int = 0, split: s
         draw = ImageDraw.Draw(sheet)
         sheet_name = f"sheet_{start // per_sheet:02d}.png"
         for i, (_, r) in enumerate(chunk.iterrows()):
-            im = Image.open(paths.cvfd / r.image_path).convert("RGB").resize((TILE, TILE), Image.BICUBIC)
+            im = Image.open(paths.cvfd / r.image_path).convert("RGB").resize((TILE, TILE), Image.Resampling.BICUBIC)
             x, y = (i % COLS) * TILE, (i // COLS) * (TILE + HEADER)
             sheet.paste(im, (x, y + HEADER))
             draw.rectangle([x, y, x + TILE, y + HEADER - 2], fill="black")

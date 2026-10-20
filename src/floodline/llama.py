@@ -174,4 +174,4 @@ def upscale(image: Image.Image, size: int) -> Image.Image:
     """Bicubic upscale of small sources so the vision encoder sees more than a thumbnail. No-op if already larger."""
     if max(image.size) >= size:
         return image
-    return image.resize((size, size), Image.BICUBIC)
+    return image.resize((size, size), Image.Resampling.BICUBIC)

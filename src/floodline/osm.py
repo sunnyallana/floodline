@@ -160,7 +160,7 @@ def coverage(pbf, bounds) -> float:
     return read_poly(poly).intersection(b).area / b.area
 
 
-def pick_extract(pbfs, bounds) -> object | None:
+def pick_extract(pbfs, bounds):
     """The extract containing ``bounds``; failing that, the one covering most of it if that is >= 90 %.
 
     The partial case is a road buffer that crosses a regional or national border: roads beyond the border are
@@ -210,12 +210,12 @@ def extract(pbf, bounds: tuple[float, float, float, float], out, kind: str):
         fp = osmium.FileProcessor(str(pbf)).with_locations(index).with_filter(osmium.filter.KeyFilter(*keys))
         with osmium.BackReferenceWriter(str(tmp), ref_src=str(pbf), overwrite=True) as writer:
             for obj in fp:
-                if obj.is_way():
+                if isinstance(obj, osmium.osm.Way):
                     if kind == "drive" and not is_drivable(obj.tags):
                         continue
                     if any(n.location.valid() and inside(n.location.lon, n.location.lat) for n in obj.nodes):
                         writer.add_way(obj)
-                elif obj.is_node() and kind == "features" and "amenity" in obj.tags:
+                elif isinstance(obj, osmium.osm.Node) and kind == "features" and "amenity" in obj.tags:
                     if inside(obj.location.lon, obj.location.lat):
                         writer.add_node(obj)
         del fp  # release the node index before the scratch directory is removed

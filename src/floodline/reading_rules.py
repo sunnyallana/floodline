@@ -123,9 +123,10 @@ def read_from_text(description: str) -> RuleReading | None:
                         matched_object=m.group(0),
                         matched_level=lm.group(0),
                     )
-        if _DRY.search(window):
+        dry = _DRY.search(window)
+        if dry:
             return RuleReading(
-                DepthReading(reference_object=obj, water_level="not_touching", basis=_DRY.search(window).group(0)),
+                DepthReading(reference_object=obj, water_level="not_touching", basis=dry.group(0)),
                 matched_object=m.group(0),
                 matched_level="dry",
             )

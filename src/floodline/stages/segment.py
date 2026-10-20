@@ -102,7 +102,11 @@ def _to_segmentation(masks: Any, size_hw: tuple[int, int]) -> Segmentation:
     m = m if m.dtype == bool else m > 0.5
     if m.shape[-2:] != tuple(size_hw):
         m = np.stack(
-            [np.asarray(Image.fromarray(x.astype(np.uint8) * 255).resize(size_hw[::-1], Image.NEAREST)) > 0 for x in m]
+            [
+                np.asarray(Image.fromarray(x.astype(np.uint8) * 255).resize(size_hw[::-1], Image.Resampling.NEAREST))
+                > 0
+                for x in m
+            ]
         )
     labels = np.zeros(size_hw, np.uint8)
     for i, inst in enumerate(m[:255]):
@@ -203,5 +207,5 @@ def overlay(paths: Paths, image_ids: Sequence[str], out: Path | None = None, sca
         rows.append(np.concatenate([img, pred, gt_img], axis=1))
     sheet = np.concatenate(rows, axis=0).astype(np.uint8)
     out = out or paths.results / "sam3_preview.png"
-    Image.fromarray(sheet).resize((sheet.shape[1] * scale, sheet.shape[0] * scale), Image.NEAREST).save(out)
+    Image.fromarray(sheet).resize((sheet.shape[1] * scale, sheet.shape[0] * scale), Image.Resampling.NEAREST).save(out)
     return out

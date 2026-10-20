@@ -4,7 +4,8 @@
   "hexes": "results\\hexes_prague.csv",
   "draws": 20,
   "lone": 50,
-  "pairs": 10
+  "pairs": 10,
+  "permissive": false
  },
  "metrics": {
   "dry_hexes": 2150,
@@ -92,10 +93,10 @@
    }
   }
  },
- "started_at": "2026-10-20T11:35:20+00:00",
- "finished_at": "2026-10-20T11:35:20+00:00",
+ "started_at": "2026-10-20T12:04:49+00:00",
+ "finished_at": "2026-10-20T12:04:49+00:00",
  "seconds": 0.0,
- "git_sha": "d9f6d9e",
+ "git_sha": "aa07761",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

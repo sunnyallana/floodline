@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use Floodline or its results, please cite it as below."
+title: "Floodline: ranking where flood responders are needed from satellite flood extent, road access, building exposure and field reports"
+type: software
+authors:
+  - family-names: "Shaban Ali"
+    given-names: "Sunny"
+    affiliation: "FAST-NUCES, Karachi"
+repository-code: "https://github.com/sunnyallana/floodline"
+url: "https://floodline.sunnyshabanali.dev"
+license: MIT
+version: "0.3.0"
+date-released: "2026-10-20"
+keywords:
+  - flood
+  - disaster response
+  - remote sensing
+  - Copernicus EMS
+  - OpenStreetMap
+  - H3
+  - accessibility
+references:
+  - type: dataset
+    title: "Flood Depth Benchmark"
+    authors:
+      - family-names: "Shaban Ali"
+        given-names: "Sunny"
+    url: "https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark"
+    year: 2026
