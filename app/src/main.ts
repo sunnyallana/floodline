@@ -1,21 +1,28 @@
 import "./styles.css";
 import { registerSW } from "virtual:pwa-register";
 import { APP_VERSION, uploadConfig, uploadsConfigured } from "./config";
+import { capturedWhen, peopleSummary, savedMessage, statusLabel, TEAM_CODE_MIN, teamCodeHint } from "./copy";
+import { depthPictogram, icon, type IconName } from "./icons";
 import { type Fix, FixTracker, describe, resolveLocation } from "./location";
+import { haptic, prefersReducedMotion } from "./motion";
 import { preparePhoto, type PreparedPhoto } from "./photo";
 import { buildReport, clampCount, newItem } from "./report";
 import { IdbQueue, requestPersistence } from "./store";
+import { attachSwipe } from "./swipe";
 import { Syncer } from "./sync";
 import { DEPTH_CLASSES, DEPTH_LABELS, NOTE_MAX, type DepthClass, type QueueItem } from "./types";
 
 const SETTINGS_KEY = "floodline.field.settings";
 const DEVICE_KEY = "floodline.field.device";
 const RETRY_INTERVAL_MS = 60_000;
+const SWIPE_REVEAL_PX = 88;
 
 interface Settings {
   teamCode: string;
   consentAt: string;
 }
+
+type Tab = "capture" | "outbox" | "setup";
 
 const $ = <T extends HTMLElement>(sel: string, root: ParentNode = document): T => {
   const el = root.querySelector<T>(sel);
@@ -50,13 +57,29 @@ function saveSettings(s: Settings): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 }
 
+// ---------------------------------------------------------------- feedback
 let toastTimer: number | undefined;
-function toast(message: string): void {
+function toast(message: string, kind: "success" | "error" | "info" = "info"): void {
   const el = $("#toast");
-  el.textContent = message;
+  const glyph: Record<typeof kind, IconName | null> = { success: "check", error: "alert", info: null };
+  const g = glyph[kind];
+  el.innerHTML = `${g ? icon(g) : ""}<span></span>`;
+  $("span", el).textContent = message;
+  el.dataset.kind = kind;
   el.hidden = false;
+  // Visual, sound-free haptic and the announcement land on the same frame.
+  requestAnimationFrame(() => {
+    el.classList.add("in");
+    if (kind !== "info") haptic(kind);
+  });
   window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => (el.hidden = true), 4000);
+  toastTimer = window.setTimeout(() => {
+    el.classList.remove("in");
+    // Leaves along the path it came in on; hidden only if no newer toast arrived meanwhile.
+    window.setTimeout(() => {
+      if (!el.classList.contains("in")) el.hidden = true;
+    }, prefersReducedMotion() ? 0 : 260);
+  }, 4000);
 }
 
 const thumbUrls = new Map<string, string>();
@@ -69,18 +92,46 @@ function thumbUrl(item: QueueItem): string {
   return url;
 }
 
+/** The compact title in the bar appears once the large title has scrolled under it, as on iOS. */
+let titleObserver: IntersectionObserver | null = null;
+function largeTitle(view: HTMLElement): void {
+  titleObserver?.disconnect();
+  const bar = $("#bar");
+  const h1 = [...view.querySelectorAll<HTMLElement>("h1")].find((h) => !h.closest("[hidden]"));
+  $("#bar-title").textContent = h1?.textContent ?? "";
+  bar.classList.remove("titled");
+  if (!h1 || typeof IntersectionObserver === "undefined") return;
+  titleObserver = new IntersectionObserver(([e]) => bar.classList.toggle("titled", !e!.isIntersecting), {
+    rootMargin: `-${bar.offsetHeight}px 0px 0px 0px`,
+  });
+  titleObserver.observe(h1);
+}
+
 async function main(): Promise<void> {
   registerSW({ immediate: true });
   void requestPersistence();
+  // iOS only applies :active on elements when a touch listener exists; press feedback must start on touch-down.
+  document.addEventListener("touchstart", () => {}, { passive: true });
+  for (const [id, name] of [["tab-capture", "camera"], ["tab-outbox", "tray"], ["tab-setup", "gear"]] as const)
+    $(`#${id}`).innerHTML = icon(name);
+  window.addEventListener("scroll", () => $("#bar").classList.toggle("scrolled", window.scrollY > 2), { passive: true });
+
   const queue = await IdbQueue.open();
   const view = $("#view");
 
   const refreshBar = async (): Promise<void> => {
     const net = $("#net");
-    net.textContent = navigator.onLine ? "Online" : "Offline";
-    net.className = `chip ${navigator.onLine ? "online" : "offline"}`;
+    net.innerHTML = navigator.onLine ? `<i class="dot good"></i>Online` : `${icon("wifiOff")}Offline`;
+    net.className = `net ${navigator.onLine ? "online" : "offline"}`;
     const pending = (await queue.all()).filter((i) => i.status !== "sent").length;
-    $("#pending").textContent = String(pending);
+    const badge = $("#pending");
+    if (badge.textContent !== String(pending)) {
+      badge.textContent = String(pending);
+      badge.classList.remove("bump");
+      void badge.offsetWidth;
+      badge.classList.add("bump");
+    }
+    badge.dataset.zero = String(pending === 0);
   };
 
   const syncer = new Syncer(queue, uploadConfig, undefined, Date.now, () => {
@@ -90,42 +141,85 @@ async function main(): Promise<void> {
   const sync = async (force = false): Promise<void> => {
     if (!uploadsConfigured() || !navigator.onLine) return;
     const r = await syncer.run(force);
-    if (r.sent) toast(r.sent === 1 ? "1 report sent." : `${r.sent} reports sent.`);
+    if (r.sent) toast(r.sent === 1 ? "1 report sent." : `${r.sent} reports sent.`, "success");
+  };
+
+  const setTab = (tab: Tab): void => {
+    document.querySelectorAll<HTMLAnchorElement>("#tabs a").forEach((a) => {
+      if (a.dataset.tab === tab) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+  };
+
+  /** New content fades in without blocking input; tabs are peers, so there is no spatial slide. */
+  const show = (html: string): void => {
+    view.innerHTML = html;
+    view.classList.remove("enter");
+    void view.offsetWidth;
+    view.classList.add("enter");
   };
 
   // ---------------------------------------------------------------- setup
   const renderSetup = (): void => {
     const s = loadSettings();
-    view.innerHTML = `
-      <h1>Set up this phone</h1>
-      <p class="muted">Your coordinator gives you a team code. Reports go only to that team.</p>
-      <form id="setup" class="stack" novalidate>
-        <label class="field">Team code
-          <input id="team" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="8" maxlength="64"
-            required value="${esc(s?.teamCode ?? "")}" />
-        </label>
-        <div class="card stack">
-          <strong>What is shared</strong>
-          <span class="muted">The photo, the time, where it was taken, and what you tag. Only your coordination
-          team sees photos. The public map shows counts per area, never a photo or an exact point.</span>
-          <span class="muted">Avoid faces and number plates when you can. Never put yourself at risk for a photo.</span>
-          <label class="check"><input id="consent" type="checkbox" ${s ? "checked" : ""} required />
-            <span>I understand, and the people in my photos are not identifiable without need.</span></label>
+    document.body.classList.remove("composing");
+    setTab("setup");
+    show(`
+      <h1>${s ? "Settings" : "Set up this phone"}</h1>
+      <p class="lede">Your coordinator gives you a team code. Reports go only to that team.</p>
+      <form id="setup" novalidate>
+        <div class="group">
+          <label class="row-field">
+            <span>Team code</span>
+            <input id="team" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"
+              minlength="${TEAM_CODE_MIN}" maxlength="64" required value="${esc(s?.teamCode ?? "")}"
+              aria-describedby="team-hint" placeholder="Required" />
+          </label>
         </div>
-        <p id="setup-error" class="muted" role="alert"></p>
+        <p id="team-hint" class="hint">${esc(teamCodeHint(s?.teamCode ?? ""))}</p>
+
+        <h2 class="section">What is shared</h2>
+        <ul class="group list">
+          <li>${icon("photo")}<span>The photo, the time, where it was taken and what you tag.</span></li>
+          <li>${icon("shield")}<span>Only your coordination team sees photos. The public map shows counts per area,
+            never a photo or an exact point.</span></li>
+          <li>${icon("eye")}<span>Avoid faces and number plates when you can. Never put yourself at risk for a photo.</span></li>
+        </ul>
+        <label class="group consent"><input id="consent" type="checkbox" ${s ? "checked" : ""} required />
+          <span>I understand, and the people in my photos are not identifiable without need.</span></label>
+        <p id="setup-error" class="error" role="alert"></p>
         <button class="primary big" type="submit">Save</button>
       </form>
-      ${uploadsConfigured() ? "" : `<p class="card notice muted">Uploads are not configured in this build. Reports are kept on the phone.</p>`}
-      <p class="muted">Version ${esc(APP_VERSION)}</p>`;
+      ${uploadsConfigured() ? "" : `<p class="notice">${icon("alert")}<span>Uploads are not set up in this build. Reports stay on this phone.</span></p>`}
+      <p class="footnote">Floodline Field ${esc(APP_VERSION)} · works offline</p>`);
+    const team = $<HTMLInputElement>("#team");
+    const hint = $("#team-hint");
+    team.addEventListener("input", () => {
+      hint.textContent = teamCodeHint(team.value);
+      hint.classList.toggle("good", team.value.trim().length >= TEAM_CODE_MIN);
+      $("#setup-error").textContent = "";
+    });
+    hint.classList.toggle("good", team.value.trim().length >= TEAM_CODE_MIN);
     $("#setup").addEventListener("submit", (e) => {
       e.preventDefault();
-      const code = $<HTMLInputElement>("#team").value.trim();
+      const code = team.value.trim();
       const err = $("#setup-error");
-      if (code.length < 8) return void (err.textContent = "The team code has at least 8 characters.");
-      if (!$<HTMLInputElement>("#consent").checked) return void (err.textContent = "Please confirm before continuing.");
+      if (code.length < TEAM_CODE_MIN) {
+        err.textContent = `The team code has at least ${TEAM_CODE_MIN} characters.`;
+        haptic("error");
+        return team.focus();
+      }
+      if (!$<HTMLInputElement>("#consent").checked) {
+        err.textContent = "Please confirm before continuing.";
+        haptic("error");
+        return;
+      }
+      const first = !s;
       saveSettings({ teamCode: code, consentAt: new Date().toISOString() });
+      if (!first) toast("Settings saved.", "success");
       location.hash = "#capture";
     });
+    largeTitle(view);
   };
 
   // ---------------------------------------------------------------- capture
@@ -133,48 +227,58 @@ async function main(): Promise<void> {
   const renderCapture = (): void => {
     const settings = loadSettings();
     if (!settings) return void (location.hash = "#setup");
+    document.body.classList.remove("composing");
+    setTab("capture");
     let prepared: PreparedPhoto | null = null;
     let previewUrl: string | null = null;
     let fix: Fix | null = null;
     let fixError: string | null = null;
     const counts = { peopleVisible: 0, peopleInWater: 0, peopleElevated: 0 };
 
-    view.innerHTML = `
-      <section id="pick" class="stack">
+    show(`
+      <section id="pick">
         <h1>New report</h1>
-        <p class="muted">Take the photo where you stand. Include something of known height in the water if you
-        can: a person, a car, a door.</p>
-        <label class="button primary big" for="camera">Take photo</label>
+        <p class="lede">Take the photo where you stand.</p>
+        <label class="shutter" for="camera">${icon("camera", "ico big")}<span>Take photo</span></label>
         <input id="camera" class="visually-hidden" type="file" accept="image/*" capture="environment" />
-        <label class="button big" for="gallery">Choose from gallery</label>
+        <label class="button secondary big" for="gallery">${icon("photo")}Choose from gallery</label>
         <input id="gallery" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" />
-        <div class="loc"><span id="fix-dot" class="dot"></span><span id="fix-text" class="muted">Finding location…</span></div>
+        <p class="locpill"><span id="fix-dot" class="dot pulse"></span><span id="fix-text">Finding location…</span></p>
+        <h2 class="section">A good report</h2>
+        <ul class="group list">
+          <li>${icon("ruler")}<span>Show something of known height in the water: a person, a car, a door.</span></li>
+          <li>${icon("shield")}<span>Stay out of the water. No photo is worth the risk.</span></li>
+          <li>${icon("wifiOff")}<span>No signal? The report waits on this phone and sends itself later.</span></li>
+        </ul>
       </section>
-      <form id="details" class="stack" hidden>
-        <img id="preview" class="preview" alt="The photo you just took" />
-        <div class="loc"><span id="loc-dot" class="dot"></span><span id="loc-text"></span></div>
-        <h2>People</h2>
-        <div class="card">
+      <form id="details" hidden>
+        <h1>Report details</h1>
+        <figure class="photo">
+          <img id="preview" alt="The photo you just took" />
+          <figcaption class="locchip"><span id="loc-dot" class="dot"></span><span id="loc-text"></span></figcaption>
+        </figure>
+        <h2 class="section">People</h2>
+        <div class="group">
           ${stepper("peopleVisible", "Visible in the photo")}
           ${stepper("peopleInWater", "In the water")}
           ${stepper("peopleElevated", "On roofs or trapped up high")}
         </div>
-        <h2>Water depth</h2>
-        <fieldset class="depths" style="border:0;padding:0;margin:0">
-          <legend class="visually-hidden">Water depth</legend>
+        <h2 class="section" id="depth-h">Water depth</h2>
+        <p class="section-note">Where would the water reach on a standing adult?</p>
+        <fieldset class="depths" aria-labelledby="depth-h">
           ${DEPTH_CLASSES.map(
-            (d) => `<label><input type="radio" name="depth" value="${d}" ${d === "unknown" ? "checked" : ""} />
-              <span><b>${DEPTH_LABELS[d].label}</b><small>${DEPTH_LABELS[d].hint}</small></span></label>`,
+            (d) => `<label class="tile"><input type="radio" name="depth" value="${d}" ${d === "unknown" ? "checked" : ""} />
+              <span class="tile-body">${depthPictogram(d)}<span class="tile-text"><b>${DEPTH_LABELS[d].label}</b><small>${DEPTH_LABELS[d].hint}</small></span></span></label>`,
           ).join("")}
         </fieldset>
-        <label class="field">Note <span class="muted" style="font-weight:400">(optional)</span>
-          <textarea id="note" maxlength="${NOTE_MAX}" placeholder="Road blocked, current strong, boat needed…"></textarea>
+        <label class="note"><span class="section">Note <span class="opt">optional</span></span>
+          <span class="group"><textarea id="note" maxlength="${NOTE_MAX}" placeholder="Road blocked, current strong, boat needed…"></textarea></span>
         </label>
-        <div class="row">
+        <div class="actionbar">
           <button id="discard" type="button">Discard</button>
           <button class="primary" type="submit">Save report</button>
         </div>
-      </form>`;
+      </form>`);
 
     const showFix = (): void => {
       const dot = $("#fix-dot");
@@ -183,7 +287,7 @@ async function main(): Promise<void> {
         dot.className = `dot ${fix.accuracyM <= 50 ? "good" : "fair"}`;
         text.textContent = `Location ready, ±${Math.round(fix.accuracyM)} m`;
       } else {
-        dot.className = `dot ${fixError ? "none" : ""}`;
+        dot.className = `dot ${fixError ? "none" : "pulse"}`;
         text.textContent = fixError ?? "Finding location…";
       }
     };
@@ -191,7 +295,7 @@ async function main(): Promise<void> {
     tracker = new FixTracker(navigator.geolocation, (f, e) => {
       fix = f;
       fixError = e;
-      if (document.contains($("#fix-text"))) showFix();
+      if (document.contains(document.querySelector("#fix-text"))) showFix();
     });
     tracker.start();
 
@@ -202,7 +306,7 @@ async function main(): Promise<void> {
       try {
         prepared = await preparePhoto(file);
       } catch {
-        toast("That file could not be read as a photo.");
+        toast("That file could not be read as a photo.", "error");
         return;
       }
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -213,7 +317,10 @@ async function main(): Promise<void> {
       $("#loc-text").textContent = describe(loc);
       $("#pick").hidden = true;
       $("#details").hidden = false;
-      $("#details").scrollIntoView({ block: "start" });
+      // Composing is a focused task: the tab bar steps aside and the actions take its place at the bottom.
+      document.body.classList.add("composing");
+      window.scrollTo({ top: 0 });
+      largeTitle(view);
     };
     $<HTMLInputElement>("#camera").addEventListener("change", (e) => void onFile(e.target as HTMLInputElement));
     $<HTMLInputElement>("#gallery").addEventListener("change", (e) => void onFile(e.target as HTMLInputElement));
@@ -225,10 +332,23 @@ async function main(): Promise<void> {
         // Everyone in the water or up high is also visible; keep the total in step so what is shown is what is sent.
         const floor = counts.peopleInWater + counts.peopleElevated;
         counts.peopleVisible = Math.max(counts.peopleVisible, floor);
-        for (const k of Object.keys(counts) as (keyof typeof counts)[]) $(`#out-${k}`).textContent = String(counts[k]);
+        for (const k of Object.keys(counts) as (keyof typeof counts)[]) {
+          const out = $(`#out-${k}`);
+          if (out.textContent !== String(counts[k])) {
+            out.textContent = String(counts[k]);
+            out.classList.remove("tick");
+            void out.offsetWidth;
+            out.classList.add("tick");
+          }
+          view.querySelector<HTMLButtonElement>(`[data-key="${k}"][data-step="-1"]`)!.disabled =
+            counts[k] === 0 || (k === "peopleVisible" && counts[k] <= floor);
+        }
       }),
     );
-    $("#discard").addEventListener("click", () => renderCapture());
+    $("#discard").addEventListener("click", () => {
+      window.scrollTo({ top: 0 });
+      renderCapture();
+    });
     $("#details").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!prepared) return;
@@ -249,48 +369,58 @@ async function main(): Promise<void> {
       );
       await queue.put(newItem(report, prepared.photo, prepared.thumb, now));
       await refreshBar();
-      toast(navigator.onLine && uploadsConfigured() ? "Saved. Sending now." : "Saved. It will send when there is signal.");
+      toast(savedMessage(navigator.onLine, uploadsConfigured()), "success");
+      window.scrollTo({ top: 0 });
       renderCapture();
       void sync();
     });
+    largeTitle(view);
   };
 
   // ---------------------------------------------------------------- outbox
   const renderOutbox = async (): Promise<void> => {
+    document.body.classList.remove("composing");
+    setTab("outbox");
     const items = await queue.all();
-    const label: Record<QueueItem["status"], string> = {
-      queued: "Waiting for signal",
-      uploading: "Sending…",
-      sent: "Sent",
-      failed: "Not accepted",
-    };
-    view.innerHTML = `
+    const configured = uploadsConfigured();
+    const waiting = items.filter((i) => i.status !== "sent").length;
+    const sent = items.length - waiting;
+    const now = Date.now();
+    const glyph: Record<QueueItem["status"], IconName> = { queued: "clock", uploading: "up", sent: "check", failed: "alert" };
+    show(`
       <h1>Outbox</h1>
-      <div class="row" style="margin-bottom:12px">
-        <button id="send-now" class="primary" ${uploadsConfigured() ? "" : "disabled"}>Send now</button>
-        <a class="button" href="#setup">Settings</a>
+      <div class="summary group">
+        <div class="counts"><span><b>${waiting}</b> waiting</span><span><b>${sent}</b> sent</span></div>
+        <button id="send-now" class="primary" ${configured && waiting ? "" : "disabled"}>${icon("up")}Send now</button>
       </div>
-      ${items.length === 0 ? `<p class="muted">No reports yet.</p>` : ""}
-      ${items
-        .map(
-          (i) => `<div class="card item" data-id="${esc(i.id)}">
-            <img src="${thumbUrl(i)}" alt="" />
-            <div>
-              <div class="status ${i.status}">${label[i.status]}</div>
-              <div class="muted">${esc(new Date(i.report.capturedAt).toLocaleString())} · ${esc(describe(i.report.location))}</div>
-              <div class="muted">${DEPTH_LABELS[i.report.depthGuess].label} · ${i.report.peopleVisible === 1 ? "1 person" : `${i.report.peopleVisible} people`}${
-                i.report.note ? ` · ${esc(i.report.note.slice(0, 80))}` : ""
-              }</div>
-              ${i.lastError && i.status !== "sent" ? `<div class="muted">${esc(i.lastError)}</div>` : ""}
-              <div class="actions">
-                ${i.status === "failed" ? `<button data-act="retry">Try again</button>` : ""}
-                ${i.status !== "uploading" ? `<button data-act="delete">${i.status === "sent" ? "Remove" : "Delete"}</button>` : ""}
+      ${configured ? "" : `<p class="notice">${icon("alert")}<span>Uploads are not set up in this build. Reports stay on this phone.</span></p>`}
+      ${
+        items.length === 0
+          ? `<div class="empty">${icon("tray", "ico big")}<p>No reports yet.</p><a class="button primary" href="#capture">${icon("camera")}New report</a></div>`
+          : `<p class="section-note">Swipe a report left to delete it.</p><ul class="group rows">${items
+              .map(
+                (i) => `<li class="swipe" data-id="${esc(i.id)}">
+            <button class="swipe-action" data-act="delete" tabindex="-1" aria-hidden="true">Delete</button>
+            <div class="swipe-content item">
+              <img src="${thumbUrl(i)}" alt="" />
+              <div class="item-body">
+                <div class="item-top"><span class="pill ${i.status}">${icon(glyph[i.status])}<span class="status ${i.status}">${statusLabel(i.status, navigator.onLine, configured)}</span></span>
+                  <time datetime="${esc(i.report.capturedAt)}">${esc(capturedWhen(i.report.capturedAt, now))}</time></div>
+                <div class="item-line">${DEPTH_LABELS[i.report.depthGuess].label} · ${peopleSummary(i.report.peopleVisible)}</div>
+                <div class="item-line muted">${icon("pin", "ico sm")}${esc(describe(i.report.location))}</div>
+                ${i.report.note ? `<div class="item-line muted">${esc(i.report.note.slice(0, 120))}</div>` : ""}
+                ${i.lastError && i.status !== "sent" ? `<div class="item-line error">${esc(i.lastError)}</div>` : ""}
+                <div class="actions">
+                  ${i.status === "failed" ? `<button data-act="retry" class="small">Try again</button>` : ""}
+                  ${i.status !== "uploading" ? `<button data-act="delete" class="small quiet">${i.status === "sent" ? "Remove" : "Delete"}</button>` : ""}
+                </div>
               </div>
-            </div>
-          </div>`,
-        )
-        .join("")}`;
+            </div></li>`,
+              )
+              .join("")}</ul>`
+      }`);
     $("#send-now").addEventListener("click", () => void sync(true));
+    view.querySelectorAll<HTMLElement>(".swipe").forEach((row) => attachSwipe(row, $(".swipe-content", row), SWIPE_REVEAL_PX));
     view.querySelectorAll<HTMLButtonElement>("[data-act]").forEach((b) =>
       b.addEventListener("click", async () => {
         const id = b.closest<HTMLElement>("[data-id]")?.dataset.id;
@@ -300,6 +430,7 @@ async function main(): Promise<void> {
           void sync(true);
         } else {
           const item = await queue.get(id);
+          // Irreversible and unsent: the one place a confirmation earns its interruption.
           if (item && item.status !== "sent" && !confirm("Delete this report? It has not been sent.")) return;
           await queue.remove(id);
           const url = thumbUrls.get(id);
@@ -310,6 +441,7 @@ async function main(): Promise<void> {
         await renderOutbox();
       }),
     );
+    largeTitle(view);
   };
 
   const route = (): void => {
@@ -321,7 +453,10 @@ async function main(): Promise<void> {
     view.focus({ preventScroll: true });
   };
 
-  window.addEventListener("hashchange", route);
+  window.addEventListener("hashchange", () => {
+    window.scrollTo({ top: 0 });
+    route();
+  });
   window.addEventListener("online", () => void refreshBar().then(() => sync()));
   window.addEventListener("offline", () => void refreshBar());
   document.addEventListener("visibilitychange", () => {
@@ -339,9 +474,11 @@ async function main(): Promise<void> {
 
 function stepper(key: string, label: string): string {
   return `<div class="stepper"><span>${label}</span>
-    <button type="button" data-key="${key}" data-step="-1" aria-label="${label}: one fewer">−</button>
-    <output id="out-${key}" aria-live="polite">0</output>
-    <button type="button" data-key="${key}" data-step="1" aria-label="${label}: one more">+</button></div>`;
+    <span class="stepper-ctl">
+      <button type="button" data-key="${key}" data-step="-1" aria-label="${label}: one fewer" disabled>−</button>
+      <output id="out-${key}" aria-live="polite">0</output>
+      <button type="button" data-key="${key}" data-step="1" aria-label="${label}: one more">+</button>
+    </span></div>`;
 }
 
 void main();

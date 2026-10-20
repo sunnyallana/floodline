@@ -3,21 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f1417" />
+    <meta name="theme-color" content="#f2f4f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0f12" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="description" content="Capture flood photos with location and send them to your coordination team when there is signal." />
     <link rel="icon" href="/field/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/field/icon-192.png" />
     <title>Floodline Field</title>
-    <script type="module" crossorigin src="/field/assets/index-BgOAt39o.js"></script>
-    <link rel="stylesheet" crossorigin href="/field/assets/index-CSZ0zbtU.css">
+    <script type="module" crossorigin src="/field/assets/index-CX7t3nAn.js"></script>
+    <link rel="stylesheet" crossorigin href="/field/assets/index-8NVmHUuw.css">
   <link rel="manifest" href="/field/manifest.webmanifest"></head>
   <body>
-    <header class="bar">
-      <a class="brand" href="#capture" aria-label="Floodline Field, capture">Floodline <span>Field</span></a>
-      <span id="net" class="chip" role="status" aria-live="polite"></span>
-      <a id="outbox-link" class="chip link" href="#outbox">Outbox <b id="pending">0</b></a>
+    <header class="bar" id="bar">
+      <span class="bar-title" id="bar-title" aria-hidden="true"></span>
+      <span id="net" class="net" role="status" aria-live="polite"></span>
     </header>
     <main id="view" tabindex="-1"></main>
+    <nav class="tabs" id="tabs" aria-label="Sections">
+      <a href="#capture" data-tab="capture"><span class="tab-ico" id="tab-capture"></span><span>Report</span></a>
+      <a href="#outbox" data-tab="outbox" id="outbox-link"><span class="tab-ico" id="tab-outbox"></span><span>Outbox</span><b id="pending" class="badge">0</b></a>
+      <a href="#setup" data-tab="setup"><span class="tab-ico" id="tab-setup"></span><span>Settings</span></a>
+    </nav>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <noscript>Floodline Field needs JavaScript to store photos while you are offline.</noscript>
   </body>

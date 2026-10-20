@@ -108,3 +108,25 @@ test("a refused team code stops retrying and says why", async ({ page }) => {
   await expect(page.getByText(/team code was not accepted/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
 });
+
+test("swiping a report left reveals delete, and deleting an unsent one asks first", async ({ page }) => {
+  await fakeSupabase(page);
+  await setUp(page);
+  await capture(page);
+  await page.context().setOffline(true); // keep it unsent
+  await page.getByRole("button", { name: "Save report" }).click();
+  await page.getByRole("link", { name: /Outbox/ }).click();
+  const row = page.locator(".swipe-content").first();
+  const box = (await row.boundingBox())!;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width - 20, y);
+  await page.mouse.down();
+  for (let k = 1; k <= 8; k++) await page.mouse.move(box.x + box.width - 20 - k * 14, y);
+  await page.mouse.up();
+  await expect(page.locator(".swipe")).toHaveClass(/open/);
+  await expect.poll(() => row.evaluate((e) => e.style.transform)).toBe("translate3d(-88px, 0px, 0px)");
+  page.once("dialog", (d) => void d.accept());
+  await page.locator(".swipe-action").click();
+  await expect(page.getByText("No reports yet.")).toBeVisible();
+  await expect(page.locator("#pending")).toHaveText("0");
+});
