@@ -105,6 +105,9 @@ def build_parser() -> argparse.ArgumentParser:
     se.add_argument("hexes", nargs="+", help="fused hex CSVs from `floodline fuse`")
     se.add_argument("--validation-dir", help="results/validation/ to also report damage capture per variant")
 
+    lb = sub.add_parser("labels", help="agreement between the reviewed and first-pass depth labels")
+    lb.add_argument("review_csv", help="CSV exported from docs/review/")
+
     s1 = sub.add_parser("sentinel1", help="Sentinel-1 radar water mask checked against an EMS flood map")
     s1.add_argument("ems_source")
     s1.add_argument("--when", required=True, help="reference date of the EMS image, e.g. 2022-08-30")
@@ -282,6 +285,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 [Path(h) for h in args.hexes],
                 Path(args.validation_dir) if args.validation_dir else None,
             )
+        elif args.command == "labels":
+            from pathlib import Path
+
+            from floodline.stages import labels
+
+            labels.run(paths, Path(args.review_csv))
         elif args.command == "sentinel1":
             from pathlib import Path
 

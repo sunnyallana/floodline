@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Depth label review</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#f4f6f7;--card:#fff;--fg:#11181c;--muted:#56636b;--line:#d6dde1;--accent:#0b6e8a;--accent-fg:#fff;--warn:#9a5b00}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1417;--card:#182024;--fg:#e9eef0;--muted:#9fb0b8;--line:#2c383e;--accent:#4fb7d4;--accent-fg:#071216;--warn:#e7a84a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}
+.muted{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+img.photo{width:100%;max-height:60vh;object-fit:contain;background:#000;border-radius:10px;display:block;image-rendering:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}
+button{min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;font-weight:600;cursor:pointer;padding:0 10px}
+button.sel{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+button small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;margin-top:12px}.row>*{flex:1}
+input[type=text]{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+kbd{font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.ai{border-left:4px solid var(--warn)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Flood depth label review</h1>
+  <p class="muted" id="intro">Look at each photo and pick how deep the water is against the clearest object of known height
+  (a person, a car, a door). Pick <b>Not sure</b> when there is nothing to judge against (aerial views, open water,
+  a river in flood). Your answers are kept in this browser; download the CSV at the end.
+  Keys: <kbd>1</kbd>–<kbd>7</kbd> depth, <kbd>←</kbd> back.</p>
+  <div class="bar"><i id="progress" style="width:0"></i></div>
+  <p class="muted" id="count"></p>
+  <section id="view"></section>
+</main>
+<script>
+const DEPTHS = [
+  ["unknown","Not sure","nothing to judge against"],["dry","Dry","under 2 cm"],["ankle","Ankle","2–20 cm"],
+  ["knee","Knee","20–50 cm"],["waist","Waist","50–100 cm"],["chest","Chest","100–160 cm"],["above_head","Above head","160 cm or more"]];
+const REFS = ["person","car","motorbike","door","window","building","other","none"];
+const IMG = id => `https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark/resolve/main/images/${id}.jpg`;
+const KEY = "floodline.review.v1";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let items = [], state = {labels: {}, final: {}, phase: "blind", i: 0};
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.labels) state = s; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const view = document.getElementById("view");
+
+function progress(done, total, label) {
+  document.getElementById("progress").style.width = `${Math.round(100 * done / total)}%`;
+  document.getElementById("count").textContent = `${label}: ${done} of ${total}`;
+}
+
+function blind() {
+  const n = items.length, done = Object.keys(state.labels).length;
+  if (done >= n) return adjudicate();
+  const i = Math.min(state.i, n - 1), id = items[i], cur = state.labels[id] || {};
+  progress(done, n, "Labelled");
+  view.innerHTML = `<div class="card">
+    <img class="photo" src="${IMG(id)}" alt="flood photo ${esc(id)}">
+    <p class="muted">${esc(id)} · photo ${i + 1} of ${n}</p>
+    <b>Reference object</b>
+    <div class="grid">${REFS.map(r => `<button data-ref="${r}" class="${cur.reference === r ? "sel" : ""}">${r}</button>`).join("")}</div>
+    <b style="display:block;margin-top:12px">Water depth</b>
+    <div class="grid">${DEPTHS.map(([k, l, h], j) => `<button data-depth="${k}" class="${cur.depth_bin === k ? "sel" : ""}">${j + 1} · ${l}<small>${h}</small></button>`).join("")}</div>
+    <input type="text" id="note" placeholder="Note (optional)" value="${esc(cur.note || "")}" style="margin-top:12px">
+    <div class="row"><button id="back" ${i === 0 ? "disabled" : ""}>← Back</button><button id="dl">Download CSV so far</button></div>
+  </div>`;
+  let ref = cur.reference || "";
+  view.querySelectorAll("[data-ref]").forEach(b => b.onclick = () => { ref = b.dataset.ref; view.querySelectorAll("[data-ref]").forEach(x => x.classList.toggle("sel", x === b)); });
+  const pick = depth => {
+    state.labels[id] = {depth_bin: depth, reference: depth === "unknown" && !ref ? "none" : ref, note: document.getElementById("note").value, at: new Date().toISOString()};
+    state.i = nextUnlabelled(i); save(); render();
+  };
+  view.querySelectorAll("[data-depth]").forEach(b => b.onclick = () => pick(b.dataset.depth));
+  document.getElementById("back").onclick = () => { state.i = Math.max(0, i - 1); save(); render(); };
+  document.getElementById("dl").onclick = download;
+  document.onkeydown = e => {
+    if (e.target.tagName === "INPUT") return;
+    const k = Number(e.key); if (k >= 1 && k <= 7) pick(DEPTHS[k - 1][0]);
+    if (e.key === "ArrowLeft") document.getElementById("back").click();
+  };
+}
+
+function nextUnlabelled(from) {
+  for (let j = 1; j <= items.length; j++) { const k = (from + j) % items.length; if (!state.labels[items[k]]) return k; }
+  return from;
+}
+
+let ai = null;
+async function adjudicate() {
+  state.phase = "adjudicate"; save();
+  ai = ai || await (await fetch("ai_labels.json")).json();
+  const disagree = items.filter(id => ai[id] && ai[id].depth_bin !== state.labels[id].depth_bin);
+  const open = disagree.filter(id => !state.final[id]);
+  progress(disagree.length - open.length, disagree.length || 1, "Disagreements settled");
+  document.onkeydown = null;
+  if (!open.length) {
+    const agree = items.length - disagree.length;
+    view.innerHTML = `<div class="card"><b>Done.</b><p>You agreed with the first-pass label on ${agree} of ${items.length} photos
+      and settled ${disagree.length} disagreements.</p><p>Download the CSV and save it as
+      <code>data/depth_labels_human.csv</code> in the repo (or send it over).</p>
+      <button class="primary" id="dl" style="width:100%">Download CSV</button></div>`;
+    document.getElementById("dl").onclick = download;
+    return;
+  }
+  const id = open[0], h = state.labels[id], a = ai[id];
+  const name = k => (DEPTHS.find(d => d[0] === k) || [k, k])[1];
+  view.innerHTML = `<div class="card ai">
+    <img class="photo" src="${IMG(id)}" alt="flood photo ${esc(id)}">
+    <p class="muted">${esc(id)}</p>
+    <p>You said <b>${esc(name(h.depth_bin))}</b> (${esc(h.reference)}). The first pass said <b>${esc(name(a.depth_bin))}</b>${a.reference ? ` (${esc(a.reference)})` : ""}.
+    Which is right? Pick the final answer; it can be a third class.</p>
+    <div class="grid">${DEPTHS.map(([k, l]) => `<button data-final="${k}" class="${k === h.depth_bin ? "sel" : ""}">${l}</button>`).join("")}</div>
+    <div class="row"><button id="dl">Download CSV so far</button></div></div>`;
+  view.querySelectorAll("[data-final]").forEach(b => b.onclick = () => { state.final[id] = b.dataset.final; save(); adjudicate(); });
+  document.getElementById("dl").onclick = download;
+}
+
+function download() {
+  const rows = [["image_id", "human_depth_bin", "human_reference", "human_note", "labelled_at", "final_depth_bin", "adjudicated"]];
+  for (const id of items) {
+    const h = state.labels[id]; if (!h) continue;
+    const adjudicated = id in state.final;
+    rows.push([id, h.depth_bin, h.reference, h.note, h.at, adjudicated ? state.final[id] : h.depth_bin, adjudicated]);
+  }
+  const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type: "text/csv"}));
+  a.download = "depth_labels_human.csv"; a.click();
+}
+
+function render() { state.phase === "adjudicate" || Object.keys(state.labels).length >= items.length ? adjudicate() : blind(); }
+fetch("items.json").then(r => r.json()).then(list => { items = list; render(); });
+</script>
+</body>
+</html>
