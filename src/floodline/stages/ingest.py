@@ -47,6 +47,7 @@ class Store(Protocol):
     def all_photo_paths(self) -> set[str]: ...
     def list_objects(self) -> list[dict[str, Any]]: ...
     def delete_objects(self, names: list[str]) -> None: ...
+    def devices(self) -> list[dict[str, Any]]: ...
 
 
 @dataclass
@@ -127,6 +128,12 @@ class SupabaseStore:
             if len(batch) < PAGE:
                 return out
             offset += PAGE
+
+    def devices(self) -> list[dict[str, Any]]:
+        """Enrolled phones and whether they are still active (see ``field_admin``)."""
+        r = self._session().get(f"{self.url}/rest/v1/devices", params={"select": "id,active"}, timeout=self.timeout_s)
+        r.raise_for_status()
+        return list(r.json())
 
     def delete_objects(self, names: list[str]) -> None:
         if names:
@@ -217,8 +224,13 @@ def run(paths: Paths, store: Store | None = None, prune_orphans: bool = False, n
         combined = combined.drop_duplicates("id", keep="first").sort_values("received_at").reset_index(drop=True)
         combined.to_parquet(table, index=False)
     from floodline.stages import trust
+    from floodline.stages.field_admin import revoked_ids
 
-    checked = trust.assess(combined, photos, trust.load_reference(paths)) if len(combined) else combined
+    # Withdrawals apply retroactively: every run re-checks all stored reports against the current device list.
+    withdrawn = revoked_ids(store.devices())
+    checked = (
+        trust.assess(combined, photos, trust.load_reference(paths), withdrawn=withdrawn) if len(combined) else combined
+    )
     for_fuse(checked).to_csv(root / "reports_for_fuse.csv", index=False)
 
     pruned: list[str] = []
@@ -233,6 +245,7 @@ def run(paths: Paths, store: Store | None = None, prune_orphans: bool = False, n
         "rejected_non_jpeg": len(bad_photos),
         "trust": checked.trust.value_counts().to_dict() if len(checked) else {},
         "orphan_photos_deleted": len(pruned),
+        "withdrawn_devices": len(withdrawn),
     }
     # Counts only: the manifest is committed, the reports are not.
     manifest.finish(**summary).write(paths.results / "ingest_run.json")

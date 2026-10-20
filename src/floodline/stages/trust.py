@@ -13,6 +13,7 @@ are deliberately simple and explainable, because a coordinator has to be able to
 | capture time more than 10 min after the server received it | ``future_time`` | rejected |
 | capture time more than 72 h before receipt | ``stale_photo`` | review |
 | more than 10 reports from one device in one hexagon within 10 min | ``device_burst`` | review |
+| enrolment withdrawn by a coordinator (applies to the device's past reports too) | ``device_withdrawn`` | rejected |
 
 What trust does not decide: whether the flood claim is true. That needs independent evidence, and ``fuse``
 handles it: a depth or people claim raises rescue priority only when a second device, the satellite, or the
@@ -49,7 +50,7 @@ STALE_AFTER = timedelta(hours=72)
 BURST_WINDOW = timedelta(minutes=10)
 BURST_MAX = 10
 REFERENCE_INDEX = "reference_hashes.parquet"
-_REJECTING = {"unreadable_photo", "reused_image", "duplicate_resend", "future_time"}
+_REJECTING = {"unreadable_photo", "reused_image", "duplicate_resend", "future_time", "device_withdrawn"}
 
 
 def dhash(image, size: int = 8) -> int:
@@ -98,8 +99,10 @@ def assess(
     photos_dir: Path,
     reference: pd.DataFrame | None = None,
     resolution: int = 9,
+    withdrawn: set[str] | None = None,
 ) -> pd.DataFrame:
-    """Add ``photo_hash``, ``trust`` and ``trust_flags`` to ingested field reports (one row per report)."""
+    """Add ``photo_hash``, ``trust`` and ``trust_flags`` to ingested field reports (one row per report).
+    ``withdrawn`` holds device ids a coordinator has revoked; every report from them is rejected."""
     import h3
 
     r = reports.copy().reset_index(drop=True)
@@ -119,6 +122,8 @@ def assess(
     ref = reference["hash"].to_numpy(dtype=np.uint64) if reference is not None and len(reference) else None
 
     device = r.get("device_id", pd.Series([None] * len(r))).astype(str)
+    for w in np.flatnonzero(device.isin(withdrawn or set()).to_numpy()):
+        flags[int(w)].add("device_withdrawn")
     for i in range(len(r)):
         if not readable[i]:
             continue

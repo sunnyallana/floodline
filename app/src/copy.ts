@@ -25,6 +25,17 @@ export function teamCodeHint(code: string): string {
   return "Looks right.";
 }
 
+export const INVITE_LENGTH = 16;
+
+/** Inline guidance while an invite is typed (case, spaces and dashes do not count). */
+export function inviteHint(code: string, optional = false): string {
+  const n = code.replace(/[^0-9A-Za-z]/g, "").length;
+  if (n === 0) return optional ? "Only needed to move this phone to another team." : "One invite per phone, from your coordinator.";
+  if (n < INVITE_LENGTH) return `${INVITE_LENGTH - n} more character${INVITE_LENGTH - n === 1 ? "" : "s"}.`;
+  if (n > INVITE_LENGTH) return `That is ${n - INVITE_LENGTH} too many characters.`;
+  return "Looks right.";
+}
+
 /** "Just now", "12 min ago", "3 h ago", then the date and time. */
 export function capturedWhen(iso: string, now: number, locale?: string): string {
   const t = Date.parse(iso);

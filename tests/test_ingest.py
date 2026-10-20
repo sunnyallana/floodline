@@ -50,6 +50,9 @@ class FakeStore:
     def all_photo_paths(self):
         return {r["photo_path"] for r in self.rows}
 
+    def devices(self):
+        return [{"id": d, "active": False} for d in getattr(self, "withdrawn", ())]
+
     def list_objects(self):
         return self.objects
 
@@ -147,3 +150,17 @@ def test_store_needs_credentials(monkeypatch):
     monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
     with pytest.raises(RuntimeError, match="SUPABASE_URL"):
         ingest.SupabaseStore.from_env()
+
+
+def test_withdrawing_a_device_rejects_its_reports_including_past_ones(paths):
+    phone, other = "11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"
+    store = FakeStore(
+        [_row(1, "2026-10-20T09:01:00+00:00", device_id=phone), _row(2, "2026-10-20T09:02:00+00:00", device_id=other)]
+    )
+    ingest.run(paths, store)
+    store.withdrawn = [phone]  # the coordinator withdraws the phone after its report was ingested
+    summary = ingest.run(paths, store)
+    assert summary["new_reports"] == 0 and summary["withdrawn_devices"] == 1
+    fuse = pd.read_csv(paths.data / "field" / "reports_for_fuse.csv").set_index("device_id")
+    assert "device_withdrawn" in fuse.loc[phone, "trust_flags"] and fuse.loc[phone, "trust"] == "rejected"
+    assert "device_withdrawn" not in str(fuse.loc[other, "trust_flags"])

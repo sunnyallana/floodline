@@ -5,6 +5,8 @@ import { FAKE_SUPABASE } from "../playwright.config";
 
 const PHOTO = fileURLToPath(new URL("./fixtures/flood.jpg", import.meta.url));
 const TEAM = "TEAM-2026-01";
+const INVITE = "ABCD-2345-EFGH-6789";
+const DEVICE = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
 
 test.use({
   geolocation: { latitude: 50.0123, longitude: 14.4011, accuracy: 8 },
@@ -15,17 +17,33 @@ interface Fake {
   photos: Request[];
   rows: Record<string, unknown>[];
   rowStatus: number;
+  /** Every Authorization header the uploads carried. */
+  tokens: string[];
+  redeemed: Set<string>;
 }
 
 async function fakeSupabase(page: Page): Promise<Fake> {
-  const fake: Fake = { photos: [], rows: [], rowStatus: 201 };
+  const fake: Fake = { photos: [], rows: [], rowStatus: 201, tokens: [], redeemed: new Set() };
   await page.context().route(`${FAKE_SUPABASE}/**`, async (route) => {
     const req = route.request();
+    const json = (status: number, body: unknown) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (req.url().endsWith("/auth/v1/signup")) {
+      return json(200, { access_token: "phone-token", refresh_token: "phone-refresh", expires_in: 3600, user: { id: DEVICE } });
+    }
+    if (req.url().endsWith("/rest/v1/rpc/enroll")) {
+      const code = (JSON.parse(req.postData() ?? "{}") as { invite: string }).invite;
+      // Single use, as in the database: a second phone with the same code is refused.
+      if (code !== INVITE.replaceAll("-", "") || fake.redeemed.has(code)) return json(403, { message: "invite not valid" });
+      fake.redeemed.add(code);
+      return json(200, { team_code: TEAM, team_name: "Test team", device_id: DEVICE });
+    }
     if (req.url().includes("/storage/v1/object/field-photos/")) {
+      fake.tokens.push(req.headers()["authorization"] ?? "");
       fake.photos.push(req);
       return route.fulfill({ status: 200, contentType: "application/json", body: '{"Key":"ok"}' });
     }
     if (req.url().endsWith("/rest/v1/reports")) {
+      fake.tokens.push(req.headers()["authorization"] ?? "");
       if (fake.rowStatus < 300) fake.rows.push(JSON.parse(req.postData() ?? "{}") as Record<string, unknown>);
       return route.fulfill({ status: fake.rowStatus, body: fake.rowStatus < 300 ? "" : '{"message":"rls"}' });
     }
@@ -37,9 +55,11 @@ async function fakeSupabase(page: Page): Promise<Fake> {
 async function setUp(page: Page): Promise<void> {
   await page.goto("./");
   await expect(page).toHaveURL(/#setup$/);
-  await page.getByLabel("Team code").fill(TEAM);
+  await page.getByLabel("Invite code").fill(INVITE.toLowerCase());
+  await expect(page.locator("#team-hint")).toHaveText("Looks right.");
   await page.getByLabel(/I understand/).check();
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Enrol this phone" }).click();
+  await expect(page.locator("#toast")).toContainText("Enrolled with Test team");
   await expect(page.getByRole("heading", { name: "New report" })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
 }
@@ -95,9 +115,29 @@ test("a report taken offline is kept, survives a reload, and is sent when signal
   });
   expect(row.lat as number).toBeCloseTo(50.0123, 4);
   expect(row.device_id as string).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  // Uploads carry the phone's own token, never just the public anon key.
+  expect(fake.tokens.length).toBeGreaterThan(0);
+  expect(fake.tokens.every((t) => t === "Bearer phone-token")).toBe(true);
 });
 
-test("a refused team code stops retrying and says why", async ({ page }) => {
+test("an invite link fills the code, and an invite the server refuses says why", async ({ page }) => {
+  const fake = await fakeSupabase(page);
+  await page.goto(`./#invite=${INVITE}`);
+  await expect(page).toHaveURL(/#setup$/); // the code leaves the address bar
+  await expect(page.getByLabel("Invite code")).toHaveValue(INVITE);
+  await page.getByLabel(/I understand/).check();
+  await page.getByRole("button", { name: "Enrol this phone" }).click();
+  await expect(page.getByRole("heading", { name: "New report" })).toBeVisible();
+
+  expect(fake.redeemed.size).toBe(1);
+  await page.goto("./#setup");
+  await expect(page.getByText("Enrolled with Test team", { exact: true })).toBeVisible();
+  await page.getByLabel("Invite code").fill(INVITE);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.locator("#setup-error")).toContainText("not valid, has already been used, or has expired");
+});
+
+test("a withdrawn enrolment stops retrying and says why", async ({ page }) => {
   const fake = await fakeSupabase(page);
   fake.rowStatus = 403;
   await setUp(page);
@@ -105,7 +145,7 @@ test("a refused team code stops retrying and says why", async ({ page }) => {
   await page.getByRole("button", { name: "Save report" }).click();
   await page.getByRole("link", { name: /Outbox/ }).click();
   await expect(page.locator(".status")).toHaveText("Not accepted");
-  await expect(page.getByText(/team code was not accepted/)).toBeVisible();
+  await expect(page.getByText(/not enrolled with the team, or its enrolment was withdrawn/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
 });
 

@@ -33,6 +33,21 @@ as their own layer. The road-closure rule itself is validated against the analys
 over the six floods (3,442 road segments graded as affected), the 5 m overlap used gives precision 0.77 and recall 0.77, the
 best F1 of any threshold tried (`results/benchmark_roads.csv`). On the German towns alone it is 0.94 and 0.85.
 
+### Can anyone with an internet connection submit reports, or pose as many phones?
+
+No. The public key in the app can write nothing on its own. A phone has to redeem a single-use invite from a
+coordinator. The invite binds the phone's own server-signed identity to a team, and the database stamps that
+identity on every report, whatever device id the phone claims. One person posing as ten phones therefore needs
+ten invites, each labelled with whom it was given to. Per-device rate limits and the "two devices must agree" rule
+count invites, not made-up ids. A phone that turns bad is withdrawn with one command, and its past reports are
+rejected on the next ingest.
+
+This was tested against the live project, 16 of 16 checks: a second phone with a used invite is refused;
+unenrolled phones and the bare key cannot insert or upload; phones cannot read teams, invites or devices; a
+revoked phone is refused and told why. `app/tests/sql.test.ts` runs the same rules against Postgres in CI. The
+remaining risk is a dishonest insider holding a real invite. That is bounded by the corroboration rules below,
+the per-device limits, and revocation.
+
 ### How do you stop bogus reports from pulling responders to the wrong place?
 
 A field report's depth or people claim raises priority only when something independent backs it: satellite water

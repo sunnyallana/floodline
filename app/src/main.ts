@@ -1,7 +1,8 @@
 import "./styles.css";
 import { registerSW } from "virtual:pwa-register";
 import { APP_VERSION, uploadConfig, uploadsConfigured } from "./config";
-import { capturedWhen, peopleSummary, savedMessage, statusLabel, TEAM_CODE_MIN, teamCodeHint } from "./copy";
+import { DeviceAuth, formatInvite, normaliseInvite } from "./auth";
+import { capturedWhen, INVITE_LENGTH, inviteHint, peopleSummary, savedMessage, statusLabel, TEAM_CODE_MIN, teamCodeHint } from "./copy";
 import { depthPictogram, icon, type IconName } from "./icons";
 import { type Fix, FixTracker, describe, resolveLocation } from "./location";
 import { haptic, prefersReducedMotion } from "./motion";
@@ -10,6 +11,7 @@ import { buildReport, clampCount, newItem } from "./report";
 import { IdbQueue, requestPersistence } from "./store";
 import { attachSwipe } from "./swipe";
 import { Syncer } from "./sync";
+import { UploadError } from "./upload";
 import { DEPTH_CLASSES, DEPTH_LABELS, NOTE_MAX, type DepthClass, type QueueItem } from "./types";
 
 const SETTINGS_KEY = "floodline.field.settings";
@@ -20,6 +22,9 @@ const SWIPE_REVEAL_PX = 88;
 interface Settings {
   teamCode: string;
   consentAt: string;
+  /** Set once the phone has redeemed an invite; absent in builds without uploads. */
+  teamName?: string;
+  deviceId?: string;
 }
 
 type Tab = "capture" | "outbox" | "setup";
@@ -134,7 +139,11 @@ async function main(): Promise<void> {
     badge.dataset.zero = String(pending === 0);
   };
 
-  const syncer = new Syncer(queue, uploadConfig, undefined, Date.now, () => {
+  // Every upload carries this phone's own signed identity; the anon key alone can write nothing.
+  const auth = uploadsConfigured() ? new DeviceAuth(uploadConfig) : null;
+  const cfg = auth ? { ...uploadConfig, accessToken: () => auth.accessToken(), expireToken: () => auth.expire() } : uploadConfig;
+  let pendingInvite = "";
+  const syncer = new Syncer(queue, cfg, undefined, Date.now, () => {
     void refreshBar();
     if (location.hash === "#outbox") void renderOutbox();
   });
@@ -162,21 +171,37 @@ async function main(): Promise<void> {
   // ---------------------------------------------------------------- setup
   const renderSetup = (): void => {
     const s = loadSettings();
+    const enrolled = Boolean(s?.teamName);
     document.body.classList.remove("composing");
     setTab("setup");
+    // Builds without uploads keep reports on the phone; there is nothing to enrol with, so a local code is enough.
+    const local = !auth;
+    const invite = pendingInvite;
+    pendingInvite = "";
     show(`
       <h1>${s ? "Settings" : "Set up this phone"}</h1>
-      <p class="lede">Your coordinator gives you a team code. Reports go only to that team.</p>
+      <p class="lede">${
+        local
+          ? "Uploads are not set up in this build, so reports stay on this phone."
+          : "Your coordinator gives each phone its own invite. It works once, on one phone, and needs signal once."
+      }</p>
+      ${
+        enrolled
+          ? `<div class="group enrolled">${icon("shield")}<div><b>Enrolled with ${esc(s!.teamName!)}</b>
+              <span class="muted">This phone ${esc((s!.deviceId ?? "").slice(0, 8))} · since ${esc(new Date(s!.consentAt).toLocaleDateString())}</span></div></div>`
+          : ""
+      }
       <form id="setup" novalidate>
+        ${enrolled ? `<h2 class="section">Enrol again with a new invite</h2>` : ""}
         <div class="group">
           <label class="row-field">
-            <span>Team code</span>
-            <input id="team" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"
-              minlength="${TEAM_CODE_MIN}" maxlength="64" required value="${esc(s?.teamCode ?? "")}"
-              aria-describedby="team-hint" placeholder="Required" />
+            <span>${local ? "Team code" : "Invite code"}</span>
+            <input id="team" type="text" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"
+              maxlength="64" ${enrolled ? "" : "required"} value="${esc(local ? (s?.teamCode ?? "") : invite ? formatInvite(invite) : "")}"
+              aria-describedby="team-hint" placeholder="${enrolled ? "Optional" : local ? "Required" : "XXXX-XXXX-XXXX-XXXX"}" />
           </label>
         </div>
-        <p id="team-hint" class="hint">${esc(teamCodeHint(s?.teamCode ?? ""))}</p>
+        <p id="team-hint" class="hint"></p>
 
         <h2 class="section">What is shared</h2>
         <ul class="group list">
@@ -188,36 +213,60 @@ async function main(): Promise<void> {
         <label class="group consent"><input id="consent" type="checkbox" ${s ? "checked" : ""} required />
           <span>I understand, and the people in my photos are not identifiable without need.</span></label>
         <p id="setup-error" class="error" role="alert"></p>
-        <button class="primary big" type="submit">Save</button>
+        <button id="setup-save" class="primary big" type="submit">${local || enrolled ? "Save" : "Enrol this phone"}</button>
       </form>
-      ${uploadsConfigured() ? "" : `<p class="notice">${icon("alert")}<span>Uploads are not set up in this build. Reports stay on this phone.</span></p>`}
       <p class="footnote">Floodline Field ${esc(APP_VERSION)} · works offline</p>`);
     const team = $<HTMLInputElement>("#team");
     const hint = $("#team-hint");
+    const err = $("#setup-error");
+    const update = (): void => {
+      hint.textContent = local ? teamCodeHint(team.value) : inviteHint(team.value, enrolled);
+      hint.classList.toggle("good", hint.textContent === "Looks right.");
+    };
     team.addEventListener("input", () => {
-      hint.textContent = teamCodeHint(team.value);
-      hint.classList.toggle("good", team.value.trim().length >= TEAM_CODE_MIN);
-      $("#setup-error").textContent = "";
+      update();
+      err.textContent = "";
     });
-    hint.classList.toggle("good", team.value.trim().length >= TEAM_CODE_MIN);
-    $("#setup").addEventListener("submit", (e) => {
+    update();
+    const fail = (message: string): void => {
+      err.textContent = message;
+      haptic("error");
+    };
+    $("#setup").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const code = team.value.trim();
-      const err = $("#setup-error");
-      if (code.length < TEAM_CODE_MIN) {
-        err.textContent = `The team code has at least ${TEAM_CODE_MIN} characters.`;
-        haptic("error");
-        return team.focus();
-      }
-      if (!$<HTMLInputElement>("#consent").checked) {
-        err.textContent = "Please confirm before continuing.";
-        haptic("error");
+      if (!$<HTMLInputElement>("#consent").checked) return fail("Please confirm before continuing.");
+      const consentAt = new Date().toISOString();
+      if (local) {
+        const code = team.value.trim();
+        if (code.length < TEAM_CODE_MIN) return fail(`The team code has at least ${TEAM_CODE_MIN} characters.`);
+        saveSettings({ teamCode: code, consentAt });
+        if (s) toast("Settings saved.", "success");
+        location.hash = "#capture";
         return;
       }
-      const first = !s;
-      saveSettings({ teamCode: code, consentAt: new Date().toISOString() });
-      if (!first) toast("Settings saved.", "success");
-      location.hash = "#capture";
+      const code = normaliseInvite(team.value);
+      if (!code && enrolled) {
+        saveSettings({ ...s!, consentAt });
+        toast("Settings saved.", "success");
+        location.hash = "#capture";
+        return;
+      }
+      if (code.length !== INVITE_LENGTH) return fail(`An invite has ${INVITE_LENGTH} letters and digits.`);
+      if (!navigator.onLine) return fail("Enrolling needs signal once. Try again where there is signal.");
+      const button = $<HTMLButtonElement>("#setup-save");
+      button.disabled = true;
+      button.textContent = "Enrolling…";
+      try {
+        const r = await auth!.enroll(code);
+        saveSettings({ teamCode: r.teamCode, teamName: r.teamName, deviceId: r.deviceId, consentAt });
+        toast(`Enrolled with ${r.teamName}.`, "success");
+        location.hash = "#capture";
+        void sync(true); // anything queued before (re-)enrolment can go now
+      } catch (x) {
+        button.disabled = false;
+        button.textContent = enrolled ? "Save" : "Enrol this phone";
+        fail(x instanceof UploadError ? x.message : "Enrolment failed. Try again.");
+      }
     });
     largeTitle(view);
   };
@@ -445,6 +494,12 @@ async function main(): Promise<void> {
   };
 
   const route = (): void => {
+    // An invite link (.../field/#invite=XXXX-...) opens enrolment with the code filled in.
+    const link = /^#invite=([0-9A-Za-z-]+)$/.exec(location.hash);
+    if (link) {
+      pendingInvite = link[1]!;
+      history.replaceState(null, "", "#setup"); // the code leaves the address bar and the history
+    }
     if (location.hash !== "#capture") tracker?.stop();
     const target = location.hash || "#capture";
     if (target === "#setup") renderSetup();
@@ -466,7 +521,8 @@ async function main(): Promise<void> {
     if (document.visibilityState === "visible") void sync();
   }, RETRY_INTERVAL_MS);
 
-  if (!loadSettings()) location.hash = "#setup";
+  // A first run opened from an invite link keeps the link: route() reads the code out of it.
+  if (!loadSettings() && !location.hash.startsWith("#invite=")) location.hash = "#setup";
   route();
   await refreshBar();
   void sync();

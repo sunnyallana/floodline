@@ -3,6 +3,10 @@ declare const __APP_VERSION__: string;
 export interface UploadConfig {
   supabaseUrl: string;
   anonKey: string;
+  /** The phone's own signed token. Without one, requests carry only the anon key, which can write nothing. */
+  accessToken?: () => Promise<string>;
+  /** Called when the server says the token expired, so the next attempt refreshes it. */
+  expireToken?: () => void;
 }
 
 /** Build-time settings. The anon key is public by design; the database only lets it insert (see supabase/). */

@@ -149,6 +149,18 @@ def build_parser() -> argparse.ArgumentParser:
     ig = sub.add_parser("ingest", help="pull new Floodline Field reports from Supabase into data/field/")
     ig.add_argument("--prune-orphans", action="store_true", help="delete photos with no report after 24 h")
 
+    iv = sub.add_parser("invites", help="issue single-use Floodline Field invites for a team (one per phone)")
+    iv.add_argument("team", help="team code, from public.teams")
+    iv.add_argument("--count", type=int, default=1)
+    iv.add_argument("--label", default="", help="who the invites go to, e.g. 'Rescue 1122 Larkana, boat 3'")
+    iv.add_argument("--days", type=int, default=30, help="days until an unused invite expires")
+
+    dv = sub.add_parser("devices", help="list enrolled Floodline Field phones; withdraw or restore one")
+    dvg = dv.add_mutually_exclusive_group()
+    dvg.add_argument("--revoke", metavar="DEVICE_ID", help="withdraw a phone: it can no longer report, and "
+                     "`floodline ingest` rejects its past reports")  # fmt: skip
+    dvg.add_argument("--restore", metavar="DEVICE_ID")
+
     rl = sub.add_parser("release", help="package the depth benchmark as a Hugging Face dataset")
     rl.add_argument("--repo", default="sunnyallana/flood-depth-benchmark")
     rl.add_argument("--push", action="store_true", help="upload; needs HF_WRITE_TOKEN with write access")
@@ -371,6 +383,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import ingest
 
             ingest.run(paths, prune_orphans=args.prune_orphans)
+        elif args.command == "invites":
+            from floodline.stages import field_admin
+
+            for code in field_admin.create_invites(
+                field_admin.SupabaseAdmin.from_env(), args.team, args.count, args.label, args.days
+            ):
+                # Shown once: only the hash is stored. Send each line to one person.
+                print(f"{field_admin.display(code)}  {field_admin.invite_link(code)}")
+        elif args.command == "devices":
+            from floodline.stages import field_admin
+
+            admin = field_admin.SupabaseAdmin.from_env()
+            if args.revoke or args.restore:
+                field_admin.set_active(admin, args.revoke or args.restore, active=bool(args.restore))
+            for d in admin.devices():
+                state = "active" if d["active"] else "withdrawn"
+                print(f"{d['id']}  {state:9}  {d['team_code']}  {d['enrolled_at'][:16]}  {d['invite_label']}")
         elif args.command == "release":
             from floodline.stages import release
 
@@ -398,7 +427,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 out=Path(args.out) if args.out else None,
                 score_only=args.score_only,
             )
-    except (FileNotFoundError, RuntimeError, TimeoutError) as e:
+    except (FileNotFoundError, RuntimeError, TimeoutError, ValueError) as e:
         log.error("%s", e)
         return 1
     return 0

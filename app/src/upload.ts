@@ -2,6 +2,7 @@ import type { UploadConfig } from "./config";
 import type { Report } from "./types";
 
 export const PHOTO_BUCKET = "field-photos";
+export const NOT_ENROLLED = "This phone is not enrolled with the team, or its enrolment was withdrawn. Enrol it again under Settings.";
 
 /** `retryable` decides between "try again later" and "this will never succeed; tell the user". */
 export class UploadError extends Error {
@@ -44,8 +45,16 @@ export function toRow(report: Report, photoBytes: number): Record<string, unknow
   };
 }
 
-function headers(cfg: UploadConfig, extra: Record<string, string>): Record<string, string> {
-  return { apikey: cfg.anonKey, Authorization: `Bearer ${cfg.anonKey}`, ...extra };
+async function headers(cfg: UploadConfig, extra: Record<string, string>): Promise<Record<string, string>> {
+  const token = cfg.accessToken ? await cfg.accessToken() : cfg.anonKey;
+  return { apikey: cfg.anonKey, Authorization: `Bearer ${token}`, ...extra };
+}
+
+/** A 401 for an expired token is worth retrying once the token is refreshed; any other 401/403 is final. */
+function tokenExpired(cfg: UploadConfig, status: number, body: string): boolean {
+  if (status !== 401 || !/jwt expired|token is expired|invalid jwt/i.test(body)) return false;
+  cfg.expireToken?.();
+  return true;
 }
 
 async function send(fetchImpl: Fetch, url: string, init: RequestInit): Promise<Response> {
@@ -73,12 +82,16 @@ export async function uploadPhoto(cfg: UploadConfig, reportId: string, photo: Bl
   const url = `${cfg.supabaseUrl}/storage/v1/object/${PHOTO_BUCKET}/${photoPath(reportId)}`;
   const res = await send(fetchImpl, url, {
     method: "POST",
-    headers: headers(cfg, { "Content-Type": "image/jpeg", "x-upsert": "false", "cache-control": "no-store" }),
+    headers: await headers(cfg, { "Content-Type": "image/jpeg", "x-upsert": "false", "cache-control": "no-store" }),
     body: photo,
   });
   if (res.ok) return;
   const body = await res.clone().text().catch(() => "");
   if (isDuplicate(res.status, body)) return;
+  if (tokenExpired(cfg, res.status, body)) throw new UploadError("Sign-in expired; retrying", true, res.status);
+  if (res.status === 403 || (res.status === 400 && /row-level security|unauthorized/i.test(body))) {
+    throw new UploadError(NOT_ENROLLED, false, res.status);
+  }
   throw await failure(res, "Photo upload");
 }
 
@@ -86,13 +99,13 @@ export async function insertReport(cfg: UploadConfig, report: Report, photoBytes
   const res = await send(fetchImpl, `${cfg.supabaseUrl}/rest/v1/reports`, {
     method: "POST",
     // return=minimal: devices have INSERT but no SELECT, so asking for the row back would be refused.
-    headers: headers(cfg, { "Content-Type": "application/json", Prefer: "return=minimal" }),
+    headers: await headers(cfg, { "Content-Type": "application/json", Prefer: "return=minimal" }),
     body: JSON.stringify(toRow(report, photoBytes)),
   });
   if (res.ok || res.status === 409) return; // 409: primary key exists, i.e. an earlier attempt succeeded
+  const body = await res.clone().text().catch(() => "");
+  if (tokenExpired(cfg, res.status, body)) throw new UploadError("Sign-in expired; retrying", true, res.status);
   const err = await failure(res, "Report upload");
-  if (res.status === 401 || res.status === 403) {
-    throw new UploadError("The team code was not accepted. Check it under Settings.", false, res.status);
-  }
+  if (res.status === 401 || res.status === 403) throw new UploadError(NOT_ENROLLED, false, res.status);
   throw err;
 }

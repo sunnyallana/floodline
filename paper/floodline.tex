@@ -200,7 +200,8 @@ Our rule: \emph{one report can send someone to look; it cannot send a boat, and 
 \toprule
 Threat & Mitigation \\
 \midrule
-Stranger with the public key & Insert-only row-level security; active team code required; team codes unreadable; per-device rate limit \\
+Stranger with the public key & The key alone writes nothing; only phones that redeemed a single-use invite insert, for their own team; teams, invites and devices unreadable \\
+One person as many phones & One invite per phone, labelled by the issuing coordinator; the device id is the phone's server-signed identity, stamped by the database, so rate limits and corroboration count invites; revocation rejects past reports too \\
 Reused or web photo & 64-bit difference hash against \trustRefs{} CVFD and European Flood 2013 images; $\le$\trustRejectBits{} bits rejected, 3--6 bits reviewed \\
 Old photo & Capture time over 30 days old or in the future refused \\
 One device inflating a hexagon & Each device counts once per hexagon; people are the maximum, not the sum \\
