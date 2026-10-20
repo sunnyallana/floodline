@@ -93,6 +93,14 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--out", default="agreement")
     ag.add_argument("--ems-dirs", nargs="*", default=[], help="activation directories for metre-distance evidence")
 
+    se = sub.add_parser("sensitivity", help="ranking stability under changed weights and scale constants")
+    se.add_argument("hexes", nargs="+", help="fused hex CSVs from `floodline fuse`")
+    se.add_argument("--validation-dir", help="results/validation/ to also report damage capture per variant")
+
+    at = sub.add_parser("attack", help="inject simulated bogus reports into a fused city and measure the damage")
+    at.add_argument("hexes_csv")
+    at.add_argument("--draws", type=int, default=20)
+
     tr = sub.add_parser("trust", help="re-check ingested field reports; --build-index hashes the reference sets")
     tr.add_argument("--build-index", action="store_true", help="hash CVFD and European Flood 2013 images first")
     tr.add_argument("--evaluate", action="store_true", help="measure duplicate-detection recall and false matches")
@@ -100,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
     va = sub.add_parser("validate", help="check road closures and priority against EMS damage grading")
     va.add_argument("gra_root", help="directory of unpacked EMS grading packages, e.g. data/external/ems/EMSR517_GRA")
     va.add_argument("--roads-only", action="store_true", help="skip the ranking runs (no OSM downloads)")
+    va.add_argument("--osm-pbf", nargs="*", default=[], help="Geofabrik .osm.pbf extracts to use instead of Overpass")
+    va.add_argument("--only", nargs="*", default=[], help="rank only these AOI keys, e.g. aoi09 aoi17")
 
     ig = sub.add_parser("ingest", help="pull new Floodline Field reports from Supabase into data/field/")
     ig.add_argument("--prune-orphans", action="store_true", help="delete photos with no report after 24 h")
@@ -239,6 +249,22 @@ def main(argv: Sequence[str] | None = None) -> int:
                 k=args.k,
                 ems_dirs=[Path(d) for d in args.ems_dirs],
             )
+        elif args.command == "sensitivity":
+            from pathlib import Path
+
+            from floodline.stages import sensitivity
+
+            sensitivity.run(
+                paths,
+                [Path(h) for h in args.hexes],
+                Path(args.validation_dir) if args.validation_dir else None,
+            )
+        elif args.command == "attack":
+            from pathlib import Path
+
+            from floodline.stages import attack
+
+            attack.run(paths, Path(args.hexes_csv), draws=args.draws)
         elif args.command == "trust":
             from floodline.stages import trust
 
@@ -250,7 +276,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             from floodline.stages import validate
 
-            validate.run(paths, Path(args.gra_root), ranking=not args.roads_only)
+            validate.run(
+                paths,
+                Path(args.gra_root),
+                ranking=not args.roads_only,
+                osm_pbfs=[Path(p) for p in args.osm_pbf],
+                only=set(args.only) or None,
+            )
         elif args.command == "ingest":
             from floodline.stages import ingest
 

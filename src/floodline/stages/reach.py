@@ -157,11 +157,11 @@ def reach_table(
     return df
 
 
-def staging_from_osm(polygon, tags: dict[str, list[str]] | None = None) -> pd.DataFrame:
+def staging_from_osm(
+    polygon, tags: dict[str, list[str]] | None = None, source: osm.OsmSource | None = None
+) -> pd.DataFrame:
     """Fire stations and hospitals inside ``polygon`` (EPSG:4326) as representative points."""
-    import osmnx as ox
-
-    gdf = osm.call(ox.features_from_polygon, polygon, tags or STAGING_TAGS)
+    gdf = (source or osm.OsmSource()).features(polygon, tags or STAGING_TAGS)
     if gdf.empty:
         return pd.DataFrame(columns=["name", "kind", "lat", "lon"])
     pts = gdf.geometry.representative_point()
@@ -183,6 +183,7 @@ def run(
     out_stem: str = "reach",
     network_type: str = "drive",
     buffer_m: float = 1500.0,
+    source: osm.OsmSource | None = None,
 ) -> pd.DataFrame:
     """Download the road network around the mapped area, remove flooded roads, and write per-hex reachability.
 
@@ -202,6 +203,7 @@ def run(
             "network_type": network_type,
             "buffer_m": buffer_m,
             "min_overlap_m": MIN_OVERLAP_M,
+            "osm": (source or osm.OsmSource()).describe(),
             "staging": staging_latlon or "osm:" + ",".join(STAGING_TAGS["amenity"]),
         },
     )
@@ -210,7 +212,8 @@ def run(
     metric = aoi_gs.estimate_utm_crs()
     area = aoi_gs.to_crs(metric).buffer(buffer_m).to_crs("EPSG:4326").iloc[0]
 
-    graph = osm.call(ox.graph_from_polygon, area, network_type=network_type, truncate_by_edge=True)
+    source = source or osm.OsmSource()
+    graph = source.graph(area, network_type)
     graph = ox.add_edge_travel_times(ox.add_edge_speeds(graph))
     nodes, edges = ox.graph_to_gdfs(graph)
     flood_m = gpd.GeoSeries([flood], crs="EPSG:4326").to_crs(metric).iloc[0]
@@ -221,7 +224,7 @@ def run(
     if staging_latlon:
         staging = pd.DataFrame(staging_latlon, columns=["lat", "lon"]).assign(name="", kind="named")
     else:
-        staging = staging_from_osm(area)
+        staging = staging_from_osm(area, source=source)
     st = gpd.GeoDataFrame(staging, geometry=gpd.points_from_xy(staging.lon, staging.lat), crs="EPSG:4326")
     st["in_flood"] = st.geometry.to_crs(metric).within(flood_m).to_numpy()
     st = st[~st.in_flood].reset_index(drop=True)  # a station under water stages nothing

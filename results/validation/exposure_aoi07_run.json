@@ -1,0 +1,24 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\validation\\satellite_aoi07.csv",
+  "ems_source": "data\\external\\ems\\EMSR517_GRA\\EMSR517_AOI07_GRA_PRODUCT_r1_RTP01_v1_vector",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\validation\\reach_aoi07.csv"
+ },
+ "metrics": {
+  "target_hexes": 238,
+  "buildings_queried": 8780,
+  "buildings_in_flood": 1683,
+  "hexes_with_flooded_buildings": 65
+ },
+ "started_at": "2026-10-20T10:55:20+00:00",
+ "finished_at": "2026-10-20T10:56:40+00:00",
+ "seconds": 79.8,
+ "git_sha": "262232f",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -139,7 +139,82 @@ Findings:
 - **Caveat.** The OSM network and buildings are the current map, not the 2013 one, and whether a bridge was
   closed is not in the data. Photos raise confidence, not priority, until their depth has been assessed.
 
-## 7. Supervised baselines carried over from v1
+## 7. Validation against EMS damage grading (western Germany, July 2021)
+
+`validation_roads.csv`, `validation_run.json`, `validation_ranking.json`, `validation/` · EMSR517 grading products:
+analysts' damage grades for building points and road segments, from post-event imagery. They do not use
+OpenStreetMap, our routing or our priority. The one shared input is the product's flood polygons, which we use
+as the flood extent. OSM for the ranking runs comes from Geofabrik extracts dated 18 October 2026
+(`floodline validate --osm-pbf`); on Erftstadt the extract and Overpass gave the same closed roads (130),
+staging points (12), road hexagons (213) and cut-off hexagons (26).
+
+**Road closure rule** (11 towns, roads graded anything but "Not Analysed"; target = possibly damaged, damaged or
+destroyed):
+
+| Overlap needed to close a road | Precision | Recall | F1 |
+|---|---|---|---|
+| any (0 m) | 0.82 | 0.88 | 0.85 |
+| 5 m (used) | 0.94 | 0.85 | 0.89 |
+| 15 m | 0.95 | 0.76 | 0.84 |
+| 50 m | 0.95 | 0.50 | 0.65 |
+
+Against "damaged or destroyed" only, recall at 5 m is 0.92 and precision 0.41: most roads under water were
+impassable without being visibly damaged, which is what a closure rule should capture.
+
+**Priority against building damage** (the four towns with at least 20 damaged or destroyed buildings; share of
+those buildings inside the top-ranked hexagons):
+
+| Ranking | Top 5 % | Top 10 % | Top 20 % | Spearman |
+|---|---|---|---|---|
+| random | 0.05 | 0.10 | 0.20 | |
+| satellite water fraction alone | 0.21 | 0.63 | 0.92 | 0.25 |
+| OSM buildings inside the flood alone | 0.72 | 0.78 | 0.78 | 0.47 |
+| priority | 0.66 | 0.75 | 0.91 | 0.27 |
+
+Pooled over 1,143 damaged or destroyed buildings. Per town, priority's top-10 % capture is 0.78 (Erftstadt),
+0.69 (Eschweiler), 0.93 (Wassenberg) and 0.56 (Bad Neuenahr-Ahrweiler).
+
+Reading: priority is far better than water extent alone at the top of the list and keeps finding damage deeper
+down, where the buildings-only score stops (most flooded hexagons have no OSM building inside the flood polygon,
+so that score ties at zero). Buildings-only edges priority at the very top because priority also ranks hexagons
+that are cut off but not damaged, by design: damage is a proxy for need, not the same thing.
+
+**Weights.** Across 125 weight combinations (each weight x0.5 to x1.5), top-10 % damage capture moves by up to
+15 points per town, but the best setting differs by town (Erftstadt prefers exposure-heavy, Ahrweiler
+hazard-heavy). The defaults sit at the median of each town's range, so there is no evidence for retuning, and
+tuning on this data would be circular. On Prague the full ordering is stable (Spearman >= 0.98 for every
+variant); 86 % of variants keep at least 8 of the top 10 hexagons, and the ones that do not all make hazard
+dominant, which pulls fully flooded open land to the top (`sensitivity_*.csv`, `sensitivity_run.json`).
+
+## 8. Report trust and simulated attacks
+
+`trust_eval.json` · 64-bit difference hash against 11,563 CVFD and European Flood 2013 images.
+
+| Check | Result |
+|---|---|
+| forwarded copies (half size, JPEG quality 45) caught | 99.8 % of 500 |
+| 10 % centre crops caught | 21.8 % of 500 |
+| unrelated photos landing in the 3-6 bit review band | at most 0.7 % (27 of 3,710) |
+
+Found on the way: 2,371 of 3,710 European Flood 2013 photos are also in CVFD, and 20 of 1,180 CVFD test images
+have a near-copy in training (`data/DATASET_CARD.md`).
+
+`attack_prague.json` · synthetic reports injected into the Prague ranking, 20 draws each, attacker assumed to
+have a valid team code and photos that pass every trust check:
+
+| Scenario | Top-10 overlap with clean | Fake hexagons flagged for verification |
+|---|---|---|
+| 50 lone reports, chest-deep and 5 people, in mapped-dry hexagons | 1.00 | 50 of 50 |
+| 10 pairs of colluding devices in mapped-dry hexagons | 1.00 | 10 of 10 |
+| 50 lone reports inside satellite-mapped water | 0.91 | 50 of 50 |
+
+The first version of the rule let two agreeing devices corroborate each other anywhere; this simulation showed
+7 of 10 colluding pairs reaching the top ten, and a lone report's people count raising exposure inside mapped
+water. Both are closed: device agreement no longer overrules a satellite map that says dry, and satellite water
+confirms depth but never people. What remains is the third row: inside mapped water, a fabricated depth claim
+counts, which displaced on average one of the top ten.
+
+## 9. Supervised baselines carried over from v1
 
 `../legacy/v1-results/` · seven backbones, three seeds, binary flooded / not-flooded
 

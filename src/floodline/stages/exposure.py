@@ -61,23 +61,34 @@ def count_buildings(buildings, flood_geometry, cells: list[str]) -> pd.DataFrame
 
 
 def run(
-    paths: Paths, layer_csv: Path, ems_source: Path, reach_csv: Path | None = None, out_name: str = "exposure.csv"
+    paths: Paths,
+    layer_csv: Path,
+    ems_source: Path,
+    reach_csv: Path | None = None,
+    out_name: str = "exposure.csv",
+    source: osm.OsmSource | None = None,
 ) -> pd.DataFrame:
     import geopandas as gpd
-    import osmnx as ox
     from shapely.ops import unary_union
 
     from floodline.stages.satellite import hex_polygons, load_ems
 
     manifest = RunManifest(
-        "exposure", params={"layer": str(layer_csv), "ems_source": str(ems_source), "reach": str(reach_csv)}
+        "exposure",
+        params={
+            "layer": str(layer_csv),
+            "ems_source": str(ems_source),
+            "reach": str(reach_csv),
+            "osm": (source or osm.OsmSource()).describe(),
+        },
     )
     layer = pd.read_csv(layer_csv)
     reach = pd.read_csv(reach_csv) if reach_csv is not None and reach_csv.exists() else None
     cells = target_cells(layer, reach)
     flood, _, _, _ = load_ems(ems_source)
     area = unary_union(hex_polygons(cells))
-    feats = osm.call(ox.features_from_polygon, area, {"building": True})
+    source = source or osm.OsmSource()
+    feats = source.features(area, {"building": True})
     feats = feats[feats.geometry.geom_type.isin(["Polygon", "MultiPolygon"])]
     buildings = gpd.GeoDataFrame(geometry=feats.geometry.to_numpy(), crs="EPSG:4326")
     df = count_buildings(buildings, flood, cells)

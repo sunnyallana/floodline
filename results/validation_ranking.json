@@ -1,0 +1,365 @@
+{
+ "stage": "validation_ranking",
+ "params": {
+  "towns": [
+   "aoi07",
+   "aoi09",
+   "aoi10",
+   "aoi15"
+  ]
+ },
+ "metrics": {
+  "towns": {
+   "aoi07": {
+    "severe": {
+     "hexes": 544,
+     "target_total": 32,
+     "priority": {
+      "spearman": 0.187,
+      "top5": 0.75,
+      "top10": 0.781,
+      "top20": 0.906
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.163,
+      "top5": 0.0,
+      "top10": 0.031,
+      "top20": 0.812
+     },
+     "buildings_in_flood": {
+      "spearman": 0.308,
+      "top5": 0.719,
+      "top10": 0.938,
+      "top20": 0.969
+     },
+     "hazard": {
+      "spearman": 0.164,
+      "top5": 0.0,
+      "top10": 0.031,
+      "top20": 0.812
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    },
+    "affected": {
+     "hexes": 544,
+     "target_total": 1742,
+     "priority": {
+      "spearman": 0.502,
+      "top5": 0.862,
+      "top10": 0.918,
+      "top20": 0.941
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.422,
+      "top5": 0.0,
+      "top10": 0.547,
+      "top20": 0.784
+     },
+     "buildings_in_flood": {
+      "spearman": 0.86,
+      "top5": 0.909,
+      "top10": 0.964,
+      "top20": 0.971
+     },
+     "hazard": {
+      "spearman": 0.424,
+      "top5": 0.0,
+      "top10": 0.539,
+      "top20": 0.784
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    }
+   },
+   "aoi09": {
+    "severe": {
+     "hexes": 1323,
+     "target_total": 29,
+     "priority": {
+      "spearman": 0.119,
+      "top5": 0.621,
+      "top10": 0.69,
+      "top20": 0.828
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.095,
+      "top5": 0.034,
+      "top10": 0.103,
+      "top20": 0.828
+     },
+     "buildings_in_flood": {
+      "spearman": 0.382,
+      "top5": 0.828,
+      "top10": 0.828,
+      "top20": 0.828
+     },
+     "hazard": {
+      "spearman": 0.096,
+      "top5": 0.034,
+      "top10": 0.103,
+      "top20": 0.828
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    },
+    "affected": {
+     "hexes": 1323,
+     "target_total": 518,
+     "priority": {
+      "spearman": 0.31,
+      "top5": 0.268,
+      "top10": 0.388,
+      "top20": 0.558
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.28,
+      "top5": 0.054,
+      "top10": 0.141,
+      "top20": 0.502
+     },
+     "buildings_in_flood": {
+      "spearman": 0.585,
+      "top5": 0.411,
+      "top10": 0.411,
+      "top20": 0.411
+     },
+     "hazard": {
+      "spearman": 0.283,
+      "top5": 0.054,
+      "top10": 0.141,
+      "top20": 0.502
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    }
+   },
+   "aoi10": {
+    "severe": {
+     "hexes": 367,
+     "target_total": 59,
+     "priority": {
+      "spearman": 0.197,
+      "top5": 0.847,
+      "top10": 0.932,
+      "top20": 0.983
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.151,
+      "top5": 0.051,
+      "top10": 0.831,
+      "top20": 0.932
+     },
+     "buildings_in_flood": {
+      "spearman": 0.612,
+      "top5": 1.0,
+      "top10": 1.0,
+      "top20": 1.0
+     },
+     "hazard": {
+      "spearman": 0.152,
+      "top5": 0.051,
+      "top10": 0.831,
+      "top20": 0.932
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    },
+    "affected": {
+     "hexes": 367,
+     "target_total": 404,
+     "priority": {
+      "spearman": 0.396,
+      "top5": 0.374,
+      "top10": 0.515,
+      "top20": 0.624
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.377,
+      "top5": 0.092,
+      "top10": 0.522,
+      "top20": 0.572
+     },
+     "buildings_in_flood": {
+      "spearman": 0.445,
+      "top5": 0.48,
+      "top10": 0.48,
+      "top20": 0.48
+     },
+     "hazard": {
+      "spearman": 0.371,
+      "top5": 0.092,
+      "top10": 0.522,
+      "top20": 0.572
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    }
+   },
+   "aoi15": {
+    "severe": {
+     "hexes": 638,
+     "target_total": 1023,
+     "priority": {
+      "spearman": 0.458,
+      "top5": 0.302,
+      "top10": 0.56,
+      "top20": 0.838
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.489,
+      "top5": 0.271,
+      "top10": 0.611,
+      "top20": 0.9
+     },
+     "buildings_in_flood": {
+      "spearman": 0.504,
+      "top5": 0.346,
+      "top10": 0.624,
+      "top20": 0.761
+     },
+     "hazard": {
+      "spearman": 0.489,
+      "top5": 0.271,
+      "top10": 0.611,
+      "top20": 0.9
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    },
+    "affected": {
+     "hexes": 638,
+     "target_total": 3814,
+     "priority": {
+      "spearman": 0.77,
+      "top5": 0.604,
+      "top10": 0.782,
+      "top20": 0.943
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.792,
+      "top5": 0.459,
+      "top10": 0.769,
+      "top20": 0.963
+     },
+     "buildings_in_flood": {
+      "spearman": 0.924,
+      "top5": 0.666,
+      "top10": 0.859,
+      "top20": 0.931
+     },
+     "hazard": {
+      "spearman": 0.792,
+      "top5": 0.459,
+      "top10": 0.769,
+      "top20": 0.963
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    }
+   }
+  },
+  "pooled": {
+   "severe": {
+    "hexes": 2872,
+    "target_total": 1143,
+    "priority": {
+     "spearman": 0.268,
+     "top5": 0.664,
+     "top10": 0.745,
+     "top20": 0.908
+    },
+    "satellite_water_fraction": {
+     "spearman": 0.245,
+     "top5": 0.21,
+     "top10": 0.626,
+     "top20": 0.922
+    },
+    "buildings_in_flood": {
+     "spearman": 0.466,
+     "top5": 0.717,
+     "top10": 0.78,
+     "top20": 0.78
+    },
+    "hazard": {
+     "spearman": 0.247,
+     "top5": 0.21,
+     "top10": 0.626,
+     "top20": 0.922
+    },
+    "random": {
+     "top5": 0.05,
+     "top10": 0.1,
+     "top20": 0.2
+    }
+   },
+   "affected": {
+    "hexes": 2872,
+    "target_total": 6478,
+    "priority": {
+     "spearman": 0.512,
+     "top5": 0.782,
+     "top10": 0.832,
+     "top20": 0.908
+    },
+    "satellite_water_fraction": {
+     "spearman": 0.48,
+     "top5": 0.443,
+     "top10": 0.739,
+     "top20": 0.887
+    },
+    "buildings_in_flood": {
+     "spearman": 0.783,
+     "top5": 0.825,
+     "top10": 0.872,
+     "top20": 0.872
+    },
+    "hazard": {
+     "spearman": 0.481,
+     "top5": 0.443,
+     "top10": 0.738,
+     "top20": 0.887
+    },
+    "random": {
+     "top5": 0.05,
+     "top10": 0.1,
+     "top20": 0.2
+    }
+   }
+  }
+ },
+ "started_at": "2026-10-20T11:39:21+00:00",
+ "finished_at": "2026-10-20T11:39:21+00:00",
+ "seconds": 0.0,
+ "git_sha": "d9f6d9e",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

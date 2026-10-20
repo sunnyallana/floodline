@@ -145,10 +145,27 @@ def test_a_single_report_in_a_dry_area_asks_for_verification_not_a_boat():
     assert ranked.verify_score == pytest.approx(0.9)  # chest-deep claim, so it is checked first
 
 
-def test_two_devices_that_agree_corroborate():
-    ranked = score(_claim(depth_agreeing_devices=2, n_devices=2)).iloc[0]
-    assert bool(ranked.corroborated) and not bool(ranked.needs_verification)
-    assert ranked.hazard == pytest.approx(0.9) and ranked.priority > 0.5  # chest-deep, four people up high
+def test_two_agreeing_devices_count_where_the_satellite_has_not_mapped():
+    ranked = score(_claim(satellite_water_fraction=np.nan, depth_agreeing_devices=2, people_devices=2, n_devices=2))
+    row = ranked.iloc[0]
+    assert bool(row.corroborated) and not bool(row.needs_verification)
+    assert row.hazard == pytest.approx(0.9) and row.priority > 0.5  # chest-deep, four people up high
+
+
+def test_colluding_devices_cannot_overrule_a_dry_satellite_map():
+    row = score(_claim(depth_agreeing_devices=2, people_devices=2, n_devices=2)).iloc[0]
+    assert row.priority == 0 and bool(row.needs_verification)
+
+
+def test_satellite_water_confirms_depth_but_never_people():
+    row = score(_claim(satellite_water_fraction=0.3, satellite_water_near=True, buildings_in_flood=0)).iloc[0]
+    assert row.hazard == pytest.approx(0.9)  # depth backed by the satellite
+    assert row.exposure == 0 and bool(row.needs_verification)  # four claimed people wait for a second witness
+
+
+def test_model_people_count_is_used_instead_of_the_claim():
+    row = score(_claim(satellite_water_near=True, people_assessed=2)).iloc[0]
+    assert row.exposure == pytest.approx(1 - np.exp(-2 * 5 / 20), abs=1e-3)
 
 
 def test_satellite_water_nearby_corroborates_one_report():

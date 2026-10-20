@@ -150,15 +150,15 @@ def _key(root: Path) -> str:
     return root.name.split("_")[1].lower()  # e.g. aoi07
 
 
-def _rank_town(vpaths: Paths, d: Path, key: str, buildings) -> dict[str, Any]:
+def _rank_town(vpaths: Paths, d: Path, key: str, buildings, source=None) -> dict[str, Any]:
     """satellite -> reach -> exposure -> fuse for one graded town, then the ranking metrics."""
     from floodline.stages import exposure, fuse, reach, satellite
 
     out: dict[str, Any] = {}
     sat_csv = vpaths.results / f"satellite_{key}.csv"
     layer = satellite.run(vpaths, d, out_name=sat_csv.name, resolution=9)
-    reach.run(vpaths, layer.h3.tolist(), d, out_stem=f"reach_{key}")
-    exposure.run(vpaths, sat_csv, d, vpaths.results / f"reach_{key}.csv", out_name=f"exposure_{key}.csv")
+    reach.run(vpaths, layer.h3.tolist(), d, out_stem=f"reach_{key}", source=source)
+    exposure.run(vpaths, sat_csv, d, vpaths.results / f"reach_{key}.csv", out_name=f"exposure_{key}.csv", source=source)
     hexes = fuse.run(
         vpaths,
         [sat_csv, vpaths.results / f"reach_{key}.csv", vpaths.results / f"exposure_{key}.csv"],
@@ -175,12 +175,21 @@ def _rank_town(vpaths: Paths, d: Path, key: str, buildings) -> dict[str, Any]:
     return out
 
 
-def run(paths: Paths, gra_root: Path, ranking: bool = True) -> dict[str, Any]:
+def run(
+    paths: Paths,
+    gra_root: Path,
+    ranking: bool = True,
+    osm_pbfs: list[Path] | None = None,
+    only: set[str] | None = None,
+) -> dict[str, Any]:
+    """``osm_pbfs``: Geofabrik extracts to read OSM from instead of Overpass. ``only``: rank just these AOI keys."""
     import geopandas as gpd
 
+    from floodline import osm
     from floodline.stages import satellite
 
     vpaths = Paths(root=paths.root, namespace="validation").ensure()
+    source = osm.OsmSource(osm_pbfs or (), paths.data / "external" / "osm" / "extracts")
     manifest = RunManifest("validate", params={"gra_root": str(gra_root), "thresholds_m": THRESHOLDS_M})
     dirs = sorted(d for d in gra_root.iterdir() if d.is_dir() and d.name.endswith("_vector"))
     road_tables, towns = [], {}
@@ -196,10 +205,10 @@ def run(paths: Paths, gra_root: Path, ranking: bool = True) -> dict[str, Any]:
         buildings = _layer(d, "builtUpP")
         severe = int(buildings.damage_gra.isin(SEVERE).sum()) if buildings is not None else 0
         towns[key] = {"town": town, "severe_buildings": severe}
-        if not ranking or severe < MIN_SEVERE_BUILDINGS:
+        if not ranking or severe < MIN_SEVERE_BUILDINGS or (only and key not in only):
             continue
         try:
-            towns[key].update(_rank_town(vpaths, d, key, buildings))
+            towns[key].update(_rank_town(vpaths, d, key, buildings, source))
         except Exception as exc:  # one town's OSM failure must not discard the others
             log.error("ranking for %s (%s) failed: %s", key, town, exc)
             towns[key]["ranking_error"] = f"{type(exc).__name__}: {exc}"[:300]
@@ -217,5 +226,28 @@ def run(paths: Paths, gra_root: Path, ranking: bool = True) -> dict[str, Any]:
         pooled["f1"] = (2 * pooled.precision * pooled.recall / (pooled.precision + pooled.recall)).round(3)
     summary = {"towns": towns, "roads_pooled": pooled.to_dict("records")}
     manifest.finish(**summary).write(paths.results / "validation_run.json")
+    if ranking:
+        summary["ranking"] = ranking_summary(paths)
     log.info("validation: %d towns, %d road rows", len(towns), len(roads_all))
     return summary
+
+
+def ranking_summary(paths: Paths) -> dict[str, Any]:
+    """Ranking metrics from every ``results/validation/ranking_*.csv``, per town and pooled, independent of
+    which run produced them. Written to ``results/validation_ranking.json``."""
+    vdir = Paths(root=paths.root, namespace="validation").results
+    towns: dict[str, Any] = {}
+    frames = []
+    for f in sorted(vdir.glob("ranking_*.csv")):
+        key = f.stem.removeprefix("ranking_")
+        df = pd.read_csv(f)
+        frames.append(df.assign(aoi=key))
+        towns[key] = {"severe": rank_metrics(df, "severe"), "affected": rank_metrics(df, "affected")}
+    out: dict[str, Any] = {"towns": towns}
+    if frames:
+        pooled = pd.concat(frames, ignore_index=True)
+        # Pooled capture ranks hexagons across towns, so it answers "if a coordinator had all four towns".
+        out["pooled"] = {"severe": rank_metrics(pooled, "severe"), "affected": rank_metrics(pooled, "affected")}
+    manifest = RunManifest("validation_ranking", params={"towns": sorted(towns)})
+    manifest.finish(**out).write(paths.results / "validation_ranking.json")
+    return out

@@ -11,3 +11,17 @@ Provenance (from the dataset card): FloodIMG (CC0) for most flooded scenes, web-
 
 Committed here: `depth_labels.csv`, the 300-image depth benchmark (labelled from contact sheets with an AI assistant; human review pending), and the CVFD
 index is regenerated with `floodline index`.
+
+## OpenStreetMap extracts used for validation
+
+`floodline validate --osm-pbf` reads these Geofabrik snapshots, not live Overpass, so the result does not
+change as OSM is edited. Download them into `data/external/osm/` together with their `.poly` boundaries:
+
+| File | Source | MD5 |
+|---|---|---|
+| `koeln-regbez-261018.osm.pbf` | https://download.geofabrik.de/europe/germany/nordrhein-westfalen/koeln-regbez-261018.osm.pbf | `04130cd86d5af1eb8611eb93475977fa` |
+| `rheinland-pfalz-261018.osm.pbf` | https://download.geofabrik.de/europe/germany/rheinland-pfalz-261018.osm.pbf | `42fca296352315efc956abb12a43473f` |
+
+The `.poly` files are `koeln-regbez.poly` and `rheinland-pfalz.poly` from the same directories, saved as
+`<extract name>.poly`. EMS grading packages for EMSR517 come from
+`https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR517/<product>_vector.zip`.

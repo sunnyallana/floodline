@@ -48,9 +48,14 @@ DELAY_SATURATION_MIN = 30.0  # a detour this long counts as fully obstructed acc
 
 @dataclass(frozen=True)
 class Weights:
+    """Every tunable of the priority score in one place, so a sensitivity run can vary all of them."""
+
     exposure: float = 0.45
     hazard: float = 0.30
     access: float = 0.25
+    exposure_scale: float = EXPOSURE_SCALE
+    person_weight: float = PERSON_WEIGHT
+    delay_saturation_min: float = DELAY_SATURATION_MIN
 
 
 def to_cells(df: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Series:
@@ -102,6 +107,10 @@ def aggregate(reports: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Data
     r["device"] = device.where(device.notna(), image.where(image.notna(), own_id))
     r["assessed"] = _col(r, "assessed", False).fillna(False).astype(bool)
 
+    r["people_claimed"] = r.people_in_water.fillna(0) + r.people_on_roofs_or_elevated.fillna(0)
+    people_devices = r[r.people_claimed > 0].groupby("h3").device.nunique()
+    people_assessed = r[r.assessed].groupby("h3").people_claimed.max()
+
     per_device = r.groupby(["h3", "device"]).ordinal.max().reset_index()
     median = per_device.groupby("h3").ordinal.median().apply(np.floor)
     per_device = per_device.join(median.rename("median"), on="h3")
@@ -118,6 +127,8 @@ def aggregate(reports: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Data
             "depth_claim": median.map(_class_at),
             "depth_agreeing_devices": agreeing,
             "depth_assessed": assessed.map(_class_at),
+            "people_devices": people_devices,
+            "people_assessed": people_assessed,
             "people_visible": g.people_visible.max(),
             "people_in_water": g.people_in_water.max(),
             "people_elevated": g.people_on_roofs_or_elevated.max(),
@@ -128,7 +139,7 @@ def aggregate(reports: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Data
         }
     )
     out = out.join(unverified, how="outer")
-    for c in ("n_reports", "n_unverified", "depth_agreeing_devices", "n_devices", "n_with_depth"):
+    for c in ("n_reports", "n_unverified", "depth_agreeing_devices", "n_devices", "n_with_depth", "people_devices"):
         out[c] = out[c].fillna(0).astype(int)
     return out.rename_axis("h3").reset_index()
 
@@ -136,11 +147,18 @@ def aggregate(reports: pd.DataFrame, resolution: int = H3_RESOLUTION) -> pd.Data
 def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
     """Add ``exposure``, ``hazard``, ``access``, ``priority``, ``confidence`` and the verification columns.
 
-    Report evidence (a depth claim, people in water or up high) counts towards priority only when it is
-    corroborated: at least two devices agree within one depth class, or the satellite maps water in the hexagon
-    or a neighbour (``satellite_water_near``), or the model has assessed the photo (``depth_assessed``). Anything
-    else sets ``needs_verification`` and a ``verify_score`` for the coordinator's check list, and leaves priority
-    where the independent layers put it. One report can send someone to look; it cannot send a boat.
+    Report claims count towards priority only when something independent of the reporters backs them:
+
+    - a depth claim: satellite water in the hexagon or a neighbour (``satellite_water_near``), or the model's
+      assessment of the photo (``depth_assessed``), or, only where the satellite has not mapped the hexagon at
+      all, at least two devices agreeing within one class;
+    - a people claim: the model's own count (``people_assessed``), or two devices claiming people, again only
+      where the satellite has not mapped the hexagon dry. Satellite water confirms water, never people.
+
+    Device agreement cannot overrule a satellite map that says dry: that is a contradiction to verify, not
+    evidence (``attack.py`` showed two colluding devices otherwise reach the top ten). Anything not backed sets
+    ``needs_verification`` and a ``verify_score`` and leaves priority where the independent layers put it.
+    One report, or two that agree, can send someone to look; they cannot send a boat into a mapped-dry street.
     """
     w = weights or Weights()
     h = hexes.copy()
@@ -152,26 +170,32 @@ def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
     claim = _col(h, "depth_claim", None).map(DEPTH_SEVERITY).astype(float)
     assessed = _col(h, "depth_assessed", None).map(DEPTH_SEVERITY).astype(float)
     claimed_people = _col(h, "people_in_water", 0).fillna(0) + _col(h, "people_elevated", 0).fillna(0)
+    people_assessed = _col(h, "people_assessed").astype(float)
     sat_near = _col(h, "satellite_water_near", False).fillna(False).astype(bool)
-    by_devices = _col(h, "depth_agreeing_devices", 0).fillna(0) >= CORROBORATING_DEVICES
-    corroborated = by_devices | sat_near | assessed.notna()
-    has_claim = claim.notna() | (claimed_people > 0)
-    h["corroborated"] = has_claim & corroborated
-    h["needs_verification"] = (has_claim & ~corroborated) | (_col(h, "n_unverified", 0).fillna(0) > 0)
+    mapped_dry = sat.notna() & ~sat_near  # the satellite looked and saw no water here or next door
+    devices_agree = (_col(h, "depth_agreeing_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
+    people_agree = (_col(h, "people_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
+    depth_ok = sat_near | assessed.notna() | devices_agree
+    people_ok = people_assessed.notna() | people_agree
+    has_depth, has_people = claim.notna(), claimed_people > 0
+    h["corroborated"] = (has_depth & depth_ok) | (has_people & people_ok)
+    h["needs_verification"] = (
+        (has_depth & ~depth_ok) | (has_people & ~people_ok) | (_col(h, "n_unverified", 0).fillna(0) > 0)
+    )
+    unbacked_depth = np.where(has_depth & ~depth_ok, claim.fillna(0), 0.0)
+    unbacked_people = np.where(has_people & ~people_ok, claimed_people, 0.0)
     h["verify_score"] = np.where(
-        h.needs_verification,
-        np.fmax(claim.fillna(0).to_numpy(float), np.tanh(claimed_people.to_numpy(float) / 5.0)),
-        0.0,
+        h.needs_verification, np.fmax(unbacked_depth, np.tanh(unbacked_people.astype(float) / 5.0)), 0.0
     ).round(3)
-    report_severity = np.fmax(assessed.to_numpy(float), np.where(corroborated, claim.to_numpy(float), np.nan))
-    people = np.where(corroborated, claimed_people, 0)
+    report_severity = np.fmax(assessed.to_numpy(float), np.where(depth_ok, claim.to_numpy(float), np.nan))
+    people = np.where(people_ok, np.where(people_assessed.notna(), people_assessed, claimed_people), 0)
 
-    affected = in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0) + PERSON_WEIGHT * people
+    affected = in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0) + w.person_weight * people
     h["buildings_affected"] = (in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0)).astype(int)
-    h["exposure"] = 1.0 - np.exp(-affected / EXPOSURE_SCALE)
+    h["exposure"] = 1.0 - np.exp(-affected / w.exposure_scale)
     h["hazard"] = pd.Series(np.fmax(report_severity, sat.to_numpy(dtype=float)), index=h.index).fillna(0.0).clip(0, 1)
     delay = _col(h, "delay_min").fillna(0).clip(lower=0)
-    h["access"] = np.where(cut_off, 1.0, (delay / DELAY_SATURATION_MIN).clip(upper=1.0))
+    h["access"] = np.where(cut_off, 1.0, (delay / w.delay_saturation_min).clip(upper=1.0))
     gate = (h.hazard > 0) | cut_off
     h["priority"] = (gate * (w.exposure * h.exposure + w.hazard * h.hazard + w.access * h.access)).clip(0, 1)
 

@@ -1,0 +1,25 @@
+{
+"type": "FeatureCollection",
+"name": "reach_aoi15_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Leimbach", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.9304982, 50.4027753 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Altenahr", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.9880649, 50.5222529 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Dümpelfeld", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.930821596118722, 50.44109675 ] } },
+{ "type": "Feature", "properties": { "name": "Krankenhaus Maria Hilf Bad Neuenahr-Ahrweiler", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 7.127180109961824, 50.54071915 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Grafschaft - Löschgruppe Lantershofen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.103346742820458, 50.5550784 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Grafschaft - Löschgruppe Holzweiler-Esch", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.037949864873038, 50.5524961 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Hönningen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.953830866599958, 50.4730905 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Wimbach", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.91019586079932, 50.36344295 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Ahrweiler", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.097274372873132, 50.53995435 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Grafschaft - Löschgruppe Bengen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.134256180911517, 50.56703685 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Grafschaft - Löschgruppe Karweiler", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.112436046251577, 50.56260535 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Grafschaft - Löschgruppe Ringen", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.098048110019064, 50.5716185 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Ahrbrück", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.978944203860756, 50.4843132 ] } },
+{ "type": "Feature", "properties": { "name": "", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.024110910367657, 50.5226394 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Kreuzberg", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.972443520244875, 50.50959075 ] } },
+{ "type": "Feature", "properties": { "name": "DRK Fachklinik Bad Neuenahr", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 7.138225933747515, 50.54363025 ] } },
+{ "type": "Feature", "properties": { "name": "Freiwillige Feuerwehr Bad Neuenahr", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 7.129031176701095, 50.548882 ] } },
+{ "type": "Feature", "properties": { "name": "Feuerwehrhaus", "kind": "fire_station" }, "geometry": { "type": "Point", "coordinates": [ 6.931839755905504, 50.3836785 ] } }
+]
+}

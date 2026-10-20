@@ -1,0 +1,89 @@
+{
+ "stage": "fuse",
+ "params": {
+  "layers": [
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\validation\\satellite_aoi10.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\validation\\reach_aoi10.csv",
+   "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\validation\\exposure_aoi10.csv"
+  ],
+  "reports": null
+ },
+ "metrics": {
+  "hexes": 367,
+  "hexes_with_priority": 185,
+  "hexes_with_reports": 0,
+  "hexes_needing_verification": 0,
+  "top10": [
+   {
+    "h3": "891fa54514fffff",
+    "priority": 0.722,
+    "confidence": 0.6,
+    "buildings_affected": 30
+   },
+   {
+    "h3": "891fa545e87ffff",
+    "priority": 0.712,
+    "confidence": 0.6,
+    "buildings_affected": 70
+   },
+   {
+    "h3": "891fa5453d7ffff",
+    "priority": 0.708,
+    "confidence": 0.6,
+    "buildings_affected": 62
+   },
+   {
+    "h3": "891fa545083ffff",
+    "priority": 0.485,
+    "confidence": 0.6,
+    "buildings_affected": 37
+   },
+   {
+    "h3": "891fa5450c7ffff",
+    "priority": 0.238,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891fa5450dbffff",
+    "priority": 0.236,
+    "confidence": 0.6,
+    "buildings_affected": 1
+   },
+   {
+    "h3": "891fa5450d7ffff",
+    "priority": 0.236,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891fa54508bffff",
+    "priority": 0.235,
+    "confidence": 0.6,
+    "buildings_affected": 3
+   },
+   {
+    "h3": "891fa54500fffff",
+    "priority": 0.226,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   },
+   {
+    "h3": "891fa54503bffff",
+    "priority": 0.218,
+    "confidence": 0.6,
+    "buildings_affected": 0
+   }
+  ]
+ },
+ "started_at": "2026-10-20T11:37:19+00:00",
+ "finished_at": "2026-10-20T11:37:19+00:00",
+ "seconds": 0.1,
+ "git_sha": "d9f6d9e",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

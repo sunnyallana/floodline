@@ -40,7 +40,74 @@
    },
    "aoi15": {
     "town": "Bad Neuenahr-Ahrweiler",
-    "severe_buildings": 1023
+    "severe_buildings": 1023,
+    "severe_in_mapped_hexes": 1023,
+    "ranking_severe": {
+     "hexes": 638,
+     "target_total": 1023,
+     "priority": {
+      "spearman": 0.458,
+      "top5": 0.302,
+      "top10": 0.56,
+      "top20": 0.838
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.489,
+      "top5": 0.271,
+      "top10": 0.611,
+      "top20": 0.9
+     },
+     "buildings_in_flood": {
+      "spearman": 0.504,
+      "top5": 0.346,
+      "top10": 0.624,
+      "top20": 0.761
+     },
+     "hazard": {
+      "spearman": 0.489,
+      "top5": 0.271,
+      "top10": 0.611,
+      "top20": 0.9
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    },
+    "ranking_affected": {
+     "hexes": 638,
+     "target_total": 3814,
+     "priority": {
+      "spearman": 0.77,
+      "top5": 0.604,
+      "top10": 0.782,
+      "top20": 0.943
+     },
+     "satellite_water_fraction": {
+      "spearman": 0.792,
+      "top5": 0.459,
+      "top10": 0.769,
+      "top20": 0.963
+     },
+     "buildings_in_flood": {
+      "spearman": 0.924,
+      "top5": 0.666,
+      "top10": 0.859,
+      "top20": 0.931
+     },
+     "hazard": {
+      "spearman": 0.792,
+      "top5": 0.459,
+      "top10": 0.769,
+      "top20": 0.963
+     },
+     "random": {
+      "top5": 0.05,
+      "top10": 0.1,
+      "top20": 0.2
+     }
+    }
    },
    "aoi16": {
     "town": "Gerolstein",
@@ -202,10 +269,10 @@
    }
   ]
  },
- "started_at": "2026-10-20T10:48:22+00:00",
- "finished_at": "2026-10-20T10:48:28+00:00",
- "seconds": 5.5,
- "git_sha": "262232f",
+ "started_at": "2026-10-20T11:37:33+00:00",
+ "finished_at": "2026-10-20T11:39:09+00:00",
+ "seconds": 96.6,
+ "git_sha": "d9f6d9e",
  "package_version": "0.2.0",
  "host": {
   "platform": "Windows-11-10.0.26200-SP0",

@@ -1,0 +1,93 @@
+{
+ "stage": "sensitivity",
+ "params": {
+  "hexes": [
+   "results\\hexes_prague.csv",
+   "results\\hexes_dresden.csv"
+  ],
+  "factors": [
+   0.5,
+   0.75,
+   1.0,
+   1.25,
+   1.5
+  ]
+ },
+ "metrics": {
+  "variants": 131,
+  "hexes_prague": {
+   "top5_overlap": {
+    "min": 0.4,
+    "median": 0.8
+   },
+   "top10_overlap": {
+    "min": 0.3,
+    "median": 0.9
+   },
+   "top20_overlap": {
+    "min": 0.65,
+    "median": 0.95
+   },
+   "spearman_live": {
+    "min": 0.984,
+    "median": 0.998
+   }
+  },
+  "hexes_dresden": {
+   "top5_overlap": {
+    "min": 0.6,
+    "median": 0.8
+   },
+   "top10_overlap": {
+    "min": 0.8,
+    "median": 1.0
+   },
+   "top20_overlap": {
+    "min": 0.95,
+    "median": 0.95
+   },
+   "spearman_live": {
+    "min": 0.983,
+    "median": 0.998
+   }
+  },
+  "damage_aoi07": {
+   "default_top10": 0.781,
+   "top10": {
+    "min": 0.75,
+    "median": 0.781
+   }
+  },
+  "damage_aoi09": {
+   "default_top10": 0.69,
+   "top10": {
+    "min": 0.621,
+    "median": 0.828
+   }
+  },
+  "damage_aoi10": {
+   "default_top10": 0.932,
+   "top10": {
+    "min": 0.847,
+    "median": 0.932
+   }
+  },
+  "damage_aoi15": {
+   "default_top10": 0.56,
+   "top10": {
+    "min": 0.485,
+    "median": 0.557
+   }
+  }
+ },
+ "started_at": "2026-10-20T11:39:35+00:00",
+ "finished_at": "2026-10-20T11:39:42+00:00",
+ "seconds": 6.5,
+ "git_sha": "d9f6d9e",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}
