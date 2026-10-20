@@ -21,23 +21,42 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(__file__).resolve().parent
 COL_W, FULL_W = 3.45, 7.0  # inches: IEEE column and text width
 
-OKABE = {"blue": "#0072B2", "orange": "#E69F00", "green": "#009E73", "vermillion": "#D55E00",
-         "sky": "#56B4E9", "purple": "#CC79A7", "yellow": "#F0E442", "black": "#000000"}
+OKABE = {
+    "blue": "#0072B2",
+    "orange": "#E69F00",
+    "green": "#009E73",
+    "vermillion": "#D55E00",
+    "sky": "#56B4E9",
+    "purple": "#CC79A7",
+    "yellow": "#F0E442",
+    "black": "#000000",
+}
 
-plt.rcParams.update({
-    "font.family": "serif", "font.serif": ["Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"],
-    "mathtext.fontset": "stix", "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8,
-    "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7, "pdf.fonttype": 42,
-    "axes.spines.top": False, "axes.spines.right": False, "axes.linewidth": 0.6,
-})
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"],
+        "mathtext.fontset": "stix",
+        "font.size": 8,
+        "axes.titlesize": 8,
+        "axes.labelsize": 8,
+        "xtick.labelsize": 7,
+        "ytick.labelsize": 7,
+        "legend.fontsize": 7,
+        "pdf.fonttype": 42,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.linewidth": 0.6,
+    }
+)
 
 # Scores shown, in the order the paper discusses them, with the labels used in the text.
 SCORES = [
@@ -50,8 +69,14 @@ SCORES = [
     ("water", "Water extent alone"),
     ("A", "Access alone"),
 ]
-EVENTS = [("EMSR517", "Germany\n2021"), ("EMSR631", "Sanghar\n2022"), ("EMSR504", "NSW\n2021"),
-          ("EMSR559", "Moramanga\n2022"), ("EMSR634", "Marche\n2022"), ("EMSR649", "Pachino\n2023")]
+EVENTS = [
+    ("EMSR517", "Germany\n2021"),
+    ("EMSR631", "Sanghar\n2022"),
+    ("EMSR504", "NSW\n2021"),
+    ("EMSR559", "Moramanga\n2022"),
+    ("EMSR634", "Marche\n2022"),
+    ("EMSR649", "Pachino\n2023"),
+]
 
 
 def two(v: float) -> str:
@@ -94,7 +119,12 @@ def fig_pooled(m: dict) -> None:
     lo = np.array([ab[k]["ci95"][0] for k in keys])
     hi = np.array([ab[k]["ci95"][1] for k in keys])
     y = np.arange(len(keys))[::-1]
-    colours = [OKABE["blue"]] * 2 + [OKABE["sky"]] + [OKABE["orange"]] * 2 + [OKABE["green"], OKABE["vermillion"], OKABE["purple"]]
+    colours = (
+        [OKABE["blue"]] * 2
+        + [OKABE["sky"]]
+        + [OKABE["orange"]] * 2
+        + [OKABE["green"], OKABE["vermillion"], OKABE["purple"]]
+    )
     fig, ax = plt.subplots(figsize=(COL_W, 2.2))
     ax.barh(y, vals, color=colours, height=0.65)
     ax.errorbar(vals, y, xerr=[vals - lo, hi - vals], fmt="none", ecolor="black", elinewidth=0.7, capsize=2)
@@ -135,7 +165,10 @@ def fig_roads(m: dict) -> None:
 def fig_distances() -> None:
     d = pd.read_csv(ROOT / "results" / "agreement_euflood_distances.csv")
     fig, ax = plt.subplots(figsize=(COL_W, 2.0))
-    for act, colour, name in (("EMSR044", OKABE["blue"], "Dresden area"), ("EMSR045", OKABE["vermillion"], "Prague area")):
+    for act, colour, name in (
+        ("EMSR044", OKABE["blue"], "Dresden area"),
+        ("EMSR045", OKABE["vermillion"], "Prague area"),
+    ):
         u = d[d.ems_activation == act].drop_duplicates("location_key")
         for col, ls, what in (("d_flood_m", "-", "to mapped flood"), ("d_permanent_m", "--", "to river channel")):
             x = np.sort(np.maximum(u[col].to_numpy(float), 1.0))

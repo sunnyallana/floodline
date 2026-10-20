@@ -24,14 +24,14 @@ OUT = Path(__file__).resolve().parent / "numbers.tex"
 DEPTH_ORDER = ["dry", "ankle", "knee", "waist", "chest", "above_head"]
 
 
-class Missing(Exception):
+class MissingResultError(Exception):
     pass
 
 
 def load(rel: str) -> dict[str, Any]:
     path = ROOT / rel
     if not path.exists():
-        raise Missing(f"{rel} not found")
+        raise MissingResultError(f"{rel} not found")
     d = json.loads(path.read_text(encoding="utf-8"))
     return d.get("metrics", d)
 
@@ -39,7 +39,7 @@ def load(rel: str) -> dict[str, Any]:
 def dig(d: Any, *keys: Any) -> Any:
     for k in keys:
         if not isinstance(d, dict) or k not in d:
-            raise Missing(f"key {'/'.join(map(str, keys))}")
+            raise MissingResultError(f"key {'/'.join(map(str, keys))}")
         d = d[k]
     return d
 
@@ -56,7 +56,7 @@ def signed(v: float, nd: int = 3) -> str:
 
 
 def thousands(n: float) -> str:
-    return f"{int(round(n)):,}".replace(",", "{,}")
+    return f"{round(n):,}".replace(",", "{,}")
 
 
 def pct(v: float, nd: int = 1) -> str:
@@ -70,7 +70,7 @@ def m(name: str, source: str, fn: Callable[[], str], pending: str | None = None)
     assert name.isalpha(), name
     try:
         value = fn()
-    except Missing as e:
+    except MissingResultError as e:
         label = (pending or name).replace("_", r"\_").replace("%", r"\%")
         value = r"\pending{" + label + "}"
         source = f"{source} -- missing: {e}"
@@ -90,14 +90,31 @@ m("nTowns", BENCH, lambda: str(bench("towns")))
 m("nHexes", BENCH, lambda: thousands(bench("hexes")))
 m("nSevere", BENCH, lambda: thousands(bench("severe_buildings")))
 
-m("nDraws", BENCH, lambda: thousands(dig(json.loads((ROOT / BENCH).read_text(encoding="utf-8")), "params", "bootstrap")))
-m("blockRes", BENCH, lambda: str(dig(json.loads((ROOT / BENCH).read_text(encoding="utf-8")), "params", "block_resolution")))
+m(
+    "nDraws",
+    BENCH,
+    lambda: thousands(dig(json.loads((ROOT / BENCH).read_text(encoding="utf-8")), "params", "bootstrap")),
+)
+m(
+    "blockRes",
+    BENCH,
+    lambda: str(dig(json.loads((ROOT / BENCH).read_text(encoding="utf-8")), "params", "block_resolution")),
+)
 m("wlImages", "results/waterline_run.json", lambda: str(dig(load("results/waterline_run.json"), "images")))
 
 # ---------------------------------------------------------------- RQ1/RQ2: pooled capture with block-bootstrap CI
 VARIANTS = {
-    "EHA": "EHA", "EH": "EH", "EA": "EA", "HA": "HA", "Risk": "risk", "RiskA": "risk+A",
-    "Buildings": "buildings_in_flood", "People": "people_in_flood", "E": "E", "Water": "water", "A": "A",
+    "EHA": "EHA",
+    "EH": "EH",
+    "EA": "EA",
+    "HA": "HA",
+    "Risk": "risk",
+    "RiskA": "risk+A",
+    "Buildings": "buildings_in_flood",
+    "People": "people_in_flood",
+    "E": "E",
+    "Water": "water",
+    "A": "A",
     "PeopleEHA": "people:EHA",
 }
 for short, key in VARIANTS.items():
@@ -113,8 +130,12 @@ for short, key in VARIANTS.items():
 
 # ---------------------------------------------------------------- RQ3: per-event worst case and leave-one-event-out
 EVENT_NAME = {
-    "EMSR504": "New South Wales", "EMSR517": "western Germany", "EMSR559": "Moramanga",
-    "EMSR631": "Sanghar", "EMSR634": "Marche", "EMSR649": "Pachino",
+    "EMSR504": "New South Wales",
+    "EMSR517": "western Germany",
+    "EMSR559": "Moramanga",
+    "EMSR631": "Sanghar",
+    "EMSR634": "Marche",
+    "EMSR649": "Pachino",
 }
 for short, key in VARIANTS.items():
     m(f"mean{short}", BENCH, lambda key=key: fx(bench("ablation_per_event", key, "mean")))
@@ -122,8 +143,12 @@ for short, key in VARIANTS.items():
     m(f"worst{short}Event", BENCH, lambda key=key: EVENT_NAME[bench("ablation_per_event", key, "worst_event")])
 
 LOEO = ("leave_one_event_out",)
-for short, key in {"Default": "held_out_default", "Fitted": "held_out_fitted",
-                   "Buildings": "held_out_buildings_in_flood", "People": "held_out_people_in_flood"}.items():
+for short, key in {
+    "Default": "held_out_default",
+    "Fitted": "held_out_fitted",
+    "Buildings": "held_out_buildings_in_flood",
+    "People": "held_out_people_in_flood",
+}.items():
     m(f"loeo{short}", BENCH, lambda key=key: fx(bench(*LOEO, "mean_over_events", key), 3))
 for ev, short in (("EMSR559", "Moramanga"), ("EMSR631", "Sanghar")):
     m(f"loeoFitted{short}", BENCH, lambda ev=ev: fx(bench(*LOEO, ev, "held_out_fitted")))
@@ -148,11 +173,13 @@ m("sensPragueKeepEight", SENS, lambda: pct(dig(load(SENS), "hexes_prague", "shar
 # ---------------------------------------------------------------- road closure rule against EMS road grading
 for t, word in ((0.0, "Zero"), (5.0, "Five"), (15.0, "Fifteen"), (50.0, "Fifty")):
     for target, tw in (("affected", "Aff"), ("severe", "Sev")):
+
         def row(t=t, target=target):
             for r in bench("roads"):
                 if r["target"] == target and float(r["threshold_m"]) == t:
                     return r
-            raise Missing(f"roads {target} {t}")
+            raise MissingResultError(f"roads {target} {t}")
+
         for k, kw in (("precision", "P"), ("recall", "R"), ("f1", "F")):
             m(f"road{tw}{kw}{word}", BENCH, lambda row=row, k=k: fx(row()[k]))
 
@@ -163,44 +190,80 @@ def ablation_done(name: str) -> dict[str, Any]:
     d = bench("data_ablations", name)
     towns = d.get("towns", [])
     if not d.get("complete") and len(towns) < bench("towns"):
-        raise Missing(f"{name}: {len(towns)} of {bench('towns')} towns so far")
+        raise MissingResultError(f"{name}: {len(towns)} of {bench('towns')} towns so far")
     return d
 
 
 for name, short in (("sentinel1_change", "Change"), ("sentinel1_otsu", "Otsu"), ("osm_buildings_only", "OSMOnly")):
     for variant, vshort in (("EHA", "EHA"), ("buildings_in_flood", "Buildings"), ("water", "Water")):
-        m(f"abl{short}{vshort}", BENCH, lambda name=name, variant=variant: fx(dig(ablation_done(name), "ablated", variant)),
-          pending=f"{name}: {variant}")
-        m(f"abl{short}{vshort}Ref", BENCH, lambda name=name, variant=variant: fx(dig(ablation_done(name), "default", variant)),
-          pending=f"{name}: reference {variant}")
+        m(
+            f"abl{short}{vshort}",
+            BENCH,
+            lambda name=name, variant=variant: fx(dig(ablation_done(name), "ablated", variant)),
+            pending=f"{name}: {variant}",
+        )
+        m(
+            f"abl{short}{vshort}Ref",
+            BENCH,
+            lambda name=name, variant=variant: fx(dig(ablation_done(name), "default", variant)),
+            pending=f"{name}: reference {variant}",
+        )
+
 
 def share_pct(v: float) -> str:
-    return f"{100 * v:.1f}\%" if v < 0.1 else f"{fx(100 * v, 0)}\%"
+    return rf"{100 * v:.1f}\%" if v < 0.1 else rf"{fx(100 * v, 0)}\%"
 
 
 # how much of each town the radar calls water, against the analysts' map (median over towns)
 for name, short in (("sentinel1_change", "Change"), ("sentinel1_otsu", "Otsu")):
-    m(f"waterMed{short}", BENCH, lambda name=name: share_pct(dig(ablation_done(name), "water_share_median", "ablated")),
-      pending=f"{name}: water share")
-m("waterMedEMS", BENCH, lambda: share_pct(dig(ablation_done("sentinel1_change"), "water_share_median", "default")),
-  pending="EMS water share")
+    m(
+        f"waterMed{short}",
+        BENCH,
+        lambda name=name: share_pct(dig(ablation_done(name), "water_share_median", "ablated")),
+        pending=f"{name}: water share",
+    )
+m(
+    "waterMedEMS",
+    BENCH,
+    lambda: share_pct(dig(ablation_done("sentinel1_change"), "water_share_median", "default")),
+    pending="EMS water share",
+)
 # where OSM-only buildings cost the most: per-event capture of the default score
 for e, short in (("EMSR504", "NSW"), ("EMSR631", "Sanghar")):
     for side, sshort in (("default", "Ref"), ("ablated", "")):
-        m(f"osmOnly{short}{sshort}", BENCH,
-          lambda e=e, side=side: fx(dig(ablation_done("osm_buildings_only"), "per_event_EHA", side, "events", e)),
-          pending=f"OSM-only {e}")
+        m(
+            f"osmOnly{short}{sshort}",
+            BENCH,
+            lambda e=e, side=side: fx(dig(ablation_done("osm_buildings_only"), "per_event_EHA", side, "events", e)),
+            pending=f"OSM-only {e}",
+        )
 
 # physical findings behind the change-detection failures: scene dates and water shares (final, not in progress)
 S1 = "results/benchmark_s1/{e}/event_run.json"
 EMS = "results/benchmark/{e}/satellite_run_{a}.json"
 for e, a, short in (("EMSR517", "aoi07", "Erftstadt"), ("EMSR631", "aoi01", "Sanghar")):
-    m(f"radar{short}Share", S1.format(e=e), lambda e=e, a=a: pct(dig(load(S1.format(e=e)), "towns", a, "radar", "water_share_of_area")))
-    m(f"radar{short}Scene", S1.format(e=e), lambda e=e, a=a: dig(load(S1.format(e=e)), "towns", a, "radar", "acquired")[:10])
-    m(f"radar{short}Pre", S1.format(e=e), lambda e=e, a=a: (lambda s: f"{s[17:21]}-{s[21:23]}-{s[23:25]}")(
-        dig(load(S1.format(e=e)), "towns", a, "radar", "pre_scene")))
-    m(f"ems{short}Share", EMS.format(e=e, a=a), lambda e=e, a=a: pct(
-        dig(load(EMS.format(e=e, a=a)), "flood_km2") / dig(load(EMS.format(e=e, a=a)), "aoi_km2")))
+    m(
+        f"radar{short}Share",
+        S1.format(e=e),
+        lambda e=e, a=a: pct(dig(load(S1.format(e=e)), "towns", a, "radar", "water_share_of_area")),
+    )
+    m(
+        f"radar{short}Scene",
+        S1.format(e=e),
+        lambda e=e, a=a: dig(load(S1.format(e=e)), "towns", a, "radar", "acquired")[:10],
+    )
+    m(
+        f"radar{short}Pre",
+        S1.format(e=e),
+        lambda e=e, a=a: (lambda s: f"{s[17:21]}-{s[21:23]}-{s[23:25]}")(
+            dig(load(S1.format(e=e)), "towns", a, "radar", "pre_scene")
+        ),
+    )
+    m(
+        f"ems{short}Share",
+        EMS.format(e=e, a=a),
+        lambda e=e, a=a: pct(dig(load(EMS.format(e=e, a=a)), "flood_km2") / dig(load(EMS.format(e=e, a=a)), "aoi_km2")),
+    )
 
 # ---------------------------------------------------------------- RQ5: trust and attacks
 TR = "results/trust_eval.json"
@@ -218,8 +281,18 @@ m("leakTestN", TR, lambda: thousands(dig(load(TR), "cvfd_split_leakage", "test",
 for f, pre in (("results/attack_prague.json", "atk"), ("results/attack_prague_permissive.json", "perm")):
     for sc, s in (("lone", "Lone"), ("colluding", "Collude"), ("wet_exaggeration", "Wet")):
         m(f"{pre}{s}Overlap", f, lambda f=f, sc=sc: fx(dig(load(f), sc, "top10_overlap", "mean")))
-        m(f"{pre}{s}Flagged", f, lambda f=f, sc=sc: f"{fx(dig(load(f), sc, 'targets_flagged', 'mean'), 0)}/{fx(dig(load(f), sc, 'targets', 'mean'), 0)}")
-        m(f"{pre}{s}InTop", f, lambda f=f, sc=sc: fx(dig(load(f), sc, "targets_in_top", "mean"), 2).rstrip("0").rstrip("."))
+        m(
+            f"{pre}{s}Flagged",
+            f,
+            lambda f=f, sc=sc: (
+                f"{fx(dig(load(f), sc, 'targets_flagged', 'mean'), 0)}/{fx(dig(load(f), sc, 'targets', 'mean'), 0)}"
+            ),
+        )
+        m(
+            f"{pre}{s}InTop",
+            f,
+            lambda f=f, sc=sc: fx(dig(load(f), sc, "targets_in_top", "mean"), 2).rstrip("0").rstrip("."),
+        )
 m("atkDraws", "results/attack_prague.json", lambda: str(dig(load("results/attack_prague.json"), "draws")))
 
 # ---------------------------------------------------------------- perception
@@ -248,7 +321,7 @@ def waterline_table() -> pd.DataFrame:
     run = dig(load(WL), "benchmark")
     t, p = j.depth_bin_true.map(DEPTH_ORDER.index), j.depth_bin_pred.map(DEPTH_ORDER.index)
     if len(j) != run["n"] or abs((t == p).mean() - run["exact"]) > 1e-9:
-        raise Missing("waterline CSV does not reproduce waterline_run.json")
+        raise MissingResultError("waterline CSV does not reproduce waterline_run.json")
     return j
 
 
@@ -276,7 +349,7 @@ VLM = "results/vlm_benchmark.json"
 def vlm(*keys: str) -> float:
     d = load(VLM)
     if not d.get("complete"):
-        raise Missing(f"{VLM}: run in progress ({d.get('images_assessed', '?')} images assessed)")
+        raise MissingResultError(f"{VLM}: run in progress ({d.get('images_assessed', '?')} images assessed)")
     return dig(d, *keys)
 
 
@@ -315,11 +388,11 @@ CITIES = "docs/map/cities.json"
 def city(key: str) -> dict[str, Any]:
     path = ROOT / CITIES
     if not path.exists():
-        raise Missing(CITIES)
+        raise MissingResultError(CITIES)
     for c in json.loads(path.read_text(encoding="utf-8")):
         if c["key"] == key:
             return c
-    raise Missing(f"{CITIES}: {key}")
+    raise MissingResultError(f"{CITIES}: {key}")
 
 
 m("praguePhotos", CITIES, lambda: str(city("prague")["stats"]["photos"]))
@@ -357,16 +430,30 @@ def table_events() -> str:
             f"{e['when']} & {e['kind']} & "
             f"{', '.join(e['towns'])} & {thousands(t.hexes.sum())} & {thousands(t.severe.sum())} \\\\"
         )
-    total = f"\\midrule\nTotal & & & & {len(towns)} towns & {thousands(towns.hexes.sum())} & {thousands(towns.severe.sum())} \\\\"
-    head = ("\\setlength{\\tabcolsep}{4pt}\n\\begin{tabular}{@{}llllp{45mm}rr@{}}\n\\toprule\n"
-            "Activation & Area & Date & Type & Towns & Hexagons & Damaged or destroyed \\\\\n\\midrule")
-    return ("% Generated by make_numbers.py from docs/site.json and results/benchmark_towns.csv\n" + head + "\n"
-            + "\n".join(rows) + "\n" + total + "\n\\bottomrule\n\\end{tabular}\n")
+    total = (
+        f"\\midrule\nTotal & & & & {len(towns)} towns & "
+        f"{thousands(towns.hexes.sum())} & {thousands(towns.severe.sum())} \\\\"
+    )
+    head = (
+        "\\setlength{\\tabcolsep}{4pt}\n\\begin{tabular}{@{}llllp{45mm}rr@{}}\n\\toprule\n"
+        "Activation & Area & Date & Type & Towns & Hexagons & Damaged or destroyed \\\\\n\\midrule"
+    )
+    return (
+        "% Generated by make_numbers.py from docs/site.json and results/benchmark_towns.csv\n"
+        + head
+        + "\n"
+        + "\n".join(rows)
+        + "\n"
+        + total
+        + "\n\\bottomrule\n\\end{tabular}\n"
+    )
 
 
 def table_loeo() -> str:
     folds = {k: v for k, v in bench("leave_one_event_out").items() if k.startswith("EMSR")}
-    site = {e["code"]: e["name"] for e in json.loads((ROOT / "docs" / "site.json").read_text(encoding="utf-8"))["events"]}
+    site = {
+        e["code"]: e["name"] for e in json.loads((ROOT / "docs" / "site.json").read_text(encoding="utf-8"))["events"]
+    }
     rows = []
     for code, v in folds.items():
         ch = v["chosen"]
@@ -376,17 +463,26 @@ def table_loeo() -> str:
             rule = "($" + ",".join(f"{w:g}" for w in ch["weights"]) + "$)"
         rows.append(
             f"{site.get(code, code)} & {rule} & {fx(v['train_capture'])} & {fx(v['held_out_fitted'])} & "
-            f"{fx(v['held_out_default'])} & {fx(v['held_out_buildings_in_flood'])} & {fx(v['held_out_people_in_flood'])} \\\\"
+            f"{fx(v['held_out_default'])} & {fx(v['held_out_buildings_in_flood'])} & "
+            f"{fx(v['held_out_people_in_flood'])} \\\\"
         )
     mo = bench("leave_one_event_out", "mean_over_events")
     rows.append(
-        f"\\midrule\nMean held out & & & {fx(mo['held_out_fitted'], 3)} & \\textbf{{{fx(mo['held_out_default'], 3)}}} & "
+        f"\\midrule\nMean held out & & & {fx(mo['held_out_fitted'], 3)} & "
+        f"\\textbf{{{fx(mo['held_out_default'], 3)}}} & "
         f"{fx(mo['held_out_buildings_in_flood'], 3)} & {fx(mo['held_out_people_in_flood'], 3)} \\\\"
     )
-    head = ("\\begin{tabular}{@{}llrrrrr@{}}\n\\toprule\n"
-            "Held out & Fitted rule & Train & Fitted & Default & Buildings & People \\\\\n\\midrule")
-    return ("% Generated by make_numbers.py from results/benchmark_summary.json (leave_one_event_out)\n" + head + "\n"
-            + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+    head = (
+        "\\begin{tabular}{@{}llrrrrr@{}}\n\\toprule\n"
+        "Held out & Fitted rule & Train & Fitted & Default & Buildings & People \\\\\n\\midrule"
+    )
+    return (
+        "% Generated by make_numbers.py from results/benchmark_summary.json (leave_one_event_out)\n"
+        + head
+        + "\n"
+        + "\n".join(rows)
+        + "\n\\bottomrule\n\\end{tabular}\n"
+    )
 
 
 def write_tables() -> None:
@@ -394,7 +490,7 @@ def write_tables() -> None:
     for name, fn in (("events", table_events), ("loeo", table_loeo)):
         try:
             body = fn()
-        except (Missing, KeyError, FileNotFoundError) as e:
+        except (MissingResultError, KeyError, FileNotFoundError) as e:
             body = f"\\pending{{table {name}: {str(e).replace('_', ' ')}}}\n"
         (TABLES / f"{name}.tex").write_text(body, encoding="utf-8")
 
