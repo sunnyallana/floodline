@@ -1,10 +1,10 @@
 """Stage 6: a static web map of the ranked hexes and the evidence behind them.
 
-``floodline serve`` adds one city to a site directory (``docs/`` is served by GitHub Pages):
+``floodline serve`` adds one city to the map at ``docs/map/`` (served by GitHub Pages under /map/):
 
-    docs/index.html                 the map page (MapLibre, no build step, no server)
-    docs/cities.json                one entry per city: title, view, headline numbers
-    docs/data/<city>/*.geojson      hexes, flood extent, mapped area, closed roads, staging points, photos
+    docs/map/index.html             the map page (MapLibre, no build step, no server)
+    docs/map/cities.json            one entry per city: title, view, headline numbers
+    docs/map/data/<city>/*.geojson  hexes, flood extent, mapped area, closed roads, staging points, photos
 
 Hexes carry only the fields the page shows, rounded, and only where there is something to show (priority > 0, a
 photo, or cut off), so a city stays well under a megabyte. PMTiles is the step up for a whole province.
@@ -230,7 +230,7 @@ def run(
     staging: Path | None = None,
     photos: Path | None = None,
 ) -> Path:
-    out_dir = out_dir or paths.root / "docs"
+    out_dir = out_dir or paths.root / "docs" / "map"
     entry = build_city(key, title, subtitle, hexes_csv, ems_source, out_dir, roads, staging, photos)
     page = write_site(out_dir, entry)
     log.info("site: %s", page)

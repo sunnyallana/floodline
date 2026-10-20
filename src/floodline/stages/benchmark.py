@@ -51,8 +51,18 @@ BOOTSTRAP = 1000
 TOP = 0.10
 
 
-def _event_paths(paths: Paths, event: str) -> Paths:
-    return Paths(root=paths.root, namespace=f"benchmark/{event}").ensure()
+FLOOD_SOURCES: tuple[str, ...] = ("ems", "sentinel1", "sentinel1_otsu")
+
+
+def _set(flood_source: str, buildings_source: str = "max") -> str:
+    """Results folder: analyst maps under ``benchmark/``, radar under ``benchmark_s1*``; a building source other
+    than the default ``max`` adds a suffix, so every ablation run keeps its own folder."""
+    base = {"ems": "benchmark", "sentinel1": "benchmark_s1", "sentinel1_otsu": "benchmark_s1otsu"}[flood_source]
+    return base if buildings_source == "max" else f"{base}_{buildings_source}"
+
+
+def _event_paths(paths: Paths, event: str, flood_source: str = "ems", buildings_source: str = "max") -> Paths:
+    return Paths(root=paths.root, namespace=f"{_set(flood_source, buildings_source)}/{event}").ensure()
 
 
 def rank_town(epaths: Paths, d: Path, key: str, buildings, source, buildings_source: str) -> pd.DataFrame:
@@ -86,11 +96,16 @@ def run_event(
     osm_pbfs: list[Path],
     buildings_source: str = "max",
     only: set[str] | None = None,
+    flood_source: str = "ems",
 ) -> dict[str, Any]:
+    """``flood_source="sentinel1"`` replaces each town's EMS flood polygons with a Sentinel-1 water mask from the
+    scene nearest the EMS post-event image (the ablation: what is lost without analysts' maps)."""
     from floodline import osm
-    from floodline.stages import satellite
+    from floodline.stages import satellite, sentinel1
 
-    epaths = _event_paths(paths, event)
+    if flood_source not in FLOOD_SOURCES:
+        raise ValueError(f"flood_source must be one of {FLOOD_SOURCES}")
+    epaths = _event_paths(paths, event, flood_source, buildings_source)
     source = osm.OsmSource(osm_pbfs, paths.data / "external" / "osm" / "extracts")
     towns: dict[str, Any] = {}
     roads = []
@@ -100,10 +115,18 @@ def run_event(
             continue
         info: dict[str, Any] = {"town": town}
         lines = _layer(d, "transportationL")
+        built = _layer(d, "builtUpP")
         try:
+            if flood_source.startswith("sentinel1"):
+                when = sentinel1.post_event_date(d)
+                if when is None:
+                    raise FileNotFoundError(f"no post-event image date in {d.name}")
+                method = "otsu" if flood_source.endswith("otsu") else "change"
+                d, radar = sentinel1.write_radar_package(d, paths.data / "derived" / "s1" / event, when, method)
+                info["radar"] = {**radar, "ems_image_date": when.date().isoformat()}
             flood, _, _, _ = satellite.load_ems(d)
-        except FileNotFoundError as exc:
-            towns[key] = {**info, "error": str(exc)}
+        except (FileNotFoundError, RuntimeError) as exc:
+            towns[key] = {**info, "error": f"{type(exc).__name__}: {exc}"[:300]}
             continue
         if lines is not None and len(lines) and "damage_gra" in lines:
             import geopandas as gpd
@@ -111,7 +134,6 @@ def run_event(
             crs = lines.to_crs("EPSG:4326").estimate_utm_crs()
             flood_m = gpd.GeoSeries([flood], crs="EPSG:4326").to_crs(crs).iloc[0]
             roads.append(road_rule(lines.to_crs(crs), flood_m).assign(event=event, aoi=key, town=town))
-        built = _layer(d, "builtUpP")
         severe = int(built.damage_gra.isin(SEVERE).sum()) if built is not None and "damage_gra" in built else 0
         info["severe_buildings"] = severe
         if severe >= MIN_SEVERE_BUILDINGS:
@@ -125,7 +147,7 @@ def run_event(
         towns[key] = info
     table = pd.concat(roads, ignore_index=True) if roads else pd.DataFrame()
     table.to_csv(epaths.results / "roads.csv", index=False)
-    summary = {"event": event, "towns": towns, "road_rows": len(table)}
+    summary = {"event": event, "flood_source": flood_source, "towns": towns, "road_rows": len(table)}
     RunManifest("benchmark_event", params={"event": event, "osm": [str(p) for p in osm_pbfs],
                                            "buildings": buildings_source}).finish(**summary).write(
         epaths.results / "event_run.json"
@@ -144,10 +166,10 @@ COMPONENTS: tuple[str, ...] = (
 PEOPLE_SCALE = 100.0  # people at which people-exposure reaches 1 - 1/e (about 20 households)
 
 
-def load_rankings(paths: Paths) -> pd.DataFrame:
+def load_rankings(paths: Paths, flood_source: str = "ems", buildings_source: str = "max") -> pd.DataFrame:
     """Every ranked town: damage per hexagon joined with every score component from its fused hexes."""
     frames = []
-    for f in sorted((paths.root / "results" / "benchmark").glob("*/ranking_*.csv")):
+    for f in sorted((paths.root / "results" / _set(flood_source, buildings_source)).glob("*/ranking_*.csv")):
         key = f.stem.removeprefix("ranking_")
         dmg = pd.read_csv(f)[["h3", "severe", "affected"]]
         hexes = pd.read_csv(f.parent / f"hexes_{key}.csv")
@@ -257,12 +279,47 @@ def macro_capture(df: pd.DataFrame, score: str, target: str = "severe", frac: fl
     return float(np.mean(vals)) if vals else float("nan")
 
 
-def bootstrap(df: pd.DataFrame, n: int = BOOTSTRAP, seed: int = 0, target: str = "severe") -> dict[str, Any]:
-    """Spatial block bootstrap of macro top-10 % capture for every score and of priority minus each baseline."""
+def ablation_scores(df: pd.DataFrame) -> dict[str, pd.Series]:
+    """Every variant of the score, built from the stored components so no stage has to rerun.
+
+    E = exposure, H = hazard, A = access. Additive variants keep the default weights' proportions among the terms
+    they use; ``risk`` is E x (0.5 + 0.5 H), the hazard-times-exposure form.
+    """
+    e_b, e_p = df.exposure.fillna(0), people_exposure(df)
+    out: dict[str, pd.Series] = {}
+    for tag, e in (("", e_b), ("people:", e_p)):
+        terms = {"E": (0.45, e), "H": (0.30, df.hazard.fillna(0)), "A": (0.25, df.access.fillna(0))}
+        for combo in ("E", "H", "A", "EH", "EA", "HA", "EHA"):
+            total = sum(terms[c][0] for c in combo)
+            w = tuple(terms[c][0] / total if c in combo else 0.0 for c in "EHA")
+            out[f"{tag}{combo}"] = weighted(df, w, e)  # type: ignore[arg-type]
+        out[f"{tag}risk"] = risk(df, 0.0, e)
+        out[f"{tag}risk+A"] = risk(df, 0.25, e)
+    out["water"] = df.satellite_water_fraction.fillna(0)
+    out["buildings_in_flood"] = df.buildings_in_flood.fillna(0)
+    out["people_in_flood"] = df.people_in_flood.fillna(0)
+    return out
+
+
+def bootstrap(
+    df: pd.DataFrame,
+    n: int = BOOTSTRAP,
+    seed: int = 0,
+    target: str = "severe",
+    scores: dict[str, pd.Series] | None = None,
+    reference: str = "priority",
+) -> dict[str, Any]:
+    """Spatial block bootstrap of macro top-10 % capture for each score, and of ``reference`` minus each other
+    score. ``scores`` maps names to extra score columns (an ablation); by default the built-in ``SCORES``."""
     rng = np.random.default_rng(seed)
+    if scores:
+        df = df.assign(**{f"_s:{k}": v for k, v in scores.items()})
+        names = {k: f"_s:{k}" for k in scores}
+    else:
+        names = {s_: s_ for s_ in SCORES if s_ in df}
     df = df.assign(block=blocks(df.h3))
     by_town = {t: dict(tuple(g.groupby("block"))) for t, g in df.groupby("town")}
-    point = {s: macro_capture(df, s, target) for s in SCORES if s in df}
+    point = {k: macro_capture(df, col, target) for k, col in names.items()}
     draws: dict[str, list[float]] = {s: [] for s in point}
     for _ in range(n):
         parts = []
@@ -271,20 +328,20 @@ def bootstrap(df: pd.DataFrame, n: int = BOOTSTRAP, seed: int = 0, target: str =
             pick = rng.integers(0, len(keys), len(keys))
             parts.append(pd.concat([bl[keys[i]] for i in pick], ignore_index=True).assign(town=t))
         sample = pd.concat(parts, ignore_index=True)
-        for s in point:
-            draws[s].append(macro_capture(sample, s, target))
+        for k, col in names.items():
+            draws[k].append(macro_capture(sample, col, target))
     out: dict[str, Any] = {}
     for s, vals in draws.items():
         v = np.array(vals)
         out[s] = {"top10": round(point[s], 3), "ci95": [round(float(np.nanpercentile(v, 2.5)), 3),
                                                        round(float(np.nanpercentile(v, 97.5)), 3)]}  # fmt: skip
-    if "priority" in draws:
-        p = np.array(draws["priority"])
-        for b in BASELINES:
+    if reference in draws:
+        p = np.array(draws[reference])
+        for b in BASELINES if not scores else [k for k in draws if k != reference]:
             if b in draws:
                 d = p - np.array(draws[b])
-                out[f"priority_minus_{b}"] = {
-                    "diff": round(point["priority"] - point[b], 3),
+                out[f"{reference}_minus_{b}"] = {
+                    "diff": round(point[reference] - point[b], 3),
                     "ci95": [round(float(np.nanpercentile(d, 2.5)), 3), round(float(np.nanpercentile(d, 97.5)), 3)],
                     "share_of_draws_priority_better": round(float(np.mean(d > 0)), 3),
                 }
@@ -323,7 +380,26 @@ def summarise(paths: Paths, n: int = BOOTSTRAP) -> dict[str, Any]:
         },
         "roads": road_pooled,
         "leave_one_event_out": leave_one_event_out(df),
+        "ablation": bootstrap(df, n=n, scores=ablation_scores(df), reference="EHA"),
     }
+    # Data ablations: the same towns re-run with another flood source or building source.
+    data_ablations: dict[str, Any] = {}
+    summary["data_ablations"] = data_ablations
+    for label, flood, built in (
+        ("sentinel1_change", "sentinel1", "max"),
+        ("sentinel1_otsu", "sentinel1_otsu", "max"),
+        ("osm_buildings_only", "ems", "osm"),
+    ):
+        alt = load_rankings(paths, flood, built)
+        if alt.empty:
+            continue
+        towns_both = sorted(set(alt.town) & set(df.town))
+        a, e = alt[alt.town.isin(towns_both)], df[df.town.isin(towns_both)]
+        data_ablations[label] = {
+            "towns": towns_both,
+            "default": {k: round(macro_capture(e.assign(_s=v), "_s"), 3) for k, v in ablation_scores(e).items()},
+            "ablated": {k: round(macro_capture(a.assign(_s=v), "_s"), 3) for k, v in ablation_scores(a).items()},
+        }
     RunManifest("benchmark_summary", params={"bootstrap": n, "block_resolution": BLOCK_RESOLUTION}).finish(
         **summary
     ).write(paths.results / "benchmark_summary.json")

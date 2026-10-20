@@ -6,7 +6,7 @@
 Ground-level flood photos from field responders and connected residents as evidence: estimate **flood depth and human impact zero-shot**, locate each
 report with a stated confidence, and fuse the result with **satellite flood extent** to prioritise rescue.
 
-**Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013 and Larkana, Sindh, in
+**Project page:** https://floodline.sunnyshabanali.dev (results, figures, links). **Map:** https://floodline.sunnyshabanali.dev/map/ shows Prague and Dresden in June 2013 and Larkana, Sindh, in
 August 2022. It combines satellite flood extent, roads closed by water, exposed buildings and geotagged photos,
 with a priority per hexagon. The ranking is checked against Copernicus EMS damage grading for the July 2021
 floods in Germany, and the satellite layer against Sentinel-1 radar (`results/README.md`, sections 7-9).

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floodline</title>
+<meta name="description" content="Where should flood responders go first? Satellite flood maps, road access, buildings, population and field reports on H3 hexagons, validated against Copernicus EMS damage grading on six floods.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='%230b6e8a'/%3E%3Cpath d='M6 20c3-2 5-2 8 0s5 2 8 0 4-2 4-2v4c-2 1-3 2-4 2-3 0-5-2-8-2s-5 2-8 2z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f6f7f5;--surface:#fff;--fg:#14191c;--muted:#5a656c;--line:#dde2e0;--accent:#0b6e8a;--accent-soft:#d9edf2;--warm:#c2410c;--ok:#1b7a3a;--bad:#b3261e;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#101416;--surface:#171d20;--fg:#e8edef;--muted:#9aa8af;--line:#2a3439;--accent:#5cc0d9;--accent-soft:#14323a;--warm:#f08c5a;--ok:#6fcf8e;--bad:#f2867e}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 var(--sans)}
+a{color:var(--accent)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header.hero{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,64px);line-height:1.05;margin:10px 0 18px;letter-spacing:-.01em}
+.lede{font-size:clamp(18px,2.2vw,22px);max-width:760px;color:var(--fg)}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-weight:600;font-size:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){.btn.primary{color:#081216}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:40px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.stat b{display:block;font-family:var(--serif);font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:14px}
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,38px);margin:0 0 8px;line-height:1.15}
+h3{font-size:18px;margin:28px 0 8px}
+p{max-width:760px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.card h3{margin-top:0}
+.events{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:18px}
+.event{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.event .c{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.event b{display:block;font-size:17px;margin:2px 0}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{text-align:right}
+.tablewrap{overflow-x:auto;margin-top:12px}
+svg text{fill:var(--fg);font-family:var(--sans)}
+.chart{width:100%;height:auto;margin-top:12px}
+.pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.pending{color:var(--muted);font-style:italic}
+ul.limits li{margin:6px 0;max-width:820px}
+footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.flow{width:100%;height:auto;min-width:720px}
+.bars{margin-top:16px}
+.bar{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:4px 16px;align-items:center;padding:7px 0}
+.bar .lab{font-size:15px}
+.bar.best .lab{font-weight:700}
+.track{position:relative;height:26px;border-radius:6px;background:transparent}
+.fill{position:absolute;left:0;top:3px;height:20px;border-radius:5px;background:var(--line)}
+.bar.best .fill{background:var(--accent)}
+.ci{position:absolute;top:12px;height:2px;background:var(--fg)}
+.ci::before,.ci::after{content:"";position:absolute;top:-5px;width:2px;height:12px;background:var(--fg)}
+.ci::before{left:0}.ci::after{right:0}
+.val{position:absolute;top:2px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.rand{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--muted)}
+.axis{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:16px;font-size:12px;color:var(--muted)}
+.axis .ticks{position:relative;height:16px}
+.axis .ticks span{position:absolute;transform:translateX(-50%)}
+@media (max-width:640px){.bar,.axis{grid-template-columns:1fr}.axis>div:first-child{display:none}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Floodline · open research and software</div>
+  <h1>Where should flood responders go first?</h1>
+  <p class="lede">Floodline turns a satellite flood map, the road network, buildings, population and photos from
+  field teams into a ranked map of 0.1&nbsp;km² hexagons: which neighbourhoods are hit, and which can a truck no
+  longer reach. Every claim on this page is checked against independent damage evidence from Copernicus EMS.</p>
+  <div class="cta">
+    <a class="btn primary" href="map/">Open the map</a>
+    <a class="btn" id="paper-link" href="#">Read the paper</a>
+    <a class="btn" id="code-link" href="#">Code</a>
+    <a class="btn" href="field/">Field app</a>
+  </div>
+  <div class="stats" id="stats"></div>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Two decisions, not one score</h2>
+  <p>A district flood coordinator decides two things: where the damage and the people are, and how to get there.
+  The evidence below says these should stay separate. A <b>risk ranking</b> (exposure inside the water, scaled by
+  how much of the hexagon is flooded) finds damage; a <b>reachability overlay</b> (roads closed by the flood, areas
+  cut off) says whether to send a truck or a boat. <span id="access-claim"></span></p>
+  <div class="scroll"><svg class="flow" viewBox="0 0 1000 250" role="img" aria-label="Pipeline: satellite flood map, roads, buildings and population, and field reports feed H3 hexagons, which produce a risk ranking and a reachability overlay on the map and field app.">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <g font-size="14">
+      <rect x="10" y="14" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="42">Satellite flood map (EMS, Sentinel-1)</text>
+      <rect x="10" y="74" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="102">Roads (OpenStreetMap)</text>
+      <rect x="10" y="134" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="162">Buildings, population (GHSL)</text>
+      <rect x="10" y="194" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="222">Field reports → trust checks</text>
+      <rect x="380" y="84" width="200" height="84" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="398" y="118" font-weight="600">H3 hexagons, 0.1 km²</text><text x="398" y="142" fill="var(--muted)" font-size="13">hazard · exposure · access</text>
+      <rect x="740" y="44" width="250" height="56" rx="12" fill="var(--surface)" stroke="var(--accent)"/><text x="758" y="70" font-weight="600">Risk ranking</text><text x="758" y="90" fill="var(--muted)" font-size="13">where the damage is</text>
+      <rect x="740" y="152" width="250" height="56" rx="12" fill="var(--surface)" stroke="var(--warm)"/><text x="758" y="178" font-weight="600">Reachability overlay</text><text x="758" y="198" fill="var(--muted)" font-size="13">truck or boat</text>
+      <path d="M260 37 C320 37 320 110 380 110" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+      <path d="M260 97 C320 97 320 120 380 120" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+      <path d="M260 157 C320 157 320 132 380 132" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+      <path d="M260 217 C320 217 320 144 380 144" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+      <path d="M580 112 C660 112 660 72 740 72" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+      <path d="M580 140 C660 140 660 180 740 180" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
+    </g>
+  </svg></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Six floods, four continents</h2>
+  <p>Copernicus EMS analysts graded damage building by building after these floods, from post-event imagery. That
+  grading never sees Floodline's inputs or outputs, so it is an independent test. Every town with at least 20
+  damaged or destroyed buildings is ranked under one protocol.</p>
+  <div class="events" id="events"></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What finds the damage</h2>
+  <p>Share of each town's damaged or destroyed buildings that fall in its top 10&nbsp;% of hexagons, averaged over
+  towns, with 95&nbsp;% intervals from a spatial block bootstrap. Random ranking scores 0.10.</p>
+  <div class="bars" id="ablation" role="img" aria-label="Damage capture by score variant"></div>
+  <p class="muted small" id="ablation-note"></p>
+  <h3>Fitted on five floods, tested on the sixth</h3>
+  <p class="small muted">The scoring rule (its form, weights and exposure measure) is chosen on all events but one and scored on the held-out event. This is the out-of-sample test.</p>
+  <div class="tablewrap"><table id="loeo"></table></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="two">
+    <div class="card">
+      <h3>Roads under water</h3>
+      <p class="small">A road counts as closed when at least <i>t</i> metres of it lie in the flood. Checked against
+      the analysts' road-damage grades on every graded town.</p>
+      <div class="tablewrap"><table id="roads"></table></div>
+    </div>
+    <div class="card">
+      <h3>Satellite without analysts</h3>
+      <p class="small">The whole pipeline re-run on Sentinel-1 radar alone instead of the EMS map: what the system
+      can do in the first hours, before analysts have mapped anything.</p>
+      <div class="tablewrap"><table id="radar"></table></div>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Bogus reports cannot send a boat</h2>
+  <p>A field report's depth or people claim raises priority only when something independent backs it: satellite
+  water nearby, the model's reading of the photo, or, where the satellite has not mapped the area, a second phone.
+  Simulated attackers with a valid team code and photos that pass every check:</p>
+  <div class="tablewrap"><table id="attack"></table></div>
+  <p class="small muted" id="trust"></p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Reading the photo</h2>
+  <div class="tablewrap"><table id="perception"></table></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Limits</h2>
+  <ul class="limits">
+    <li>Building damage is a proxy for where help is needed; it does not measure access or people stranded on roofs.</li>
+    <li>The benchmark covers floods EMS graded between 2021 and 2023; graded towns are where analysts looked, not a random sample.</li>
+    <li>OpenStreetMap and building footprints are today's maps, not the map on the day of the flood.</li>
+    <li>The 300-image depth benchmark was labelled with an AI assistant; a blind human review is in progress.</li>
+    <li>No coordinator has used the system in a live flood yet.</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Sunny Shaban Ali, FAST-NUCES Karachi. Flood maps © European Union, Copernicus Emergency Management Service.
+  Roads and buildings © OpenStreetMap contributors (ODbL) and Microsoft Global ML Building Footprints (ODbL).
+  Population: GHSL, European Commission JRC (CC BY 4.0). Radar: modified Copernicus Sentinel data, via the
+  Microsoft Planetary Computer.</p>
+</div></footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const f = (v, d = 2) => v === null || v === undefined || Number.isNaN(+v) ? "–" : (+v).toFixed(d);
+const pct = v => v === null || v === undefined ? "–" : `${Math.round(100 * v)}%`;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LABELS = {
+  water: "Water extent alone", people_in_flood: "People in the flood (GHSL)", buildings_in_flood: "Buildings in the flood",
+  E: "Exposure alone", EHA: "Additive: exposure + hazard + access", risk: "Risk: exposure × hazard", "risk+A": "Risk + access",
+  EH: "Exposure + hazard", EA: "Exposure + access", H: "Hazard alone", A: "Access alone"};
+const SHOW = ["water", "A", "people_in_flood", "EHA", "E", "risk+A", "buildings_in_flood", "risk"];
+
+function bars(el, rows) {
+  const pos = v => `${Math.max(0, Math.min(1, v)) * 100}%`;
+  el.innerHTML = rows.map(r => `<div class="bar${r.best ? " best" : ""}"><div class="lab">${esc(r.label)}</div>
+    <div class="track"><div class="rand" style="left:${pos(0.1)}" title="random"></div>
+      <div class="fill" style="width:${pos(r.v)}"></div>
+      <div class="ci" style="left:${pos(r.lo)};width:calc(${pos(r.hi)} - ${pos(r.lo)})"></div>
+      <div class="val" style="left:calc(${pos(Math.max(r.hi, r.v))} + 8px)">${f(r.v)}</div></div></div>`).join("") +
+    `<div class="axis"><div></div><div class="ticks">${[0, 0.25, 0.5, 0.75, 1].map(t => `<span style="left:${pos(t)};transform:translateX(${t === 0 ? "0" : t === 1 ? "-100%" : "-50%"})">${t}</span>`).join("")}
+      <span style="left:${pos(0.1)};top:-2px">random</span></div></div>`;
+}
+
+function table(el, head, rows) {
+  el.innerHTML = `<tr>${head.map(h => `<th>${esc(h)}</th>`).join("")}</tr>` +
+    rows.map(r => `<tr>${r.map((c, i) => `<td class="${i ? "n" : ""}">${c}</td>`).join("")}</tr>`).join("");
+}
+
+fetch("site.json").then(r => r.json()).then(d => {
+  $("paper-link").href = d.links.paper; $("code-link").href = d.links.code;
+  const b = d.benchmark || {};
+  $("stats").innerHTML = [
+    [d.events.length, "floods on four continents"], [b.towns ?? "–", "graded towns ranked"],
+    [(b.severe ?? 0).toLocaleString(), "damaged or destroyed buildings as ground truth"],
+    [(b.hexes ?? 0).toLocaleString(), "hexagons scored"]].map(([v, k]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join("");
+  $("events").innerHTML = d.events.map(e => `<div class="event"><div class="c">${esc(e.code)} · ${esc(e.when)}</div>
+    <b>${esc(e.name)}, ${esc(e.country)}</b><div class="small muted">${esc(e.kind)} · ${e.towns.map(esc).join(", ")}</div>
+    <div class="small">${e.severe.toLocaleString()} damaged or destroyed buildings</div></div>`).join("");
+
+  const ab = b.ablation || {};
+  const rows = SHOW.filter(k => ab[k]).map(k => ({label: LABELS[k] || k, v: ab[k].top10, lo: ab[k].ci95[0], hi: ab[k].ci95[1], key: k}));
+  const top = rows.reduce((m, r) => r.v > (m?.v ?? -1) ? r : m, null);
+  rows.forEach(r => r.best = r === top);
+  if (rows.length) bars($("ablation"), rows);
+  else $("ablation").innerHTML = `<p class="pending">Benchmark pending.</p>`;
+  const diff = ab["EHA_minus_risk"];
+  if (diff) $("ablation-note").textContent = `Additive mixing minus the risk form: ${f(diff.diff)} (95% interval ${f(diff.ci95[0])} to ${f(diff.ci95[1])}).`;
+  if (ab.risk && ab["risk+A"]) {
+    const worse = ab["risk+A"].top10 < ab.risk.top10;
+    $("access-claim").textContent = worse
+      ? `Adding access to the damage ranking lowers it (${f(ab.risk.top10)} without access, ${f(ab["risk+A"].top10)} with).`
+      : `Adding access to the damage ranking does not lower it here (${f(ab.risk.top10)} without, ${f(ab["risk+A"].top10)} with).`;
+  }
+
+  const lo = b.loeo || {};
+  const ev = Object.keys(lo).filter(k => k !== "mean_over_events");
+  table($("loeo"), ["Held-out flood", "Rule chosen on the others", "Fitted rule", "Default", "Buildings in flood", "People in flood"],
+    ev.map(k => { const r = lo[k], c = r.chosen || {};
+      const name = r.chosen_family === "risk" ? `risk, ${c.exposure}, access ${c.access_weight}` : `additive ${c.exposure} ${(c.weights || []).join("/")}`;
+      return [esc((d.events.find(e => e.code === k) || {}).name || k), esc(name), f(r.held_out_fitted), f(r.held_out_default), f(r.held_out_buildings_in_flood), f(r.held_out_people_in_flood)]; })
+    .concat(lo.mean_over_events ? [["<b>Mean</b>", "", `<b>${f(lo.mean_over_events.held_out_fitted)}</b>`, f(lo.mean_over_events.held_out_default), f(lo.mean_over_events.held_out_buildings_in_flood), f(lo.mean_over_events.held_out_people_in_flood)]] : []));
+
+  table($("roads"), ["Overlap t", "Precision", "Recall", "F1"],
+    (d.roads || []).filter(r => [0, 5, 15, 50].includes(+r.threshold_m)).map(r => [`${r.threshold_m} m${+r.threshold_m === 5 ? ' <span class="pill">used</span>' : ""}`, f(r.precision), f(r.recall), f(r.f1)]));
+
+  const da = b.data_ablations || {};
+  const radarRows = [];
+  for (const [k, lab] of [["sentinel1_change", "Sentinel-1, change detection"], ["sentinel1_otsu", "Sentinel-1, single threshold"], ["osm_buildings_only", "OSM buildings only"]]) {
+    if (da[k]) radarRows.push([lab, f(da[k].default.risk), f(da[k].ablated.risk), String(da[k].towns.length)]);
+  }
+  if (d.sentinel1_larkana) radarRows.push(["Larkana 2022: radar vs EMS map (IoU)", "", f(d.sentinel1_larkana.iou), "1"]);
+  if (radarRows.length) table($("radar"), ["Ablation", "With EMS + all buildings", "Ablated", "Towns"], radarRows);
+  else $("radar").outerHTML = `<p class="pending">Radar ablation pending.</p>`;
+
+  const at = d.attack || {}, row = (m, k) => m && m[k] ? [f(m[k].top10_overlap.mean), `${m[k].targets_flagged.mean}/${m[k].targets.mean}`] : ["–", "–"];
+  table($("attack"), ["Attack (Prague)", "Top 10 unchanged, first rule", "Top 10 unchanged, now", "Fakes flagged, now"],
+    [["50 lone fakes in dry areas", "lone"], ["10 colluding phone pairs in dry areas", "colluding"], ["50 fakes inside mapped water", "wet_exaggeration"]]
+      .map(([lab, k]) => [lab, row(at.permissive, k)[0], row(at.strict, k)[0], row(at.strict, k)[1]]));
+  const pct1 = v => v === null || v === undefined ? "–" : `${(100 * v).toFixed(1)}%`;
+  if (d.trust) $("trust").textContent = `Duplicate check: ${pct1(d.trust.recall_forwarded)} of forwarded copies caught; at most ${pct1(d.trust.euflood_ambiguous_3_to_6_bits / d.trust.euflood_photos)} of unrelated photos land in the review band, and none of them is rejected.`;
+
+  const p = d.perception || {}, s3 = p.sam3 && p.sam3.summary, wl = p.waterline && p.waterline.benchmark, vlm = p.vlm;
+  table($("perception"), ["Step", "Result", "Against"], [
+    ["SAM 3 water masks", s3 ? `IoU ${f(s3.water_iou.mean)} (median ${f(s3.water_iou.median)})` : "–", "CVFD masks (SAM 3-assisted, so partly circular)"],
+    ["Waterline geometry depth", wl ? `${pct(wl.exact)} exact, ${pct(wl.within_one)} within one class (n ${wl.n})` : "–", "always-'ankle' baseline: 38% / 83%"],
+    ["Vision-language model depth", vlm ? `${pct(vlm.exact)} exact, ${pct(vlm.within_one)} within one class (n ${vlm.n})` : '<span class="pending">run in progress</span>', "same benchmark"],
+  ]);
+});
+</script>
+</body>
+</html>

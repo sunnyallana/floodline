@@ -81,7 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="building footprints: OSM, Microsoft ML footprints, or the larger count of the two per hexagon",
     )
 
-    sv = sub.add_parser("serve", help="add one city to the static web map (docs/ by default)")
+    sv = sub.add_parser("serve", help="add one city to the static web map (docs/map/ by default)")
     sv.add_argument("hexes_csv", help="ranked hexes from `floodline fuse`")
     sv.add_argument("--key", required=True, help="short id used in the URL, e.g. prague")
     sv.add_argument("--title", required=True)
@@ -90,7 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--roads", help="closed roads GeoJSON from `floodline reach`")
     sv.add_argument("--staging", help="staging points GeoJSON from `floodline reach`")
     sv.add_argument("--photos", help="photo CSV with lat, lon, title, license, source_url")
-    sv.add_argument("--out-dir", help="site directory; default docs/")
+    sv.add_argument("--out-dir", help="map directory; default docs/map/")
 
     sub.add_parser("external", help="index the European Flood 2013 geotagged set under data/external/")
 
@@ -114,6 +114,14 @@ def build_parser() -> argparse.ArgumentParser:
     bm.add_argument("--buildings", default="max", choices=["osm", "microsoft", "max"])
     bm.add_argument("--only", nargs="*", default=[])
     bm.add_argument("--bootstrap", type=int, default=1000)
+    bm.add_argument(
+        "--flood-source",
+        default="ems",
+        choices=["ems", "sentinel1", "sentinel1_otsu"],
+        help="ablation: Sentinel-1 change detection, or single-image Otsu, instead of EMS polygons",
+    )
+
+    sub.add_parser("site", help="regenerate the project page (docs/index.html, docs/site.json) from results/")
 
     lb = sub.add_parser("labels", help="agreement between the reviewed and first-pass depth labels")
     lb.add_argument("review_csv", help="CSV exported from docs/review/")
@@ -316,7 +324,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     [Path(p) for p in args.osm_pbf],
                     buildings_source=args.buildings,
                     only=set(args.only) or None,
+                    flood_source=args.flood_source,
                 )
+        elif args.command == "site":
+            from floodline.stages import site
+
+            site.run(paths)
         elif args.command == "labels":
             from pathlib import Path
 
