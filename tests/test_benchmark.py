@@ -56,3 +56,13 @@ def test_block_bootstrap_gives_ordered_intervals_and_a_clear_win():
 def test_blocks_are_resolution_6_parents():
     cell = h3.latlng_to_cell(50.0, 7.0, 9)
     assert benchmark.blocks(pd.Series([cell])).iloc[0] == h3.cell_to_parent(cell, 6)
+
+
+def test_per_event_ablation_exposes_the_worst_event():
+    good = _town(1, "a")
+    bad = _town(2, "b").assign(event="OTHER")
+    bad["priority"] = -bad.priority  # the score ranks this event backwards
+    df = pd.concat([good, bad], ignore_index=True)
+    out = benchmark.per_event_ablation(df, {"p": df.priority})["p"]
+    assert out["worst_event"] == "OTHER" and out["min"] < 0.1 < 0.95 < out["events"]["TEST"]
+    assert out["mean"] == pytest.approx((out["events"]["TEST"] + out["events"]["OTHER"]) / 2, abs=1e-3)

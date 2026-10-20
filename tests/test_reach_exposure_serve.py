@@ -11,7 +11,7 @@ from shapely.geometry import LineString, box  # noqa: E402
 
 from floodline.stages.exposure import count_buildings, target_cells  # noqa: E402
 from floodline.stages.fuse import combine  # noqa: E402
-from floodline.stages.reach import flooded_edges, reach_table, snap  # noqa: E402
+from floodline.stages.reach import VIRTUAL_SOURCE, add_virtual_source, flooded_edges, reach_table, snap  # noqa: E402
 from floodline.stages.serve import build_city, visible_hexes, write_site  # noqa: E402
 
 LAT, LON = 50.05, 14.40
@@ -54,6 +54,18 @@ def test_snap_drops_far_points():
     nodes = np.array([[0.0, 0.0], [1000.0, 0.0]])
     got = snap(np.array([[10.0, 0.0], [5000.0, 5000.0]]), np.array([7, 8]), nodes, max_m=500)
     assert got == [7]
+
+
+def test_virtual_source_enters_at_nearest_node_with_gap_cost():
+    g, xs = _line_graph()
+    nodes = np.array([[0.0, 0.0], [140.0, 0.0], [280.0, 0.0], [420.0, 0.0]])
+    # A station 2.5 km west of the network: it enters at node 0, the 2.5 km costing 300 s at 30 km/h.
+    g2, sources = add_virtual_source(g, np.array([[-2500.0, 0.0]]), np.array([0, 1, 2, 3]), nodes)
+    assert sources == [VIRTUAL_SOURCE] and VIRTUAL_SOURCE not in g
+    assert g2[VIRTUAL_SOURCE][0][0]["travel_time"] == pytest.approx(300.0)
+    cells = sorted({h3.latlng_to_cell(LAT, x, 10) for x in xs})
+    df = reach_table(g2, cells, sources).set_index("h3")
+    assert df.loc[h3.latlng_to_cell(LAT, xs[0], 10), "reach_dry_min"] == pytest.approx(5.0)
 
 
 def test_count_buildings_in_flood_and_in_targets():

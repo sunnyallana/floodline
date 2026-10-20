@@ -1,0 +1,29 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark\\EMSR504\\satellite_aoi01.csv",
+  "ems_source": "data\\external\\ems\\EMSR504_GRA\\EMSR504_AOI01_GRA_PRODUCT_r1_RTP01_v2_vector",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark\\EMSR504\\reach_aoi01.csv",
+  "osm": "extract:australia-261019.osm.pbf",
+  "buildings_source": "max"
+ },
+ "metrics": {
+  "target_hexes": 578,
+  "buildings_queried": {
+   "osm": 6041,
+   "microsoft": 4596
+  },
+  "buildings_in_flood": 140,
+  "hexes_with_flooded_buildings": 60
+ },
+ "started_at": "2026-10-20T15:10:34+00:00",
+ "finished_at": "2026-10-20T15:14:38+00:00",
+ "seconds": 244.2,
+ "git_sha": "9c1fb9f",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

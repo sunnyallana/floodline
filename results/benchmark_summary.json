@@ -1,0 +1,1019 @@
+{
+ "stage": "benchmark_summary",
+ "params": {
+  "bootstrap": 1000,
+  "block_resolution": 6
+ },
+ "metrics": {
+  "events": [
+   "EMSR504",
+   "EMSR517",
+   "EMSR559",
+   "EMSR631",
+   "EMSR634",
+   "EMSR649"
+  ],
+  "towns": 11,
+  "hexes": 10886,
+  "severe_buildings": 3806,
+  "macro_top10_severe": {
+   "priority": {
+    "top10": 0.763,
+    "ci95": [
+     0.547,
+     0.777
+    ]
+   },
+   "people_in_flood": {
+    "top10": 0.696,
+    "ci95": [
+     0.546,
+     0.759
+    ]
+   },
+   "buildings_in_flood": {
+    "top10": 0.768,
+    "ci95": [
+     0.632,
+     0.804
+    ]
+   },
+   "satellite_water_fraction": {
+    "top10": 0.559,
+    "ci95": [
+     0.412,
+     0.642
+    ]
+   },
+   "priority_people": {
+    "top10": 0.729,
+    "ci95": [
+     0.507,
+     0.744
+    ]
+   },
+   "priority_minus_people_in_flood": {
+    "diff": 0.067,
+    "ci95": [
+     -0.113,
+     0.14
+    ],
+    "share_of_draws_priority_better": 0.636
+   },
+   "priority_minus_buildings_in_flood": {
+    "diff": -0.004,
+    "ci95": [
+     -0.167,
+     0.032
+    ],
+    "share_of_draws_priority_better": 0.218
+   },
+   "priority_minus_satellite_water_fraction": {
+    "diff": 0.204,
+    "ci95": [
+     0.016,
+     0.291
+    ],
+    "share_of_draws_priority_better": 0.989
+   }
+  },
+  "per_event_macro_top10": {
+   "EMSR504": {
+    "priority": 0.41,
+    "people_in_flood": 0.577,
+    "buildings_in_flood": 0.833,
+    "satellite_water_fraction": 0.0,
+    "priority_people": 0.385
+   },
+   "EMSR517": {
+    "priority": 0.738,
+    "people_in_flood": 0.819,
+    "buildings_in_flood": 0.848,
+    "satellite_water_fraction": 0.394,
+    "priority_people": 0.698
+   },
+   "EMSR559": {
+    "priority": 0.855,
+    "people_in_flood": 0.333,
+    "buildings_in_flood": 0.072,
+    "satellite_water_fraction": 0.884,
+    "priority_people": 0.855
+   },
+   "EMSR631": {
+    "priority": 0.366,
+    "people_in_flood": 0.223,
+    "buildings_in_flood": 0.408,
+    "satellite_water_fraction": 0.017,
+    "priority_people": 0.323
+   },
+   "EMSR634": {
+    "priority": 0.948,
+    "people_in_flood": 0.867,
+    "buildings_in_flood": 0.933,
+    "satellite_water_fraction": 0.902,
+    "priority_people": 0.898
+   },
+   "EMSR649": {
+    "priority": 0.971,
+    "people_in_flood": 0.647,
+    "buildings_in_flood": 0.941,
+    "satellite_water_fraction": 0.971,
+    "priority_people": 0.971
+   }
+  },
+  "roads": [
+   {
+    "target": "affected",
+    "threshold_m": 0.0,
+    "tp": 2762,
+    "fp": 1296,
+    "fn": 680,
+    "precision": 0.681,
+    "recall": 0.802,
+    "f1": 0.737
+   },
+   {
+    "target": "affected",
+    "threshold_m": 5.0,
+    "tp": 2664,
+    "fp": 808,
+    "fn": 778,
+    "precision": 0.767,
+    "recall": 0.774,
+    "f1": 0.77
+   },
+   {
+    "target": "affected",
+    "threshold_m": 10.0,
+    "tp": 2552,
+    "fp": 738,
+    "fn": 890,
+    "precision": 0.776,
+    "recall": 0.741,
+    "f1": 0.758
+   },
+   {
+    "target": "affected",
+    "threshold_m": 15.0,
+    "tp": 2417,
+    "fp": 690,
+    "fn": 1025,
+    "precision": 0.778,
+    "recall": 0.702,
+    "f1": 0.738
+   },
+   {
+    "target": "affected",
+    "threshold_m": 25.0,
+    "tp": 2165,
+    "fp": 614,
+    "fn": 1277,
+    "precision": 0.779,
+    "recall": 0.629,
+    "f1": 0.696
+   },
+   {
+    "target": "affected",
+    "threshold_m": 50.0,
+    "tp": 1639,
+    "fp": 430,
+    "fn": 1803,
+    "precision": 0.792,
+    "recall": 0.476,
+    "f1": 0.595
+   },
+   {
+    "target": "affected",
+    "threshold_m": 100.0,
+    "tp": 1082,
+    "fp": 249,
+    "fn": 2360,
+    "precision": 0.813,
+    "recall": 0.314,
+    "f1": 0.453
+   },
+   {
+    "target": "severe",
+    "threshold_m": 0.0,
+    "tp": 1038,
+    "fp": 3020,
+    "fn": 131,
+    "precision": 0.256,
+    "recall": 0.888,
+    "f1": 0.397
+   },
+   {
+    "target": "severe",
+    "threshold_m": 5.0,
+    "tp": 1009,
+    "fp": 2463,
+    "fn": 160,
+    "precision": 0.291,
+    "recall": 0.863,
+    "f1": 0.435
+   },
+   {
+    "target": "severe",
+    "threshold_m": 10.0,
+    "tp": 954,
+    "fp": 2336,
+    "fn": 215,
+    "precision": 0.29,
+    "recall": 0.816,
+    "f1": 0.428
+   },
+   {
+    "target": "severe",
+    "threshold_m": 15.0,
+    "tp": 890,
+    "fp": 2217,
+    "fn": 279,
+    "precision": 0.286,
+    "recall": 0.761,
+    "f1": 0.416
+   },
+   {
+    "target": "severe",
+    "threshold_m": 25.0,
+    "tp": 790,
+    "fp": 1989,
+    "fn": 379,
+    "precision": 0.284,
+    "recall": 0.676,
+    "f1": 0.4
+   },
+   {
+    "target": "severe",
+    "threshold_m": 50.0,
+    "tp": 582,
+    "fp": 1487,
+    "fn": 587,
+    "precision": 0.281,
+    "recall": 0.498,
+    "f1": 0.359
+   },
+   {
+    "target": "severe",
+    "threshold_m": 100.0,
+    "tp": 384,
+    "fp": 947,
+    "fn": 785,
+    "precision": 0.289,
+    "recall": 0.328,
+    "f1": 0.307
+   }
+  ],
+  "leave_one_event_out": {
+   "EMSR504": {
+    "chosen_family": "additive",
+    "chosen": {
+     "exposure": "buildings",
+     "weights": [
+      0.7,
+      0.3,
+      0.0
+     ]
+    },
+    "train_capture": 0.828,
+    "held_out_fitted": 0.551,
+    "held_out_default": 0.41,
+    "held_out_buildings_in_flood": 0.833,
+    "held_out_people_in_flood": 0.577
+   },
+   "EMSR517": {
+    "chosen_family": "additive",
+    "chosen": {
+     "exposure": "buildings",
+     "weights": [
+      0.7,
+      0.3,
+      0.0
+     ]
+    },
+    "train_capture": 0.806,
+    "held_out_fitted": 0.797,
+    "held_out_default": 0.738,
+    "held_out_buildings_in_flood": 0.848,
+    "held_out_people_in_flood": 0.819
+   },
+   "EMSR559": {
+    "chosen_family": "risk",
+    "chosen": {
+     "exposure": "buildings",
+     "access_weight": 0.0
+    },
+    "train_capture": 0.835,
+    "held_out_fitted": 0.101,
+    "held_out_default": 0.855,
+    "held_out_buildings_in_flood": 0.072,
+    "held_out_people_in_flood": 0.333
+   },
+   "EMSR631": {
+    "chosen_family": "additive",
+    "chosen": {
+     "exposure": "buildings",
+     "weights": [
+      0.95,
+      0.05,
+      0.0
+     ]
+    },
+    "train_capture": 0.866,
+    "held_out_fitted": 0.233,
+    "held_out_default": 0.366,
+    "held_out_buildings_in_flood": 0.408,
+    "held_out_people_in_flood": 0.223
+   },
+   "EMSR634": {
+    "chosen_family": "additive",
+    "chosen": {
+     "exposure": "buildings",
+     "weights": [
+      0.9,
+      0.1,
+      0.0
+     ]
+    },
+    "train_capture": 0.779,
+    "held_out_fitted": 0.892,
+    "held_out_default": 0.948,
+    "held_out_buildings_in_flood": 0.933,
+    "held_out_people_in_flood": 0.867
+   },
+   "EMSR649": {
+    "chosen_family": "additive",
+    "chosen": {
+     "exposure": "buildings",
+     "weights": [
+      0.9,
+      0.1,
+      0.0
+     ]
+    },
+    "train_capture": 0.794,
+    "held_out_fitted": 0.971,
+    "held_out_default": 0.971,
+    "held_out_buildings_in_flood": 0.941,
+    "held_out_people_in_flood": 0.647
+   },
+   "mean_over_events": {
+    "held_out_fitted": 0.591,
+    "held_out_default": 0.715,
+    "held_out_buildings_in_flood": 0.672,
+    "held_out_people_in_flood": 0.578
+   }
+  },
+  "ablation": {
+   "E": {
+    "top10": 0.673,
+    "ci95": [
+     0.57,
+     0.727
+    ]
+   },
+   "H": {
+    "top10": 0.559,
+    "ci95": [
+     0.412,
+     0.642
+    ]
+   },
+   "A": {
+    "top10": 0.329,
+    "ci95": [
+     0.149,
+     0.362
+    ]
+   },
+   "EH": {
+    "top10": 0.779,
+    "ci95": [
+     0.58,
+     0.797
+    ]
+   },
+   "EA": {
+    "top10": 0.655,
+    "ci95": [
+     0.545,
+     0.709
+    ]
+   },
+   "HA": {
+    "top10": 0.64,
+    "ci95": [
+     0.466,
+     0.682
+    ]
+   },
+   "EHA": {
+    "top10": 0.763,
+    "ci95": [
+     0.547,
+     0.779
+    ]
+   },
+   "risk": {
+    "top10": 0.768,
+    "ci95": [
+     0.613,
+     0.803
+    ]
+   },
+   "risk+A": {
+    "top10": 0.737,
+    "ci95": [
+     0.577,
+     0.775
+    ]
+   },
+   "people:E": {
+    "top10": 0.651,
+    "ci95": [
+     0.503,
+     0.697
+    ]
+   },
+   "people:H": {
+    "top10": 0.559,
+    "ci95": [
+     0.412,
+     0.642
+    ]
+   },
+   "people:A": {
+    "top10": 0.329,
+    "ci95": [
+     0.149,
+     0.362
+    ]
+   },
+   "people:EH": {
+    "top10": 0.727,
+    "ci95": [
+     0.517,
+     0.747
+    ]
+   },
+   "people:EA": {
+    "top10": 0.639,
+    "ci95": [
+     0.503,
+     0.683
+    ]
+   },
+   "people:HA": {
+    "top10": 0.64,
+    "ci95": [
+     0.466,
+     0.682
+    ]
+   },
+   "people:EHA": {
+    "top10": 0.729,
+    "ci95": [
+     0.507,
+     0.744
+    ]
+   },
+   "people:risk": {
+    "top10": 0.718,
+    "ci95": [
+     0.533,
+     0.763
+    ]
+   },
+   "people:risk+A": {
+    "top10": 0.708,
+    "ci95": [
+     0.534,
+     0.746
+    ]
+   },
+   "water": {
+    "top10": 0.559,
+    "ci95": [
+     0.412,
+     0.642
+    ]
+   },
+   "buildings_in_flood": {
+    "top10": 0.768,
+    "ci95": [
+     0.632,
+     0.804
+    ]
+   },
+   "people_in_flood": {
+    "top10": 0.696,
+    "ci95": [
+     0.546,
+     0.759
+    ]
+   },
+   "EHA_minus_E": {
+    "diff": 0.091,
+    "ci95": [
+     -0.094,
+     0.117
+    ],
+    "share_of_draws_priority_better": 0.717
+   },
+   "EHA_minus_H": {
+    "diff": 0.204,
+    "ci95": [
+     0.021,
+     0.293
+    ],
+    "share_of_draws_priority_better": 0.99
+   },
+   "EHA_minus_A": {
+    "diff": 0.435,
+    "ci95": [
+     0.278,
+     0.558
+    ],
+    "share_of_draws_priority_better": 1.0
+   },
+   "EHA_minus_EH": {
+    "diff": -0.016,
+    "ci95": [
+     -0.071,
+     0.005
+    ],
+    "share_of_draws_priority_better": 0.088
+   },
+   "EHA_minus_EA": {
+    "diff": 0.108,
+    "ci95": [
+     -0.068,
+     0.135
+    ],
+    "share_of_draws_priority_better": 0.819
+   },
+   "EHA_minus_HA": {
+    "diff": 0.123,
+    "ci95": [
+     0.019,
+     0.21
+    ],
+    "share_of_draws_priority_better": 0.994
+   },
+   "EHA_minus_risk": {
+    "diff": -0.005,
+    "ci95": [
+     -0.15,
+     0.044
+    ],
+    "share_of_draws_priority_better": 0.299
+   },
+   "EHA_minus_risk+A": {
+    "diff": 0.027,
+    "ci95": [
+     -0.116,
+     0.074
+    ],
+    "share_of_draws_priority_better": 0.53
+   },
+   "EHA_minus_people:E": {
+    "diff": 0.113,
+    "ci95": [
+     -0.055,
+     0.184
+    ],
+    "share_of_draws_priority_better": 0.867
+   },
+   "EHA_minus_people:H": {
+    "diff": 0.204,
+    "ci95": [
+     0.021,
+     0.293
+    ],
+    "share_of_draws_priority_better": 0.99
+   },
+   "EHA_minus_people:A": {
+    "diff": 0.435,
+    "ci95": [
+     0.278,
+     0.558
+    ],
+    "share_of_draws_priority_better": 1.0
+   },
+   "EHA_minus_people:EH": {
+    "diff": 0.037,
+    "ci95": [
+     -0.005,
+     0.079
+    ],
+    "share_of_draws_priority_better": 0.966
+   },
+   "EHA_minus_people:EA": {
+    "diff": 0.125,
+    "ci95": [
+     -0.039,
+     0.174
+    ],
+    "share_of_draws_priority_better": 0.917
+   },
+   "EHA_minus_people:HA": {
+    "diff": 0.123,
+    "ci95": [
+     0.019,
+     0.21
+    ],
+    "share_of_draws_priority_better": 0.994
+   },
+   "EHA_minus_people:EHA": {
+    "diff": 0.034,
+    "ci95": [
+     0.006,
+     0.119
+    ],
+    "share_of_draws_priority_better": 0.997
+   },
+   "EHA_minus_people:risk": {
+    "diff": 0.045,
+    "ci95": [
+     -0.1,
+     0.131
+    ],
+    "share_of_draws_priority_better": 0.658
+   },
+   "EHA_minus_people:risk+A": {
+    "diff": 0.055,
+    "ci95": [
+     -0.08,
+     0.113
+    ],
+    "share_of_draws_priority_better": 0.697
+   },
+   "EHA_minus_water": {
+    "diff": 0.204,
+    "ci95": [
+     0.02,
+     0.293
+    ],
+    "share_of_draws_priority_better": 0.989
+   },
+   "EHA_minus_buildings_in_flood": {
+    "diff": -0.004,
+    "ci95": [
+     -0.166,
+     0.033
+    ],
+    "share_of_draws_priority_better": 0.229
+   },
+   "EHA_minus_people_in_flood": {
+    "diff": 0.067,
+    "ci95": [
+     -0.113,
+     0.144
+    ],
+    "share_of_draws_priority_better": 0.642
+   }
+  },
+  "ablation_per_event": {
+   "E": {
+    "events": {
+     "EMSR504": 0.731,
+     "EMSR517": 0.835,
+     "EMSR559": 0.101,
+     "EMSR631": 0.086,
+     "EMSR634": 0.735,
+     "EMSR649": 0.941
+    },
+    "mean": 0.572,
+    "min": 0.086,
+    "worst_event": "EMSR631"
+   },
+   "H": {
+    "events": {
+     "EMSR504": 0.0,
+     "EMSR517": 0.394,
+     "EMSR559": 0.884,
+     "EMSR631": 0.017,
+     "EMSR634": 0.902,
+     "EMSR649": 0.971
+    },
+    "mean": 0.528,
+    "min": 0.0,
+    "worst_event": "EMSR504"
+   },
+   "A": {
+    "events": {
+     "EMSR504": 0.346,
+     "EMSR517": 0.228,
+     "EMSR559": 0.029,
+     "EMSR631": 0.0,
+     "EMSR634": 0.62,
+     "EMSR649": 0.471
+    },
+    "mean": 0.282,
+    "min": 0.0,
+    "worst_event": "EMSR631"
+   },
+   "EH": {
+    "events": {
+     "EMSR504": 0.397,
+     "EMSR517": 0.763,
+     "EMSR559": 0.87,
+     "EMSR631": 0.436,
+     "EMSR634": 0.948,
+     "EMSR649": 0.971
+    },
+    "mean": 0.731,
+    "min": 0.397,
+    "worst_event": "EMSR504"
+   },
+   "EA": {
+    "events": {
+     "EMSR504": 0.654,
+     "EMSR517": 0.806,
+     "EMSR559": 0.101,
+     "EMSR631": 0.086,
+     "EMSR634": 0.733,
+     "EMSR649": 0.941
+    },
+    "mean": 0.553,
+    "min": 0.086,
+    "worst_event": "EMSR631"
+   },
+   "HA": {
+    "events": {
+     "EMSR504": 0.192,
+     "EMSR517": 0.534,
+     "EMSR559": 0.855,
+     "EMSR631": 0.229,
+     "EMSR634": 0.885,
+     "EMSR649": 0.971
+    },
+    "mean": 0.611,
+    "min": 0.192,
+    "worst_event": "EMSR504"
+   },
+   "EHA": {
+    "events": {
+     "EMSR504": 0.41,
+     "EMSR517": 0.738,
+     "EMSR559": 0.855,
+     "EMSR631": 0.366,
+     "EMSR634": 0.948,
+     "EMSR649": 0.971
+    },
+    "mean": 0.715,
+    "min": 0.366,
+    "worst_event": "EMSR631"
+   },
+   "risk": {
+    "events": {
+     "EMSR504": 0.808,
+     "EMSR517": 0.842,
+     "EMSR559": 0.101,
+     "EMSR631": 0.436,
+     "EMSR634": 0.932,
+     "EMSR649": 0.941
+    },
+    "mean": 0.677,
+    "min": 0.101,
+    "worst_event": "EMSR559"
+   },
+   "risk+A": {
+    "events": {
+     "EMSR504": 0.667,
+     "EMSR517": 0.814,
+     "EMSR559": 0.101,
+     "EMSR631": 0.349,
+     "EMSR634": 0.93,
+     "EMSR649": 0.941
+    },
+    "mean": 0.634,
+    "min": 0.101,
+    "worst_event": "EMSR559"
+   },
+   "people:E": {
+    "events": {
+     "EMSR504": 0.654,
+     "EMSR517": 0.807,
+     "EMSR559": 0.348,
+     "EMSR631": 0.087,
+     "EMSR634": 0.731,
+     "EMSR649": 0.647
+    },
+    "mean": 0.546,
+    "min": 0.087,
+    "worst_event": "EMSR631"
+   },
+   "people:H": {
+    "events": {
+     "EMSR504": 0.0,
+     "EMSR517": 0.394,
+     "EMSR559": 0.884,
+     "EMSR631": 0.017,
+     "EMSR634": 0.902,
+     "EMSR649": 0.971
+    },
+    "mean": 0.528,
+    "min": 0.0,
+    "worst_event": "EMSR504"
+   },
+   "people:A": {
+    "events": {
+     "EMSR504": 0.346,
+     "EMSR517": 0.228,
+     "EMSR559": 0.029,
+     "EMSR631": 0.0,
+     "EMSR634": 0.62,
+     "EMSR649": 0.471
+    },
+    "mean": 0.282,
+    "min": 0.0,
+    "worst_event": "EMSR631"
+   },
+   "people:EH": {
+    "events": {
+     "EMSR504": 0.244,
+     "EMSR517": 0.72,
+     "EMSR559": 0.87,
+     "EMSR631": 0.321,
+     "EMSR634": 0.903,
+     "EMSR649": 0.971
+    },
+    "mean": 0.671,
+    "min": 0.244,
+    "worst_event": "EMSR504"
+   },
+   "people:EA": {
+    "events": {
+     "EMSR504": 0.487,
+     "EMSR517": 0.782,
+     "EMSR559": 0.348,
+     "EMSR631": 0.087,
+     "EMSR634": 0.728,
+     "EMSR649": 0.794
+    },
+    "mean": 0.538,
+    "min": 0.087,
+    "worst_event": "EMSR631"
+   },
+   "people:HA": {
+    "events": {
+     "EMSR504": 0.192,
+     "EMSR517": 0.534,
+     "EMSR559": 0.855,
+     "EMSR631": 0.229,
+     "EMSR634": 0.885,
+     "EMSR649": 0.971
+    },
+    "mean": 0.611,
+    "min": 0.192,
+    "worst_event": "EMSR504"
+   },
+   "people:EHA": {
+    "events": {
+     "EMSR504": 0.385,
+     "EMSR517": 0.698,
+     "EMSR559": 0.855,
+     "EMSR631": 0.323,
+     "EMSR634": 0.898,
+     "EMSR649": 0.971
+    },
+    "mean": 0.688,
+    "min": 0.323,
+    "worst_event": "EMSR631"
+   },
+   "people:risk": {
+    "events": {
+     "EMSR504": 0.667,
+     "EMSR517": 0.81,
+     "EMSR559": 0.348,
+     "EMSR631": 0.314,
+     "EMSR634": 0.894,
+     "EMSR649": 0.647
+    },
+    "mean": 0.613,
+    "min": 0.314,
+    "worst_event": "EMSR631"
+   },
+   "people:risk+A": {
+    "events": {
+     "EMSR504": 0.538,
+     "EMSR517": 0.782,
+     "EMSR559": 0.348,
+     "EMSR631": 0.31,
+     "EMSR634": 0.891,
+     "EMSR649": 0.794
+    },
+    "mean": 0.611,
+    "min": 0.31,
+    "worst_event": "EMSR631"
+   },
+   "water": {
+    "events": {
+     "EMSR504": 0.0,
+     "EMSR517": 0.394,
+     "EMSR559": 0.884,
+     "EMSR631": 0.017,
+     "EMSR634": 0.902,
+     "EMSR649": 0.971
+    },
+    "mean": 0.528,
+    "min": 0.0,
+    "worst_event": "EMSR504"
+   },
+   "buildings_in_flood": {
+    "events": {
+     "EMSR504": 0.833,
+     "EMSR517": 0.848,
+     "EMSR559": 0.072,
+     "EMSR631": 0.408,
+     "EMSR634": 0.933,
+     "EMSR649": 0.941
+    },
+    "mean": 0.672,
+    "min": 0.072,
+    "worst_event": "EMSR559"
+   },
+   "people_in_flood": {
+    "events": {
+     "EMSR504": 0.577,
+     "EMSR517": 0.819,
+     "EMSR559": 0.333,
+     "EMSR631": 0.223,
+     "EMSR634": 0.867,
+     "EMSR649": 0.647
+    },
+    "mean": 0.578,
+    "min": 0.223,
+    "worst_event": "EMSR631"
+   }
+  },
+  "data_ablations": {
+   "sentinel1_change": {
+    "towns": [
+     "EMSR504/aoi01",
+     "EMSR517/aoi07",
+     "EMSR517/aoi09",
+     "EMSR517/aoi10",
+     "EMSR517/aoi15",
+     "EMSR631/aoi01"
+    ],
+    "default": {
+     "E": 0.693,
+     "H": 0.266,
+     "A": 0.21,
+     "EH": 0.647,
+     "EA": 0.66,
+     "HA": 0.427,
+     "EHA": 0.621,
+     "risk": 0.768,
+     "risk+A": 0.712,
+     "people:E": 0.661,
+     "people:H": 0.266,
+     "people:A": 0.21,
+     "people:EH": 0.574,
+     "people:EA": 0.617,
+     "people:HA": 0.427,
+     "people:EHA": 0.584,
+     "people:risk": 0.704,
+     "people:risk+A": 0.663,
+     "water": 0.266,
+     "buildings_in_flood": 0.772,
+     "people_in_flood": 0.679
+    },
+    "ablated": {
+     "E": 0.031,
+     "H": 0.197,
+     "A": 0.021,
+     "EH": 0.198,
+     "EA": 0.044,
+     "HA": 0.206,
+     "EHA": 0.207,
+     "risk": 0.031,
+     "risk+A": 0.044,
+     "people:E": 0.064,
+     "people:H": 0.197,
+     "people:A": 0.021,
+     "people:EH": 0.197,
+     "people:EA": 0.077,
+     "people:HA": 0.206,
+     "people:EHA": 0.206,
+     "people:risk": 0.064,
+     "people:risk+A": 0.077,
+     "water": 0.199,
+     "buildings_in_flood": 0.023,
+     "people_in_flood": 0.056
+    }
+   }
+  }
+ },
+ "started_at": "2026-10-20T16:10:03+00:00",
+ "finished_at": "2026-10-20T16:10:04+00:00",
+ "seconds": 0.0,
+ "git_sha": "3a1af92",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

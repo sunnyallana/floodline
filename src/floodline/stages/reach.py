@@ -127,6 +127,26 @@ def snap(points_xy: np.ndarray, node_ids: np.ndarray, node_xy: np.ndarray, max_m
     return [int(node_ids[j]) for (_, j), d in zip(idx.T, dist, strict=True) if d <= max_m]
 
 
+VIRTUAL_SOURCE = -1
+
+
+def add_virtual_source(graph, points_xy: np.ndarray, node_ids: np.ndarray, node_xy: np.ndarray):
+    """A copy of ``graph`` with one extra source node joined to the road node nearest each point, the joining
+    edge costing the straight-line distance at ``DEFAULT_SPEED_KMH``. Returns (graph, [source])."""
+    from shapely import STRtree, points
+
+    g = graph.copy()
+    tree = STRtree(points(node_xy))
+    idx, dist = tree.query_nearest(points(points_xy), return_distance=True, all_matches=False)
+    g.add_node(VIRTUAL_SOURCE, x=float("nan"), y=float("nan"))
+    for (_, j), d in zip(idx.T, dist, strict=True):
+        node = int(node_ids[j])
+        g.add_edge(
+            VIRTUAL_SOURCE, node, 0, travel_time=float(d) / (DEFAULT_SPEED_KMH * 1000.0 / 3600.0), length=float(d)
+        )
+    return g, [VIRTUAL_SOURCE]
+
+
 def per_cell(node_cells: pd.Series, minutes: dict[int, float], cells: list[str]) -> pd.Series:
     """Best travel time over the road nodes inside each hex; inf if it has nodes but none is reachable."""
     t = node_cells.index.map(lambda n: minutes.get(n, np.inf)).to_numpy(dtype=float)
@@ -142,7 +162,8 @@ def reach_table(
 
     resolution = h3.get_resolution(cells[0]) if cells else 8
     node_cells = pd.Series(
-        {n: h3.latlng_to_cell(d["y"], d["x"], resolution) for n, d in graph.nodes(data=True)}, dtype=object
+        {n: h3.latlng_to_cell(d["y"], d["x"], resolution) for n, d in graph.nodes(data=True) if n != VIRTUAL_SOURCE},
+        dtype=object,
     )
     flooded = list(flooded)
     dry = per_cell(node_cells, travel_minutes(graph, sources), cells)
@@ -239,6 +260,11 @@ def run(
     node_xy = np.column_stack([nodes_m.geometry.x, nodes_m.geometry.y])
     st_m = st.geometry.to_crs(metric)
     sources = snap(np.column_stack([st_m.x, st_m.y]), nodes.index.to_numpy(), node_xy)
+    if not sources and len(st):
+        # Every station is outside the downloaded network (a town with none nearby). Each enters at its nearest
+        # road node, with the gap covered at DEFAULT_SPEED_KMH: a conservative stand-in for roads not downloaded.
+        graph, sources = add_virtual_source(graph, np.column_stack([st_m.x, st_m.y]), nodes.index.to_numpy(), node_xy)
+        log.warning("staging points are outside the road network; entering through %d boundary nodes", len(st))
     if not sources:
         raise RuntimeError("no staging point within reach of the road network")
 
@@ -255,7 +281,8 @@ def run(
         "flooded_edges": len(flooded_keys),
         "closed_roads": len(roads),
         "road_under_water_km": round(float(roads.to_crs(metric).length.sum() / 1000.0), 2),
-        "staging_points": len(sources),
+        "staging_points": len(st) if sources == [VIRTUAL_SOURCE] else len(sources),
+        "staging_outside_network": sources == [VIRTUAL_SOURCE],
         "hexes": len(df),
         "hexes_with_roads": int(has_road.sum()),
         "hexes_cut_off": int(df.cut_off.sum()),

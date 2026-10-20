@@ -1,0 +1,27 @@
+{
+ "stage": "satellite",
+ "params": {
+  "ems_source": "data\\external\\ems\\EMSR559_GRA\\EMSR559_AOI04_GRA_PRODUCT_r1_RTP01_v1_vector",
+  "resolution": 9
+ },
+ "metrics": {
+  "cells": 1568,
+  "flooded_cells": 323,
+  "flood_layers": 1,
+  "aoi_layers": 1,
+  "permanent_water_layers": 1,
+  "flood_km2": 3.3,
+  "aoi_km2": 167.0,
+  "permanent_water_km2": 0.1
+ },
+ "started_at": "2026-10-20T15:14:48+00:00",
+ "finished_at": "2026-10-20T15:14:49+00:00",
+ "seconds": 0.4,
+ "git_sha": "9c1fb9f",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

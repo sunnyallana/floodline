@@ -319,6 +319,20 @@ def ablation_scores(df: pd.DataFrame) -> dict[str, pd.Series]:
     return out
 
 
+def per_event_ablation(df: pd.DataFrame, scores: dict[str, pd.Series]) -> dict[str, Any]:
+    """Macro capture of each variant within each event, with the mean and the worst event: a score that is good
+    on average but fails one kind of flood shows up here, where the pooled number hides it."""
+    out: dict[str, Any] = {}
+    for k, v in scores.items():
+        d = df.assign(_s=v)
+        by = {e: round(macro_capture(g, "_s"), 3) for e, g in d.groupby("event")}
+        vals = np.array(list(by.values()), dtype=float)
+        worst = min(by, key=lambda e: by[e])
+        out[k] = {"events": by, "mean": round(float(np.nanmean(vals)), 3), "min": round(float(np.nanmin(vals)), 3),
+                  "worst_event": worst}  # fmt: skip
+    return out
+
+
 def bootstrap(
     df: pd.DataFrame,
     n: int = BOOTSTRAP,
@@ -399,6 +413,7 @@ def summarise(paths: Paths, n: int = BOOTSTRAP) -> dict[str, Any]:
         "roads": road_pooled,
         "leave_one_event_out": leave_one_event_out(df),
         "ablation": bootstrap(df, n=n, scores=ablation_scores(df), reference="EHA"),
+        "ablation_per_event": per_event_ablation(df, ablation_scores(df)),
     }
     # Data ablations: the same towns re-run with another flood source or building source.
     data_ablations: dict[str, Any] = {}

@@ -1,0 +1,61 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR634",
+  "osm": [
+   "data\\external\\osm\\centro-261018.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR634",
+  "flood_source": "ems",
+  "towns": {
+   "aoi01": {
+    "town": "Cantiano",
+    "severe_buildings": 183,
+    "ranked_hexes": 2219,
+    "severe_in_mapped_hexes": 183
+   },
+   "aoi02": {
+    "town": "Sassoferrato",
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Arcevia",
+    "severe_buildings": 0
+   },
+   "aoi04": {
+    "town": "Barbara",
+    "severe_buildings": 3
+   },
+   "aoi05": {
+    "town": "Ostra",
+    "severe_buildings": 191,
+    "ranked_hexes": 398,
+    "severe_in_mapped_hexes": 191
+   },
+   "aoi06": {
+    "town": "Senigallia",
+    "severe_buildings": 103,
+    "ranked_hexes": 267,
+    "severe_in_mapped_hexes": 100
+   },
+   "aoi07": {
+    "town": "Trecastelli",
+    "severe_buildings": 16
+   }
+  },
+  "road_rows": 98
+ },
+ "started_at": "2026-10-20T16:04:07+00:00",
+ "finished_at": "2026-10-20T16:04:07+00:00",
+ "seconds": 0.0,
+ "git_sha": "3a1af92",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

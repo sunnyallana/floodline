@@ -63,6 +63,7 @@ def gather(paths: Paths) -> dict[str, Any]:
             "loeo": bench.get("leave_one_event_out", {}),
             "data_ablations": bench.get("data_ablations", {}),
             "per_event": bench.get("per_event_macro_top10", {}),
+            "per_event_ablation": bench.get("ablation_per_event", {}),
         },
         "roads": roads,
         "attack": {"strict": _read(r / "attack_prague.json"), "permissive": _read(r / "attack_prague_permissive.json")},

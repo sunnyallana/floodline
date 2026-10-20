@@ -51,6 +51,10 @@ svg text{fill:var(--fg);font-family:var(--sans)}
 .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600}
 .pending{color:var(--muted);font-style:italic}
 ul.limits li{margin:6px 0;max-width:820px}
+.heat td.n{text-align:center;min-width:64px}
+.heat tr.def td{font-weight:700}
+.heat td.fail{color:var(--bad);font-weight:700}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
 footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .flow{width:100%;height:auto;min-width:720px}
@@ -89,12 +93,13 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
 </div></header>
 
 <section><div class="wrap">
-  <h2>Two decisions, not one score</h2>
-  <p>A district flood coordinator decides two things: where the damage and the people are, and how to get there.
-  The evidence below says these should stay separate. A <b>risk ranking</b> (exposure inside the water, scaled by
-  how much of the hexagon is flooded) finds damage; a <b>reachability overlay</b> (roads closed by the flood, areas
-  cut off) says whether to send a truck or a boat. <span id="access-claim"></span></p>
-  <div class="scroll"><svg class="flow" viewBox="0 0 1000 250" role="img" aria-label="Pipeline: satellite flood map, roads, buildings and population, and field reports feed H3 hexagons, which produce a risk ranking and a reachability overlay on the map and field app.">
+  <h2>One map, two questions</h2>
+  <p>A district flood coordinator needs to know where the damage and the people are, and how to get there. Floodline
+  scores every 0.1&nbsp;km² hexagon on <b>exposure</b> (buildings and people in the water), <b>hazard</b> (how much
+  of it is flooded) and <b>access</b> (how much the flood lengthens the drive from the nearest fire station or
+  hospital, or cuts it off), and fuses them into one priority. The closed roads and cut-off areas are also drawn as
+  their own layer, because they decide whether to send a truck or a boat. <span id="access-claim"></span></p>
+  <div class="scroll"><svg class="flow" viewBox="0 0 1000 250" role="img" aria-label="Pipeline: satellite flood map, roads, buildings and population, and field reports feed H3 hexagons, which produce a fused priority and a reachability overlay.">
     <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
     <g font-size="14">
       <rect x="10" y="14" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="42">Satellite flood map (EMS, Sentinel-1)</text>
@@ -102,7 +107,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
       <rect x="10" y="134" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="162">Buildings, population (GHSL)</text>
       <rect x="10" y="194" width="250" height="46" rx="10" fill="var(--surface)" stroke="var(--line)"/><text x="24" y="222">Field reports → trust checks</text>
       <rect x="380" y="84" width="200" height="84" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="398" y="118" font-weight="600">H3 hexagons, 0.1 km²</text><text x="398" y="142" fill="var(--muted)" font-size="13">hazard · exposure · access</text>
-      <rect x="740" y="44" width="250" height="56" rx="12" fill="var(--surface)" stroke="var(--accent)"/><text x="758" y="70" font-weight="600">Risk ranking</text><text x="758" y="90" fill="var(--muted)" font-size="13">where the damage is</text>
+      <rect x="740" y="44" width="250" height="56" rx="12" fill="var(--surface)" stroke="var(--accent)"/><text x="758" y="70" font-weight="600">Fused priority</text><text x="758" y="90" fill="var(--muted)" font-size="13">where to go first</text>
       <rect x="740" y="152" width="250" height="56" rx="12" fill="var(--surface)" stroke="var(--warm)"/><text x="758" y="178" font-weight="600">Reachability overlay</text><text x="758" y="198" fill="var(--muted)" font-size="13">truck or boat</text>
       <path d="M260 37 C320 37 320 110 380 110" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
       <path d="M260 97 C320 97 320 120 380 120" stroke="var(--muted)" fill="none" marker-end="url(#a)"/>
@@ -125,9 +130,15 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
 <section><div class="wrap">
   <h2>What finds the damage</h2>
   <p>Share of each town's damaged or destroyed buildings that fall in its top 10&nbsp;% of hexagons, averaged over
-  towns, with 95&nbsp;% intervals from a spatial block bootstrap. Random ranking scores 0.10.</p>
+  towns, with 95&nbsp;% intervals from a spatial block bootstrap. Random ranking scores 0.10. Pooled, the leading scores sit inside each other's intervals; what separates them is how they do on their worst flood, below.</p>
   <div class="bars" id="ablation" role="img" aria-label="Damage capture by score variant"></div>
   <p class="muted small" id="ablation-note"></p>
+  <h3>Every single layer fails somewhere</h3>
+  <p class="small muted">The same measure within each flood. A layer that looks good pooled can collapse on one kind
+  of flood: water extent in the riverine floods, where the whole plain is wet; building counts in Moramanga.
+  <span id="robust-claim"></span></p>
+  <div class="tablewrap"><table class="heat" id="perevent"></table></div>
+  <div class="key"><span>Shading: capture, 0 to 1</span><span style="color:var(--bad);font-weight:700">red: below 0.2 (random is 0.1)</span></div>
   <h3>Fitted on five floods, tested on the sixth</h3>
   <p class="small muted">The scoring rule (its form, weights and exposure measure) is chosen on all events but one and scored on the held-out event. This is the out-of-sample test.</p>
   <div class="tablewrap"><table id="loeo"></table></div>
@@ -184,12 +195,12 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:14px}
 
 <script>
 const $ = id => document.getElementById(id);
-const f = (v, d = 2) => v === null || v === undefined || Number.isNaN(+v) ? "–" : (+v).toFixed(d);
+const f = (v, d = 2) => v === null || v === undefined || Number.isNaN(+v) ? "–" : (Math.abs(+v) < 0.5 * 10 ** -d ? 0 : +v).toFixed(d);
 const pct = v => v === null || v === undefined ? "–" : `${Math.round(100 * v)}%`;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const LABELS = {
   water: "Water extent alone", people_in_flood: "People in the flood (GHSL)", buildings_in_flood: "Buildings in the flood",
-  E: "Exposure alone", EHA: "Additive: exposure + hazard + access", risk: "Risk: exposure × hazard", "risk+A": "Risk + access",
+  E: "Exposure alone", EHA: "Fused priority (default)", risk: "Risk: exposure × hazard", "risk+A": "Risk + access",
   EH: "Exposure + hazard", EA: "Exposure + access", H: "Hazard alone", A: "Access alone"};
 const SHOW = ["water", "A", "people_in_flood", "EHA", "E", "risk+A", "buildings_in_flood", "risk"];
 
@@ -222,17 +233,38 @@ fetch("site.json").then(r => r.json()).then(d => {
 
   const ab = b.ablation || {};
   const rows = SHOW.filter(k => ab[k]).map(k => ({label: LABELS[k] || k, v: ab[k].top10, lo: ab[k].ci95[0], hi: ab[k].ci95[1], key: k}));
-  const top = rows.reduce((m, r) => r.v > (m?.v ?? -1) ? r : m, null);
-  rows.forEach(r => r.best = r === top);
+  rows.forEach(r => r.best = r.key === "EHA");
   if (rows.length) bars($("ablation"), rows);
   else $("ablation").innerHTML = `<p class="pending">Benchmark pending.</p>`;
-  const diff = ab["EHA_minus_risk"];
-  if (diff) $("ablation-note").textContent = `Additive mixing minus the risk form: ${f(diff.diff)} (95% interval ${f(diff.ci95[0])} to ${f(diff.ci95[1])}).`;
-  if (ab.risk && ab["risk+A"]) {
-    const worse = ab["risk+A"].top10 < ab.risk.top10;
-    $("access-claim").textContent = worse
-      ? `Adding access to the damage ranking lowers it (${f(ab.risk.top10)} without access, ${f(ab["risk+A"].top10)} with).`
-      : `Adding access to the damage ranking does not lower it here (${f(ab.risk.top10)} without, ${f(ab["risk+A"].top10)} with).`;
+  const ci = x => `${f(x.diff)}, 95% interval ${f(x.ci95[0])} to ${f(x.ci95[1])}`;
+  const vsWater = ab["EHA_minus_water"], vsB = ab["EHA_minus_buildings_in_flood"], vsEH = ab["EHA_minus_EH"];
+  const notes = [];
+  if (vsWater) notes.push(`Fused priority minus water extent: ${ci(vsWater)}.`);
+  if (vsB) notes.push(`Fused priority minus building counts: ${ci(vsB)}.`);
+  $("ablation-note").textContent = notes.join(" ");
+  if (vsEH) {
+    const zero = vsEH.ci95[0] <= 0 && vsEH.ci95[1] >= 0;
+    $("access-claim").textContent = zero
+      ? `Access does not change how much damage the ranking finds (with minus without: ${ci(vsEH)}); it is kept because reachability is half of the coordinator's question, not because it finds damage.`
+      : `Access changes how much damage the ranking finds (with minus without: ${ci(vsEH)}); it is kept because reachability is half of the coordinator's question.`;
+  }
+
+  const pe = b.per_event_ablation || {};
+  const evs = d.events.map(e => e.code).filter(c => Object.values(pe).some(v => v.events && c in v.events));
+  const PE = [["EHA", "Fused priority (default)"], ["EH", "Fused, without access"], ["buildings_in_flood", "Buildings in the flood"], ["people_in_flood", "People in the flood"],
+              ["risk", "Risk: exposure × hazard"], ["E", "Exposure alone"], ["water", "Water extent alone"], ["A", "Access alone"]];
+  const short = c => esc(((d.events.find(e => e.code === c) || {}).name || c).split(",")[0]);
+  const cell = v => v === undefined || v === null ? "<td class=\"n\">–</td>" :
+    `<td class="n${v < 0.2 ? " fail" : ""}" style="background:color-mix(in srgb,var(--accent) ${Math.round(Math.max(0, v) * 45)}%,transparent)">${f(v)}</td>`;
+  if (evs.length) $("perevent").innerHTML = `<tr><th>Score</th>${evs.map(c => `<th>${short(c)}</th>`).join("")}<th>Mean</th><th>Worst</th></tr>` +
+    PE.filter(([k]) => pe[k]).map(([k, lab]) => `<tr class="${k === "EHA" ? "def" : ""}"><td>${esc(lab)}</td>${evs.map(c => cell(pe[k].events[c])).join("")}${cell(pe[k].mean)}${cell(pe[k].min)}</tr>`).join("");
+  else $("perevent").outerHTML = `<p class="pending">Per-flood breakdown pending.</p>`;
+  const singles = ["buildings_in_flood", "people_in_flood", "E", "water", "A"].filter(k => pe[k]);
+  if (pe.EHA && singles.length) {
+    const best = Math.max(...singles.map(k => pe[k].min));
+    $("robust-claim").textContent = pe.EHA.min > best
+      ? `The fused priority's worst flood (${f(pe.EHA.min)}) is better than the worst flood of every single layer (at most ${f(best)}), and it has the best mean held out (below).`
+      : `The fused priority's worst flood scores ${f(pe.EHA.min)}; the best single layer's worst is ${f(best)}.`;
   }
 
   const lo = b.loeo || {};

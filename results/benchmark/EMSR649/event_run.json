@@ -1,0 +1,45 @@
+{
+ "stage": "benchmark_event",
+ "params": {
+  "event": "EMSR649",
+  "osm": [
+   "data\\external\\osm\\isole-261018.osm.pbf"
+  ],
+  "buildings": "max"
+ },
+ "metrics": {
+  "event": "EMSR649",
+  "flood_source": "ems",
+  "towns": {
+   "aoi01": {
+    "town": "Pachino",
+    "severe_buildings": 34,
+    "ranked_hexes": 2517,
+    "severe_in_mapped_hexes": 34
+   },
+   "aoi02": {
+    "town": "Siracusa",
+    "severe_buildings": 0
+   },
+   "aoi03": {
+    "town": "Catania",
+    "severe_buildings": 0
+   },
+   "aoi04": {
+    "town": "Acireale",
+    "severe_buildings": 0
+   }
+  },
+  "road_rows": 56
+ },
+ "started_at": "2026-10-20T15:45:34+00:00",
+ "finished_at": "2026-10-20T15:45:34+00:00",
+ "seconds": 0.0,
+ "git_sha": "3a1af92",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

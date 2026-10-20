@@ -1,0 +1,29 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark\\EMSR631\\satellite_aoi01.csv",
+  "ems_source": "data\\external\\ems\\EMSR631_GRA\\EMSR631_AOI01_GRA_PRODUCT_r1_RTP01_v2_vector",
+  "reach": "C:\\Users\\sunny.shaban\\Downloads\\floodline\\results\\benchmark\\EMSR631\\reach_aoi01.csv",
+  "osm": "extract:pakistan-261019.osm.pbf",
+  "buildings_source": "max"
+ },
+ "metrics": {
+  "target_hexes": 235,
+  "buildings_queried": {
+   "osm": 3,
+   "microsoft": 10485
+  },
+  "buildings_in_flood": 3493,
+  "hexes_with_flooded_buildings": 191
+ },
+ "started_at": "2026-10-20T15:01:33+00:00",
+ "finished_at": "2026-10-20T15:02:45+00:00",
+ "seconds": 72.2,
+ "git_sha": "5525f77",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}
