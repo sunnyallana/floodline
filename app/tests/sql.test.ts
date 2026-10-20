@@ -14,6 +14,10 @@ const MIGRATIONS = fileURLToPath(new URL("../../supabase/migrations", import.met
 const SUPABASE_STUB = `
   create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
   grant usage on schema public to anon, authenticated, service_role;
+  -- As on a real Supabase project: every new table and function in public is granted to the API roles, so a
+  -- table is private only if a migration revokes it or row-level security hides it.
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
   create schema storage;
   grant usage on schema storage to anon, authenticated, service_role;
   create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
