@@ -1,0 +1,18 @@
+{
+"type": "FeatureCollection",
+"name": "reach_larkana_staging",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "Dua Ultrasound", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.2213161, 27.5609161 ] } },
+{ "type": "Feature", "properties": { "name": "Farooq Medical & Dental Centre Larkana", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.2115342, 27.5553234 ] } },
+{ "type": "Feature", "properties": { "name": "Rahila Research & Reference Lab Larkana", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.2093243, 27.5578624 ] } },
+{ "type": "Feature", "properties": { "name": "Thoof Chosool", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.179445, 27.7085812 ] } },
+{ "type": "Feature", "properties": { "name": "GD Naurang Sharif", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.0619701, 27.5884321 ] } },
+{ "type": "Feature", "properties": { "name": "Plus Bhambho Khan Chandio", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.0773108, 27.6914572 ] } },
+{ "type": "Feature", "properties": { "name": "BHU Plus Ghazi Khan Khuhawar", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.0879845, 27.6101617 ] } },
+{ "type": "Feature", "properties": { "name": "The City Hospital Larkana", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.1976233, 27.5599565 ] } },
+{ "type": "Feature", "properties": { "name": "Sheikh Zaed Children Hospital", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.205220683245059, 27.5628512 ] } },
+{ "type": "Feature", "properties": { "name": "Sheikh Zaed Women Hospital", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.203414474329463, 27.5623519 ] } },
+{ "type": "Feature", "properties": { "name": "Larkana Institute of Nuclear Medicine and Radiotherapy", "kind": "hospital" }, "geometry": { "type": "Point", "coordinates": [ 68.202512605701401, 27.5607564 ] } }
+]
+}

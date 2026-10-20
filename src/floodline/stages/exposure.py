@@ -60,6 +60,19 @@ def count_buildings(buildings, flood_geometry, cells: list[str]) -> pd.DataFrame
     return full.sort_values("h3").reset_index(drop=True)
 
 
+BUILDING_SOURCES: tuple[str, ...] = ("osm", "microsoft", "max")
+
+
+def max_counts(frames: list[pd.DataFrame]) -> pd.DataFrame:
+    """Per-hexagon maximum over several sources' counts (one frame passes through unchanged)."""
+    if len(frames) == 1:
+        return frames[0]
+    merged = pd.concat(frames, ignore_index=True)
+    return merged.groupby("h3", as_index=False).agg(
+        buildings_total=("buildings_total", "max"), buildings_in_flood=("buildings_in_flood", "max")
+    )
+
+
 def run(
     paths: Paths,
     layer_csv: Path,
@@ -67,7 +80,12 @@ def run(
     reach_csv: Path | None = None,
     out_name: str = "exposure.csv",
     source: osm.OsmSource | None = None,
+    buildings_source: str = "osm",
 ) -> pd.DataFrame:
+    """``buildings_source``: ``osm``, ``microsoft`` (ML footprints, see ``floodline.buildings``) or ``max``, the
+    larger count of the two per hexagon, which fills OSM gaps without double-counting houses both sources map."""
+    if buildings_source not in BUILDING_SOURCES:
+        raise ValueError(f"buildings_source must be one of {BUILDING_SOURCES}")
     import geopandas as gpd
     from shapely.ops import unary_union
 
@@ -80,6 +98,7 @@ def run(
             "ems_source": str(ems_source),
             "reach": str(reach_csv),
             "osm": (source or osm.OsmSource()).describe(),
+            "buildings_source": buildings_source,
         },
     )
     layer = pd.read_csv(layer_csv)
@@ -87,15 +106,26 @@ def run(
     cells = target_cells(layer, reach)
     flood, _, _, _ = load_ems(ems_source)
     area = unary_union(hex_polygons(cells))
-    source = source or osm.OsmSource()
-    feats = source.features(area, {"building": True})
-    feats = feats[feats.geometry.geom_type.isin(["Polygon", "MultiPolygon"])]
-    buildings = gpd.GeoDataFrame(geometry=feats.geometry.to_numpy(), crs="EPSG:4326")
-    df = count_buildings(buildings, flood, cells)
+    counts, queried = [], {}
+    if buildings_source in ("osm", "max"):
+        source = source or osm.OsmSource()
+        feats = source.features(area, {"building": True})
+        feats = feats[feats.geometry.geom_type.isin(["Polygon", "MultiPolygon"])]
+        osm_buildings = gpd.GeoDataFrame(geometry=feats.geometry.to_numpy(), crs="EPSG:4326")
+        queried["osm"] = len(osm_buildings)
+        counts.append(count_buildings(osm_buildings, flood, cells))
+    if buildings_source in ("microsoft", "max"):
+        from floodline import buildings as ml_buildings
+
+        ms = ml_buildings.microsoft(area.bounds, paths.data / "external" / "buildings")
+        ms = ms[ms.intersects(area)]
+        queried["microsoft"] = len(ms)
+        counts.append(count_buildings(ms, flood, cells))
+    df = max_counts(counts)
     df.to_csv(paths.results / out_name, index=False)
     summary = {
         "target_hexes": len(cells),
-        "buildings_queried": len(buildings),
+        "buildings_queried": queried,
         "buildings_in_flood": int(df.buildings_in_flood.sum()),
         "hexes_with_flooded_buildings": int((df.buildings_in_flood > 0).sum()),
     }

@@ -1,0 +1,29 @@
+{
+ "stage": "exposure",
+ "params": {
+  "layer": "results\\satellite_larkana.csv",
+  "ems_source": "data\\external\\ems\\EMSR629\\EMSR629_AOI01_DEL_PRODUCT_r1_RTP01_v2_vector",
+  "reach": "results\\reach_larkana.csv",
+  "osm": "extract:pakistan-261019.osm.pbf",
+  "buildings_source": "max"
+ },
+ "metrics": {
+  "target_hexes": 7663,
+  "buildings_queried": {
+   "osm": 108,
+   "microsoft": 78848
+  },
+  "buildings_in_flood": 10180,
+  "hexes_with_flooded_buildings": 2095
+ },
+ "started_at": "2026-10-20T12:12:07+00:00",
+ "finished_at": "2026-10-20T12:15:26+00:00",
+ "seconds": 199.1,
+ "git_sha": "72bd0c4",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

@@ -74,6 +74,12 @@ def build_parser() -> argparse.ArgumentParser:
     ex.add_argument("--reach", help="reach CSV, to count buildings in cut-off hexes")
     ex.add_argument("--out", default="exposure.csv")
     ex.add_argument("--osm-pbf", nargs="*", default=[], help="Geofabrik .osm.pbf extracts instead of Overpass")
+    ex.add_argument(
+        "--buildings",
+        default="osm",
+        choices=["osm", "microsoft", "max"],
+        help="building footprints: OSM, Microsoft ML footprints, or the larger count of the two per hexagon",
+    )
 
     sv = sub.add_parser("serve", help="add one city to the static web map (docs/ by default)")
     sv.add_argument("hexes_csv", help="ranked hexes from `floodline fuse`")
@@ -98,6 +104,11 @@ def build_parser() -> argparse.ArgumentParser:
     se = sub.add_parser("sensitivity", help="ranking stability under changed weights and scale constants")
     se.add_argument("hexes", nargs="+", help="fused hex CSVs from `floodline fuse`")
     se.add_argument("--validation-dir", help="results/validation/ to also report damage capture per variant")
+
+    s1 = sub.add_parser("sentinel1", help="Sentinel-1 radar water mask checked against an EMS flood map")
+    s1.add_argument("ems_source")
+    s1.add_argument("--when", required=True, help="reference date of the EMS image, e.g. 2022-08-30")
+    s1.add_argument("--out", default="sentinel1")
 
     at = sub.add_parser("attack", help="inject simulated bogus reports into a fused city and measure the damage")
     at.add_argument("hexes_csv")
@@ -222,6 +233,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 Path(args.reach) if args.reach else None,
                 out_name=args.out,
                 source=OsmSource(args.osm_pbf, paths.data / "external" / "osm" / "extracts"),
+                buildings_source=args.buildings,
             )
         elif args.command == "serve":
             from pathlib import Path
@@ -270,6 +282,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 [Path(h) for h in args.hexes],
                 Path(args.validation_dir) if args.validation_dir else None,
             )
+        elif args.command == "sentinel1":
+            from pathlib import Path
+
+            from floodline.stages import sentinel1
+
+            sentinel1.run(paths, Path(args.ems_source), args.when, args.out)
         elif args.command == "attack":
             from pathlib import Path
 

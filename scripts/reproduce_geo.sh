@@ -24,11 +24,14 @@ done
   --ems-dirs "$EMS"/EMSR04{4,5,6} --out agreement_euflood
 
 # City responder layers and the map.
-city() {  # key, EMS package dir, title, subtitle, [extra args for reach/exposure]
-  local key=$1 dir=$2 title=$3 subtitle=$4; shift 4
+city() {  # key, EMS package dir, title, subtitle, [OSM extract], [building source: osm | microsoft | max]
+  local key=$1 dir=$2 title=$3 subtitle=$4 pbf=${5:-} buildings=${6:-osm}
+  local osm_args=()
+  if [ -n "$pbf" ]; then osm_args=(--osm-pbf "$pbf"); fi
   "$FL" satellite "$dir" --out "satellite_$key.csv" --resolution 9
-  "$FL" reach "results/satellite_$key.csv" --ems "$dir" --out "reach_$key" "$@"
-  "$FL" exposure "results/satellite_$key.csv" --ems "$dir" --reach "results/reach_$key.csv" --out "exposure_$key.csv" "$@"
+  "$FL" reach "results/satellite_$key.csv" --ems "$dir" --out "reach_$key" "${osm_args[@]}"
+  "$FL" exposure "results/satellite_$key.csv" --ems "$dir" --reach "results/reach_$key.csv" --out "exposure_$key.csv" \
+    --buildings "$buildings" "${osm_args[@]}"
   "$FL" fuse "results/satellite_$key.csv" "results/reach_$key.csv" "results/exposure_$key.csv" \
     --reports results/eu_flood_2013_mappable.csv --out "hexes_$key"
   "$FL" serve "results/hexes_$key.csv" --key "$key" --title "$title" --subtitle "$subtitle" --ems "$dir" \
@@ -40,7 +43,9 @@ city prague "$EMS/EMSR045/EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector" "Pragu
 city dresden "$EMS/EMSR044/EMSR044_08DRESDEN_DELINEATION_DETAIL01_v1_vector" "Dresden, June 2013" \
   "Elbe flood. Copernicus EMS rapid map dated 3 June 2013, three days before the crest."
 city larkana "$EMS/EMSR629/EMSR629_AOI01_DEL_PRODUCT_r1_RTP01_v2_vector" "Larkana, Sindh, 2022" \
-  "Indus floods. Copernicus EMS map from SPOT-6/7 imagery of 30 August 2022." --osm-pbf "$OSM/pakistan-261019.osm.pbf"
+  "Indus floods. Copernicus EMS map from SPOT-6/7 imagery of 30 August 2022; buildings from OSM and Microsoft ML footprints." \
+  "$OSM/pakistan-261019.osm.pbf" max
+"$FL" sentinel1 "$EMS/EMSR629/EMSR629_AOI01_DEL_PRODUCT_r1_RTP01_v2_vector" --when 2022-08-30 --out sentinel1_larkana
 
 # Validation against EMS damage grading, sensitivity, report trust and attacks.
 "$FL" validate "$EMS/EMSR517_GRA" --osm-pbf "$OSM/koeln-regbez-261018.osm.pbf" "$OSM/rheinland-pfalz-261018.osm.pbf"

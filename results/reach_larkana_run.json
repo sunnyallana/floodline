@@ -1,0 +1,35 @@
+{
+ "stage": "reach",
+ "params": {
+  "cells": 8926,
+  "ems_source": "data\\external\\ems\\EMSR629\\EMSR629_AOI01_DEL_PRODUCT_r1_RTP01_v2_vector",
+  "network_type": "drive",
+  "buffer_m": 1500.0,
+  "min_overlap_m": 5.0,
+  "osm": "extract:pakistan-261019.osm.pbf",
+  "staging": "osm:fire_station,hospital"
+ },
+ "metrics": {
+  "nodes": 7827,
+  "edges": 19838,
+  "flooded_edges": 4631,
+  "closed_roads": 2320,
+  "road_under_water_km": 365.18,
+  "staging_points": 11,
+  "hexes": 8926,
+  "hexes_with_roads": 1518,
+  "hexes_cut_off": 678,
+  "median_dry_min": 8.5,
+  "hexes_delayed_over_5_min": 354
+ },
+ "started_at": "2026-10-20T11:46:01+00:00",
+ "finished_at": "2026-10-20T11:50:17+00:00",
+ "seconds": 256.3,
+ "git_sha": "aa07761",
+ "package_version": "0.2.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "machine": "AMD64"
+ }
+}

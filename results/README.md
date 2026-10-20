@@ -216,7 +216,46 @@ colluding pairs reached the top ten (top-10 overlap 0.30), and 50 lone reports i
 confirms depth but never people. What remains is the third row: inside mapped water, a fabricated depth claim
 counts, which displaced on average one of the top ten.
 
-## 9. Supervised baselines carried over from v1
+## 9. Larkana, Sindh, 2022, and an independent radar check
+
+`satellite_larkana.csv`, `reach_larkana*`, `exposure_larkana*`, `hexes_larkana*` · EMSR629 AOI01 (Larkana), flood
+mapped from SPOT-6/7 imagery of 30 August 2022, H3 res 9. OSM from the Geofabrik Pakistan extract of 19 October
+2026. Published on the map.
+
+| | Larkana |
+|---|---|
+| Mapped area / flood | 964 km² / 502 km² |
+| Hexagons mapped / with priority > 0 | 8,926 / 7,619 |
+| Roads closed by water / length under water | 2,320 / 365 km |
+| Hexagons cut off by road | 678 |
+| Buildings inside the flood | 10,175 |
+
+**Buildings.** OpenStreetMap holds 108 buildings in the 7,663 hexagons that matter here; Microsoft's Global ML
+Building Footprints (release 2026-02-03) hold 78,848. Exposure uses the larger of the two counts per hexagon
+(`floodline exposure --buildings max`), which fills the gap without counting twice a house both sources map.
+With OSM alone, exposure in rural Sindh would be close to zero and the ranking would rest on water and roads.
+Europe keeps OSM-only counts, where OSM is complete and every validated number above was computed.
+
+**Top of the list.** The five highest-ranked hexagons are all cut off by road, with 55 to 85 buildings affected
+each: four around Khokhar and one at Bhai Khan Waggan, Larkana district.
+
+**Sentinel-1 against EMS** (`sentinel1_larkana.csv`, `sentinel1_larkana_run.json`). One radiometrically
+terrain-corrected Sentinel-1A scene from the Planetary Computer, acquired 30 August 2022 at 01:26 UTC, the same
+day as the SPOT image; VV at 20 m, water below an Otsu threshold of -12.9 dB, EMS permanent water removed from
+both masks.
+
+| Measure | Value |
+|---|---|
+| IoU, radar water vs EMS flood polygons | 0.74 |
+| precision / recall of radar water | 0.94 / 0.78 |
+| water share of the mapped area, radar / EMS | 0.48 / 0.59 |
+| Spearman of per-hexagon water fraction (8,337 hexagons) | 0.94 |
+
+Radar agrees with the analysts' map where water is open and finds less of it overall, as expected: shallow water
+under crops and water between buildings return more signal than open water. Sentinel-1 was not in orbit in
+2013, so the Prague and Dresden layers have no radar check.
+
+## 10. Supervised baselines carried over from v1
 
 `../legacy/v1-results/` · seven backbones, three seeds, binary flooded / not-flooded
 

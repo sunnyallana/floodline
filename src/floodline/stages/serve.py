@@ -55,6 +55,20 @@ PHOTO_FIELDS: tuple[str, ...] = (
     "d_permanent_m",
 )
 SIMPLIFY_DEG = 0.00002  # ~2 m; far below the 10-20 m placement accuracy of the source polygons
+# Province-scale floods (Sindh 2022: 500 km2 in one study area) have millions of vertices; the tolerance grows
+# until the outline fits a phone's budget. 0.0002 deg (~20 m) is still within the polygons' placement accuracy.
+SIMPLIFY_STEPS_DEG: tuple[float, ...] = (0.00002, 0.00005, 0.0001, 0.0002)
+MAX_OUTLINE_BYTES = 3_000_000
+
+
+def outline(geometry, kind: str) -> tuple[dict[str, Any], float]:
+    """The first simplification that fits ``MAX_OUTLINE_BYTES``, and the tolerance used."""
+    feature: dict[str, Any] = {}
+    for tol in SIMPLIFY_STEPS_DEG:
+        feature = _feature(geometry.simplify(tol), {"kind": kind, "simplified_deg": tol})
+        if len(json.dumps(feature, separators=(",", ":"))) <= MAX_OUTLINE_BYTES:
+            return feature, tol
+    return feature, SIMPLIFY_STEPS_DEG[-1]
 
 
 def _clean(v: Any) -> Any:
@@ -134,7 +148,8 @@ def build_city(
     write_geojson(shown, data / "hexes.geojson", HEX_FIELDS)
 
     flood, aoi, _, info = load_ems(ems_source)
-    _write([_feature(flood.simplify(SIMPLIFY_DEG), {"kind": "flood"})], data / "flood.geojson")
+    flood_feature, tolerance = outline(flood, "flood")
+    _write([flood_feature], data / "flood.geojson")
     _write([_feature(aoi.boundary.simplify(SIMPLIFY_DEG), {"kind": "mapped_area"})], data / "aoi.geojson")
 
     n_roads = n_staging = n_photos = 0
@@ -161,6 +176,7 @@ def build_city(
         "subtitle": subtitle,
         "bounds": [round(minx, 5), round(miny, 5), round(maxx, 5), round(maxy, 5)],
         "activation": ems_source.name,
+        "flood_outline_simplified_deg": tolerance,
         "stats": {
             "mapped_km2": info["aoi_km2"],
             "flood_km2": info["flood_km2"],

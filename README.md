@@ -6,8 +6,10 @@
 Ground-level flood photos from field responders and connected residents as evidence: estimate **flood depth and human impact zero-shot**, locate each
 report with a stated confidence, and fuse the result with **satellite flood extent** to prioritise rescue.
 
-**Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013. It combines satellite flood
-extent, roads closed by water, exposed buildings and geotagged photos, with a priority per hexagon.
+**Map:** https://floodline.sunnyshabanali.dev shows Prague and Dresden in June 2013 and Larkana, Sindh, in
+August 2022. It combines satellite flood extent, roads closed by water, exposed buildings and geotagged photos,
+with a priority per hexagon. The ranking is checked against Copernicus EMS damage grading for the July 2021
+floods in Germany, and the satellite layer against Sentinel-1 radar (`results/README.md`, sections 7-9).
 
 **Field app:** https://floodline.sunnyshabanali.dev/field/ is an offline-first web app for responders. It
 captures a photo with location, time and quick tags, keeps it on the phone until there is signal, and sends it to
@@ -48,9 +50,9 @@ test split and **74.1%** on AlleyFloodNet. It learned the dataset, not floods. v
 | Depth | waterline against reference objects of known height + metric monocular depth | 300-image depth-bin benchmark labelled from CVFD |
 | Impact | open-weight VLM with a strict JSON schema (people, roofs, vehicles, flow, signs, depth class, confidence) | DINOv3 kept as the cheap offline screen; compared on accuracy, latency, memory |
 | Location | tier 1 EXIF GPS · tier 2 text and landmarks read from the image, geocoded · tier 3 report text or district | CVFD has no GPS; mapping uses geotagged external imagery and live capture |
-| Satellite | Copernicus EMS rapid-mapping flood polygons per H3 hexagon, with the mapped area and permanent water kept apart (built: five activations); Sentinel-1 water mask planned as a second source | |
+| Satellite | Copernicus EMS rapid-mapping flood polygons per H3 hexagon, with the mapped area and permanent water kept apart (five activations); Sentinel-1 RTC water mask (Otsu on VV) as an independent check | |
 | Reach | OSM drive network; travel time from fire stations and hospitals before and after removing roads under water; cut-off hexes | |
-| Exposure | OSM building footprints inside the flood and in cut-off hexes | |
+| Exposure | building footprints inside the flood and in cut-off hexes: OSM, or the per-hexagon maximum of OSM and Microsoft ML footprints where OSM is thin | |
 | Fusion | per hexagon: hazard (photo depth, else satellite water), exposure, access; priority and a separate confidence | |
 | Serving | static MapLibre site on GitHub Pages (`docs/`), GeoParquet and GeoJSON; PMTiles for province scale | |
 

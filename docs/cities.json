@@ -1,5 +1,72 @@
 [
  {
+  "key": "larkana",
+  "title": "Larkana, Sindh, 2022",
+  "subtitle": "Indus floods. Copernicus EMS map from SPOT-6/7 imagery of 30 August 2022; buildings from OSM and Microsoft ML footprints.",
+  "bounds": [
+   68.07274,
+   27.45602,
+   68.44028,
+   27.69862
+  ],
+  "activation": "EMSR629_AOI01_DEL_PRODUCT_r1_RTP01_v2_vector",
+  "flood_outline_simplified_deg": 0.0002,
+  "stats": {
+   "mapped_km2": 963.5,
+   "flood_km2": 502.2,
+   "hexes": 8926,
+   "hexes_with_priority": 7619,
+   "hexes_cut_off": 678,
+   "buildings_in_flood": 10175,
+   "closed_road_segments": 2320,
+   "staging_points": 11,
+   "photos": 0,
+   "resolution": 9
+  },
+  "top": [
+   {
+    "h3": "894254096d3ffff",
+    "lat": 27.64121,
+    "lon": 68.2474,
+    "priority": 0.945,
+    "buildings_affected": 61,
+    "cut_off": true
+   },
+   {
+    "h3": "894254096bbffff",
+    "lat": 27.64716,
+    "lon": 68.26022,
+    "priority": 0.924,
+    "buildings_affected": 85,
+    "cut_off": true
+   },
+   {
+    "h3": "894254096abffff",
+    "lat": 27.64555,
+    "lon": 68.2634,
+    "priority": 0.918,
+    "buildings_affected": 78,
+    "cut_off": true
+   },
+   {
+    "h3": "89425443197ffff",
+    "lat": 27.4908,
+    "lon": 68.09615,
+    "priority": 0.914,
+    "buildings_affected": 55,
+    "cut_off": true
+   },
+   {
+    "h3": "89425409693ffff",
+    "lat": 27.64889,
+    "lon": 68.25067,
+    "priority": 0.912,
+    "buildings_affected": 72,
+    "cut_off": true
+   }
+  ]
+ },
+ {
   "key": "prague",
   "title": "Prague, June 2013",
   "subtitle": "Vltava flood. Copernicus EMS rapid map dated 3 June 2013.",
@@ -10,6 +77,7 @@
    50.1256
   ],
   "activation": "EMSR045_06PRAHA_DELINEATION_DETAIL01_v2_vector",
+  "flood_outline_simplified_deg": 2e-05,
   "stats": {
    "mapped_km2": 260.9,
    "flood_km2": 5.6,
@@ -76,6 +144,7 @@
    51.09645
   ],
   "activation": "EMSR044_08DRESDEN_DELINEATION_DETAIL01_v1_vector",
+  "flood_outline_simplified_deg": 2e-05,
   "stats": {
    "mapped_km2": 77.3,
    "flood_km2": 1.5,

@@ -25,3 +25,9 @@ change as OSM is edited. Download them into `data/external/osm/` together with t
 The `.poly` files are `koeln-regbez.poly` and `rheinland-pfalz.poly` from the same directories, saved as
 `<extract name>.poly`. EMS grading packages for EMSR517 come from
 `https://cems-mapping-website.s3.eu-west-1.amazonaws.com/static/activations/EMSR517/<product>_vector.zip`.
+
+| `pakistan-261019.osm.pbf` | https://download.geofabrik.de/asia/pakistan-261019.osm.pbf | `e32c1ce2b2640002a44961e5b51d9e78` |
+
+Microsoft Global ML Building Footprints tiles are fetched on demand from the index at
+`https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv` and cached under
+`data/external/buildings/`; the release date (2026-02-03 for Pakistan) is part of each tile URL.
