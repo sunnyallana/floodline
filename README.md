@@ -17,6 +17,9 @@ across floods. The satellite layer is checked against Sentinel-1 radar (`results
 captures a photo with location, time and quick tags, keeps it on the phone until there is signal, and sends it to
 the coordination team. `floodline ingest` brings those reports into the pipeline. See `app/` and `supabase/`.
 
+**Questions a reviewer will ask** (bogus reports, why fixed weights, why access, OSM gaps, radar instead of
+analyst maps), each answered with the result file that settles it: `REVIEWER_QUESTIONS.md`.
+
 **Depth benchmark:** https://huggingface.co/datasets/sunnyallana/flood-depth-benchmark has 300 flood photos with depth
 classes. The labels are AI-assisted and a human review is pending.
 
