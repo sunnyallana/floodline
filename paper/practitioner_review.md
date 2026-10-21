@@ -34,4 +34,4 @@ Short answers:
 
 May we quote you by role (for example "a district emergency officer, Sindh")?  Yes / No
 
-Please reply by email to reach.sunnyallana@gmail.com. Thank you.
+Please reply by email to reach@sunnyshabanali.dev. Thank you.
