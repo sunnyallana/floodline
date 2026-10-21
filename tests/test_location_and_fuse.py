@@ -173,9 +173,13 @@ def test_satellite_water_nearby_corroborates_one_report():
     assert bool(ranked.corroborated) and ranked.priority > 0
 
 
-def test_model_assessment_counts_on_its_own():
-    ranked = score(_claim(depth_claim=None, depth_assessed="waist", people_elevated=0)).iloc[0]
-    assert ranked.hazard == pytest.approx(0.7) and ranked.priority > 0
+def test_model_depth_is_a_claim_not_evidence():
+    # The depth model does no better than a constant guess (results/vlm_benchmark.json): alone, it only asks
+    # for verification; backed by satellite water nearby, it counts.
+    alone = score(_claim(depth_claim=None, depth_assessed="waist", people_elevated=0)).iloc[0]
+    assert alone.priority == 0 and bool(alone.needs_verification) and alone.verify_score == pytest.approx(0.7)
+    backed = score(_claim(depth_claim=None, depth_assessed="waist", people_elevated=0, satellite_water_near=True))
+    assert backed.iloc[0].hazard == pytest.approx(0.7) and backed.iloc[0].priority > 0
 
 
 def test_reports_under_review_or_rejected_never_become_evidence():

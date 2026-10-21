@@ -63,7 +63,7 @@ behind an object sits higher in the image than its base, which v0 read as submer
 of the object's height is visible (stature from shoulder width, door height from width) and only accepts water that
 touches the object's base at the object's distance in the depth map.
 
-## 4. Vision-language assessment (smoke tests, 6 images)
+## 4. Vision-language assessment
 
 `vlm_cmp_qwen25vl.jsonl`, `vlm_cmp_qwen3vl_2pass.jsonl`, `vlm_run_*.json` · llama.cpp, CPU, grammar-constrained JSON
 
@@ -75,8 +75,23 @@ touches the object's base at the object's distance in the depth map.
 
 Finding: both VLMs describe the waterline correctly in prose and fail to map it to an enumerated field in the same
 call. Splitting the task fixes it: pass 1 describes, pass 2 maps the description to (reference object, water level)
-by deterministic phrase rules with an LLM text-only fallback, and the depth class is computed in code. The full
-538-image run is scheduled after segmentation finishes.
+by deterministic phrase rules with an LLM text-only fallback, and the depth class is computed in code.
+
+**Full run, all 538 images** (`vlm_assessments.jsonl`, `vlm_run_Qwen3VL-8B-Instruct-Q8_0.json`,
+`vlm_benchmark.json`). Qwen3-VL-8B Q8 on CPU: 537 valid outputs (0.19 % failures), median 59 s per image. Pass 2
+was settled by the phrase rules on 339 images and needed the text-only fallback on 46. The model answered
+`unknown` on 251 images, and on 23 of the 97 labelled benchmark images.
+
+| On the 74 labelled images it classified | Exact | Within one class |
+|---|---|---|
+| Qwen3-VL-8B, two pass | 0.30 | 0.77 |
+| always "ankle" (commonest true class on the same images) | 0.35 | 0.80 |
+
+A negative result, like the waterline. The errors are one-sided: the model calls 36 of the 74 "knee", so shallow
+water is mostly wrong (dry 1 of 11, ankle 2 of 26), while deep water is mostly right (chest 6 of 6, above head
+2 of 3). Deep water is where depth matters most for rescue. The benchmark labels are AI-assisted and the shallow
+classes are the hardest to label, so part of the shallow error may be label noise; the blind human review will
+tell. The fusion therefore never lets a model-read depth raise priority on its own (`fuse.score`).
 
 ## 5. Satellite flood extent and photo ⇄ satellite agreement
 

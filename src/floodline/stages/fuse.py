@@ -152,9 +152,11 @@ def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
 
     Report claims count towards priority only when something independent of the reporters backs them:
 
-    - a depth claim: satellite water in the hexagon or a neighbour (``satellite_water_near``), or the model's
-      assessment of the photo (``depth_assessed``), or, only where the satellite has not mapped the hexagon at
-      all, at least two devices agreeing within one class;
+    - a depth claim: satellite water in the hexagon or a neighbour (``satellite_water_near``), or, only where
+      the satellite has not mapped the hexagon at all, at least two devices agreeing within one class;
+    - a depth read from the photo by the model (``depth_assessed``) needs the same backing. On the depth benchmark
+      it does no better than always answering the commonest class (``results/vlm_benchmark.json``), so it is a
+      second opinion on the photo, not independent evidence;
     - a people claim: the model's own count (``people_assessed``), or two devices claiming people, again only
       where the satellite has not mapped the hexagon dry. Satellite water confirms water, never people.
 
@@ -180,19 +182,28 @@ def score(hexes: pd.DataFrame, weights: Weights | None = None) -> pd.DataFrame:
         mapped_dry = pd.Series(False, index=h.index)
     devices_agree = (_col(h, "depth_agreeing_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
     people_agree = (_col(h, "people_devices", 0).fillna(0) >= CORROBORATING_DEVICES) & ~mapped_dry
-    depth_ok = sat_near | assessed.notna() | devices_agree
+    depth_ok = sat_near | devices_agree
+    assessed_ok = assessed.notna() & depth_ok
     people_ok = people_assessed.notna() | people_agree | (sat_near & w.permissive_corroboration)
     has_depth, has_people = claim.notna(), claimed_people > 0
     h["corroborated"] = (has_depth & depth_ok) | (has_people & people_ok)
+    unbacked_model = assessed.notna() & ~assessed_ok
     h["needs_verification"] = (
-        (has_depth & ~depth_ok) | (has_people & ~people_ok) | (_col(h, "n_unverified", 0).fillna(0) > 0)
+        (has_depth & ~depth_ok)
+        | (has_people & ~people_ok)
+        | unbacked_model
+        | (_col(h, "n_unverified", 0).fillna(0) > 0)
     )
-    unbacked_depth = np.where(has_depth & ~depth_ok, claim.fillna(0), 0.0)
+    unbacked_depth = np.fmax(
+        np.where(has_depth & ~depth_ok, claim.fillna(0), 0.0), np.where(unbacked_model, assessed.fillna(0), 0.0)
+    )
     unbacked_people = np.where(has_people & ~people_ok, claimed_people, 0.0)
     h["verify_score"] = np.where(
         h.needs_verification, np.fmax(unbacked_depth, np.tanh(unbacked_people.astype(float) / 5.0)), 0.0
     ).round(3)
-    report_severity = np.fmax(assessed.to_numpy(float), np.where(depth_ok, claim.to_numpy(float), np.nan))
+    report_severity = np.fmax(
+        np.where(assessed_ok, assessed.to_numpy(float), np.nan), np.where(depth_ok, claim.to_numpy(float), np.nan)
+    )
     people = np.where(people_ok, np.where(people_assessed.notna(), people_assessed, claimed_people), 0)
 
     affected = in_flood + np.where(cut_off, np.maximum(total - in_flood, 0), 0) + w.person_weight * people

@@ -51,8 +51,9 @@ the per-device limits, and revocation.
 ### How do you stop bogus reports from pulling responders to the wrong place?
 
 A field report's depth or people claim raises priority only when something independent backs it: satellite water
-near the report, the model's reading of the photo, or, where the satellite has not mapped the area, a second
-device. Beyond that:
+near the report or, where the satellite has not mapped the area, a second device. The photo model's depth reading
+used to count too; once the benchmark showed it was no better than a constant guess, it was demoted to a claim that
+needs the same backing. Beyond that:
 - known photos are rejected by near-duplicate hashing against 11,563 flood images, which catches 99.8 % of
   forwarded copies;
 - uploads are rate-limited per device and per team;
@@ -95,9 +96,10 @@ Sanghar from 0.37 to 0.23 (`data_ablations.osm_buildings_only.per_event_EHA`).
 
 Partly. SAM 3 water masks match the dataset masks at mean IoU 0.96. That is partly circular, since those masks
 were made with SAM 3 assistance. The waterline depth method did not beat the "always the commonest class"
-baseline (40 % exact vs 38 %; 78 % within one class vs 83 %). It is reported as a negative result. The
-vision-language model is being scored on the same benchmark against the same baseline, written to
-`results/vlm_benchmark.json` when its run completes.
+baseline (40 % exact vs 38 %; 78 % within one class vs 83 %). It is reported as a negative result. So is
+the vision-language model (Qwen3-VL-8B, all 538 photos): 30 % exact and 77 % within one class, against 35 % and
+80 % for the same baseline. It calls most shallow water "knee", but gets deep water right (chest 6 of 6, above head
+2 of 3). Neither depth method can raise a hexagon's priority on its own (`results/README.md` section 4).
 
 ### Are the depth labels trustworthy?
 
