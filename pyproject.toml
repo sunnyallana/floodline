@@ -79,6 +79,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # en dashes in prose strings are intent
 "tests/*" = ["S101"]
 "src/floodline/reading_rules.py" = ["E501"]  # regex tables read better on one line
 "src/floodline/stages/serve.py" = ["E501"]  # embedded HTML/JS template
+"qgis/*" = ["N802"]  # QGIS's Processing API names its methods in camelCase
 
 [tool.mypy]
 python_version = "3.12"  # numpy's stubs use 3.12 syntax; tests still run on 3.11 and 3.12

@@ -119,6 +119,31 @@ minutes old, so a gallery picture never inherits where the phone is now.
 TypeScript, a service worker, IndexedDB, and Supabase PostgreSQL with row-level security. 62 unit and database
 policy tests and 4 end-to-end tests run in CI. Source in [`app/`](app) and [`supabase/`](supabase).
 
+## QGIS
+
+<img src=".github/assets/qgis-prague.jpg" alt="Floodline's Prague project open in QGIS: priority hexagons along the Vltava south of the city, cut-off hexagons outlined in black, closed roads in red, hospitals in green, over OpenStreetMap" width="100%">
+
+Each city on the map is also a QGIS project, styled like the web map, for a coordinator who works in desktop GIS or
+has no connection. Put a city's two files in one folder and open the `.qgz`:
+
+| City | Download |
+|---|---|
+| Larkana, Sindh, 2022 | [project](https://floodline.sunnyshabanali.dev/qgis/larkana/floodline_larkana.qgz) · [GeoPackage](https://floodline.sunnyshabanali.dev/qgis/larkana/floodline_larkana.gpkg) (6 MB) |
+| Prague, June 2013 | [project](https://floodline.sunnyshabanali.dev/qgis/prague/floodline_prague.qgz) · [GeoPackage](https://floodline.sunnyshabanali.dev/qgis/prague/floodline_prague.gpkg) (0.7 MB) |
+| Dresden, June 2013 | [project](https://floodline.sunnyshabanali.dev/qgis/dresden/floodline_dresden.qgz) · [GeoPackage](https://floodline.sunnyshabanali.dev/qgis/dresden/floodline_dresden.gpkg) (0.4 MB) |
+
+The GeoPackage carries its own styles, so it also opens styled without the project. Only the basemap needs a
+connection.
+
+To rank with other priorities, add [`qgis/floodline_rerank.py`](qgis/floodline_rerank.py) to the Processing Toolbox
+(Scripts > Add Script to Toolbox) and run Floodline > Re-rank hexagons on `priority_hexes`. Its defaults reproduce
+the published ranking; raise the access weight, say, and the neighbourhoods that are hardest to reach move up.
+
+`floodline qgis <city>` builds the files for any city added with `floodline serve`; it finds QGIS's Python on
+Windows, or set `FLOODLINE_QGIS_PYTHON`. [`qgis/verify.py`](qgis/verify.py) checks a project the way a user meets it:
+every layer loads from relative paths, every table carries its style, and the re-rank tool at its default weights
+reproduces each published priority to within 0.001. All three cities pass. Built and checked with QGIS 3.44 LTR.
+
 ## What did not work
 
 Reported in full, because a reviewer should not have to find these alone.
@@ -136,7 +161,7 @@ Reported in full, because a reviewer should not have to find these alone.
 ```bash
 git clone https://github.com/sunnyallana/floodline && cd floodline
 pip install -e ".[geo,dev]"
-pytest                                   # 190 tests, no downloads
+pytest                                   # 200 tests, no downloads
 ```
 
 Rank a town from a Copernicus EMS package:
@@ -148,6 +173,7 @@ floodline reach    results/satellite_prague.csv --ems $EMS --out reach_prague
 floodline exposure results/satellite_prague.csv --ems $EMS --reach results/reach_prague.csv --out exposure_prague.csv
 floodline fuse     results/satellite_prague.csv results/reach_prague.csv results/exposure_prague.csv --out hexes_prague
 floodline serve    results/hexes_prague.csv --key prague --title "Prague, June 2013" --ems $EMS
+floodline qgis     prague                # GeoPackage and styled QGIS project in docs/qgis/prague/
 ```
 
 Re-run the six-flood benchmark (OSM extracts and their checksums are listed in [`data/README.md`](data/README.md)):
@@ -176,12 +202,13 @@ Docker image builds in CI, and long stages resume where they stopped.
 
 ```
 src/floodline/   the pipeline: one module per stage, a single `floodline` command
-tests/           190 tests, run in CI on Python 3.11 and 3.12
+tests/           200 tests in CI on Python 3.11 and 3.12, 3 more where QGIS is installed
 results/         every number quoted anywhere, with its run record
 paper/           the IEEE paper; numbers.tex and the figures are generated from results/
+qgis/            QGIS project builder, its check, and the Re-rank hexagons Processing tool
 app/             Floodline Field, the offline phone app
 supabase/        database schema and row-level security for field reports
-docs/            the published site: project page, map, field app, label review tool
+docs/            the published site: project page, map, QGIS projects, field app, label review tool
 ```
 
 ## Future work

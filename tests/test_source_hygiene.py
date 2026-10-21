@@ -12,6 +12,7 @@ def test_no_control_characters_in_source():
     for path in [
         *ROOT.joinpath("src").rglob("*.py"),
         *ROOT.joinpath("tests").rglob("*.py"),
+        *ROOT.joinpath("qgis").glob("*.py"),
         *ROOT.joinpath("scripts").glob("*"),
     ]:
         text = path.read_text(encoding="utf-8")

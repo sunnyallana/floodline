@@ -92,6 +92,11 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--photos", help="photo CSV with lat, lon, title, license, source_url")
     sv.add_argument("--out-dir", help="map directory; default docs/map/")
 
+    qg = sub.add_parser("qgis", help="one published city as a GeoPackage and a styled QGIS project (docs/qgis/)")
+    qg.add_argument("key", help="a city already added with `floodline serve`, e.g. larkana")
+    qg.add_argument("--out-dir", help="output directory; default docs/qgis/<key>/")
+    qg.add_argument("--qgis-python", help="QGIS's Python launcher; default $FLOODLINE_QGIS_PYTHON or a Windows install")
+
     sub.add_parser("external", help="index the European Flood 2013 geotagged set under data/external/")
 
     ag = sub.add_parser("agree", help="share of located photos that fall where the satellite maps water")
@@ -343,6 +348,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             from floodline.stages import site
 
             site.run(paths)
+        elif args.command == "qgis":
+            from pathlib import Path
+
+            from floodline.stages import qgis
+
+            qgis.run(paths, args.key, Path(args.out_dir) if args.out_dir else None, args.qgis_python)
         elif args.command == "labels":
             from pathlib import Path
 
