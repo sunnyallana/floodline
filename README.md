@@ -206,7 +206,7 @@ European Commission JRC, CC BY 4.0. Radar: modified Copernicus Sentinel data via
 ```bibtex
 @inproceedings{shabanali2026floodlinepaper,
   author    = {Shaban Ali, Sunny},
-  title     = {Floodline: Ranking Where Flood Responders Are Needed, Tested on Six Floods on Four Continents},
+  title     = {Floodline: Ranking Where Flood Responders Are Needed},
   booktitle = {International Bhurban Conference on Applied Sciences and Technologies (IBCAST)},
   publisher = {IEEE},
   year      = {2026},
