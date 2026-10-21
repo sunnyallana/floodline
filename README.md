@@ -4,8 +4,10 @@
 
 **Where should flood responders go first?**
 
-A ranked map of flooded neighbourhoods, built from free data in a day,<br>
-and tested against the damage that actually happened in six real floods.
+A ranked map of flooded neighbourhoods from free data that is out within a day of a flood,<br>
+tested against the damage that actually happened in six real floods.
+
+<sub>Final-year project, FAST-NUCES Karachi · Aug 2025 – May 2026 · accepted at IEEE IBCAST 2026</sub>
 
 [![CI](https://github.com/sunnyallana/floodline/actions/workflows/ci.yml/badge.svg)](https://github.com/sunnyallana/floodline/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0b6e8a)](LICENSE)
@@ -202,6 +204,15 @@ European Commission JRC, CC BY 4.0. Radar: modified Copernicus Sentinel data via
 ## Citation
 
 ```bibtex
+@inproceedings{shabanali2026floodlinepaper,
+  author    = {Shaban Ali, Sunny},
+  title     = {Floodline: Ranking Where Flood Responders Are Needed, Tested on Six Floods on Four Continents},
+  booktitle = {International Bhurban Conference on Applied Sciences and Technologies (IBCAST)},
+  publisher = {IEEE},
+  year      = {2026},
+  note      = {Accepted}
+}
+
 @software{shabanali2026floodline,
   author = {Shaban Ali, Sunny},
   title  = {Floodline: ranking where flood responders are needed from satellite flood extent,
@@ -211,4 +222,4 @@ European Commission JRC, CC BY 4.0. Radar: modified Copernicus Sentinel data via
 }
 ```
 
-<p align="center"><sub>Built by <a href="https://sunnyshabanali.dev">Sunny Shaban Ali</a> as a final-year project at FAST-NUCES, Karachi, supervised by Musawar Ali.</sub></p>
+<p align="center"><sub>Built by <a href="https://sunnyshabanali.dev">Sunny Shaban Ali</a> as a final-year project at FAST-NUCES, Karachi (Aug 2025 – May 2026), supervised by Musawar Ali.</sub></p>
